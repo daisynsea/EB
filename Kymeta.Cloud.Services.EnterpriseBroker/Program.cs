@@ -33,6 +33,8 @@ else
 {
     builder.Logging.AddKymetaAzureTableStorage(builder.Configuration.GetSection("KymetaLogging"), instanceId ?? "0", pid);
 }
+// Add health
+builder.Services.AddHealthChecks();
 // Add services
 builder.Services.AddHttpClient<IAccountsClient, AccountsClient>();
 builder.Services.AddHttpClient<IOracleClient, OracleClient>();
@@ -61,4 +63,5 @@ var app = builder.Build();
 app.UseApiVersionPathMiddleware();
 app.UseAuthorization();
 app.MapControllers();
+app.UseHealthChecks("/health");
 app.Run("http://*:5098");
