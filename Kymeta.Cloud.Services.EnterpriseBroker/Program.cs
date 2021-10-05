@@ -10,10 +10,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Use a custom port (TODO: This doesn't work right now, known issue, fixed in RC2)
 // builder.WebHost.UseUrls("http://*:5098");
 // Default connection limit is 100 seconds, make it a lot longer just in case Oracle sucks
-builder.WebHost.UseKestrel(options =>
-{
-    options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(5);
-});
+//builder.WebHost.UseKestrel(options =>
+//{
+//    options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(5);
+//});
 // Setup configuration
 builder.Configuration.AddGrapevineConfiguration(new GrapevineConfigurationOptions
 {
