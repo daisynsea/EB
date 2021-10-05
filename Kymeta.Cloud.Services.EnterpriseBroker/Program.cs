@@ -64,4 +64,4 @@ app.UseApiVersionPathMiddleware();
 app.UseAuthorization();
 app.MapControllers();
 app.UseHealthChecks("/health");
-app.Run("http://*:5098");
+app.Run();
