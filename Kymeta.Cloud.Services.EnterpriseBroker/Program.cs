@@ -2,6 +2,7 @@ using Kymeta.Cloud.Commons.AspNet.ApiVersion;
 using Kymeta.Cloud.Commons.AspNet.DistributedConfig;
 using Kymeta.Cloud.Commons.AspNet.Health;
 using Kymeta.Cloud.Logging;
+using Kymeta.Cloud.Services.EnterpriseBroker;
 using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -59,6 +60,7 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 //app.UseHttpsRedirection();
 app.UseApiVersionPathMiddleware();
+app.UseAuthKeyMiddleware();
 app.UseAuthorization();
 app.MapControllers();
 app.UseHealthChecks("/health");
