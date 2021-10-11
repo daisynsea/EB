@@ -39,6 +39,7 @@ builder.Services.AddHttpClient<IAccountsClient, AccountsClient>();
 builder.Services.AddHttpClient<IOracleClient, OracleClient>();
 builder.Services.AddHttpClient<IUsersClient, UsersClient>();
 builder.Services.AddScoped<IOssService, OssService>();
+builder.Services.AddScoped<IAccountBrokerService, AccountBrokerService>();
 // TODO: Add more here
 
 // Add health client
