@@ -2,8 +2,6 @@ using Kymeta.Cloud.Commons.AspNet.ApiVersion;
 using Kymeta.Cloud.Commons.AspNet.DistributedConfig;
 using Kymeta.Cloud.Commons.AspNet.Health;
 using Kymeta.Cloud.Logging;
-using Kymeta.Cloud.Services.EnterpriseBroker.HttpClients;
-using Kymeta.Cloud.Services.EnterpriseBroker.Services;
 using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,7 +21,7 @@ builder.Configuration.AddGrapevineConfiguration(new GrapevineConfigurationOption
 }, new CancellationTokenSource().Token);
 if (builder.Environment.IsDevelopment()) builder.Configuration.AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true);
 // Setup logging
-string instanceId = Environment.GetEnvironmentVariable("WEBSITE_INSTANCE_ID");
+string? instanceId = Environment.GetEnvironmentVariable("WEBSITE_INSTANCE_ID");
 string pid = String.Format("{0}", Process.GetCurrentProcess().Id);
 if (builder.Environment.IsDevelopment())
 {

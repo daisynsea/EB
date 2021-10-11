@@ -1,13 +1,12 @@
-﻿namespace Kymeta.Cloud.Services.EnterpriseBroker.HttpClients
-{
-    /// <summary>
-    /// Client used to communicate with the Accounts microservice
-    /// </summary>
-    public interface IAccountsClient
-    {
+﻿namespace Kymeta.Cloud.Services.EnterpriseBroker.HttpClients;
 
-    }
-    public class AccountsClient : IAccountsClient
-    {
-    }
+/// <summary>
+/// Client used to communicate with the Accounts microservice
+/// </summary>
+public interface IAccountsClient
+{
+
+}
+public class AccountsClient : IAccountsClient
+{
 }

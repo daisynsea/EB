@@ -1,12 +1,11 @@
-﻿namespace Kymeta.Cloud.Services.EnterpriseBroker.HttpClients
+﻿namespace Kymeta.Cloud.Services.EnterpriseBroker.HttpClients;
+
+public interface IOracleClient
 {
-    public interface IOracleClient
-    {
 
-    }
+}
 
-    public class OracleClient : IOracleClient
-    {
+public class OracleClient : IOracleClient
+{
 
-    }
 }
