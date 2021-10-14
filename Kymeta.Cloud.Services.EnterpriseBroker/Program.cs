@@ -3,6 +3,7 @@ using Kymeta.Cloud.Commons.AspNet.DistributedConfig;
 using Kymeta.Cloud.Commons.AspNet.Health;
 using Kymeta.Cloud.Logging;
 using Kymeta.Cloud.Services.EnterpriseBroker;
+using Kymeta.Cloud.Services.EnterpriseBroker.Repositories;
 using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -38,8 +39,10 @@ builder.Services.AddHealthChecks();
 builder.Services.AddHttpClient<IAccountsClient, AccountsClient>();
 builder.Services.AddHttpClient<IOracleClient, OracleClient>();
 builder.Services.AddHttpClient<IUsersClient, UsersClient>();
+builder.Services.AddScoped<IActionsRepository, ActionsRepository>();
 builder.Services.AddScoped<IOssService, OssService>();
 builder.Services.AddScoped<IAccountBrokerService, AccountBrokerService>();
+builder.Services.AddScoped<IOracleService, OracleService>();
 // TODO: Add more here
 
 // Add health client

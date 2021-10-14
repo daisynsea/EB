@@ -27,7 +27,7 @@ public class BrokerAccountController : ControllerBase
         try
         {
             var result = await _accountBrokerService.ProcessSalesforceAction(model);
-            return Ok();
+            return result;
         }
         catch (Exception ex)
         {

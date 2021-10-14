@@ -27,7 +27,7 @@ public class SalesforceActionRecord
     /// </summary>
     public string ObjectId { get; set; }
     /// <summary>
-    /// Datetime the EAB Action record was last updated on
+    /// Datetime the EnterpriseAction record was last updated on
     /// </summary>
     public DateTime? LastUpdatedOn { get; set; }
     /// <summary>

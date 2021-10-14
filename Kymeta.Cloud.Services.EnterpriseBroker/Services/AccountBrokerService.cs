@@ -20,11 +20,15 @@ public interface IAccountBrokerService
 
 public class AccountBrokerService : IAccountBrokerService
 {
-    private IActionsRepository _actionsRepository;
+    private readonly IActionsRepository _actionsRepository;
+    private readonly IOracleService _oracleService;
+    private readonly IOssService _ossService;
 
-    public AccountBrokerService(IActionsRepository actionsRepository)
+    public AccountBrokerService(IActionsRepository actionsRepository, IOracleService oracleService, IOssService ossService)
     {
         _actionsRepository = actionsRepository;
+        _oracleService = oracleService;
+        _ossService = ossService;
     }
 
     public async Task<SalesforceProcessResponse> ProcessSalesforceAction(SalesforceActionObject model)
@@ -96,7 +100,7 @@ public class AccountBrokerService : IAccountBrokerService
             if (syncToOracle)
             {
                 // first string is the oracle account id
-                var addedAccountTuple = await _oracleRepository.AddAccount(model);
+                var addedAccountTuple = await _oracleService.AddAccount(model);
                 if (string.IsNullOrEmpty(addedAccountTuple.Item2)) // No error!
                 {
                     response.OracleStatus = StatusType.Successful;
@@ -119,7 +123,7 @@ public class AccountBrokerService : IAccountBrokerService
             #region Send to OSS
             if (syncToOss)
             {
-                var addedAccountTuple = await _oSSRepository.AddAccount(model, oracleAccountId);
+                var addedAccountTuple = await _ossService.AddAccount(model, oracleAccountId);
                 if (string.IsNullOrEmpty(addedAccountTuple.Item2)) // No error!
                 {
                     response.OSSStatus = StatusType.Successful;
@@ -137,46 +141,46 @@ public class AccountBrokerService : IAccountBrokerService
         }
         #endregion
 
-        //#region Process Account Update
-        //if (model.ObjectType == ActionObject.Account && model.ActionType == ActionType.Update)
-        //{
-        //    #region Send to Oracle
-        //    if (syncToOracle)
-        //    {
-        //        var updatedAccount = await _oracleRepository.UpdateAccount(model);
-        //        if (string.IsNullOrEmpty(updatedAccount.Item2)) // No error!
-        //        {
-        //            response.OracleStatus = StatusType.Successful;
-        //            await _actionsRepository.UpdateActionRecord(new SalesforceActionRecord { Id = actionRecord.Id, OracleStatus = StatusType.Successful });
-        //        }
-        //        else // Is error, do not EXIT.. continue to Oracle
-        //        {
-        //            response.OracleStatus = StatusType.Error;
-        //            response.OracleErrorMessage = updatedAccount.Item2;
-        //            await _actionsRepository.UpdateActionRecord(new SalesforceActionRecord { Id = actionRecord.Id, OracleStatus = StatusType.Error, OracleErrorMessage = updatedAccount.Item2 });
-        //        }
-        //    }
-        //    #endregion
+        #region Process Account Update
+        if (model.ObjectType == ActionObjectType.Account && model.ActionType == ActionType.Update)
+        {
+            #region Send to Oracle
+            if (syncToOracle)
+            {
+                var updatedAccount = await _oracleService.UpdateAccount(model);
+                if (string.IsNullOrEmpty(updatedAccount.Item2)) // No error!
+                {
+                    response.OracleStatus = StatusType.Successful;
+                    await _actionsRepository.UpdateActionRecord(new SalesforceActionRecord { Id = actionRecord.Id, OracleStatus = StatusType.Successful });
+                }
+                else // Is error, do not EXIT.. continue to Oracle
+                {
+                    response.OracleStatus = StatusType.Error;
+                    response.OracleErrorMessage = updatedAccount.Item2;
+                    await _actionsRepository.UpdateActionRecord(new SalesforceActionRecord { Id = actionRecord.Id, OracleStatus = StatusType.Error, OracleErrorMessage = updatedAccount.Item2 });
+                }
+            }
+            #endregion
 
-        //    #region Send to OSS
-        //    if (syncToOss)
-        //    {
-        //        var updatedAccount = await _oSSRepository.UpdateAccount(model);
-        //        if (string.IsNullOrEmpty(updatedAccount.Item2)) // No error!
-        //        {
-        //            response.OSSStatus = StatusType.Successful;
-        //            await _actionsRepository.UpdateActionRecord(new SalesforceActionRecord { Id = actionRecord.Id, OssStatus = StatusType.Successful });
-        //        }
-        //        else // Is error, do not EXIT.. continue to Oracle
-        //        {
-        //            response.OSSStatus = StatusType.Error;
-        //            response.OSSErrorMessage = updatedAccount.Item2;
-        //            await _actionsRepository.UpdateActionRecord(new SalesforceActionRecord { Id = actionRecord.Id, OssStatus = StatusType.Error, OssErrorMessage = updatedAccount.Item2 });
-        //        }
-        //    }
-        //    #endregion
-        //}
-        //#endregion
+            #region Send to OSS
+            if (syncToOss)
+            {
+                var updatedAccount = await _ossService.UpdateAccount(model);
+                if (string.IsNullOrEmpty(updatedAccount.Item2)) // No error!
+                {
+                    response.OSSStatus = StatusType.Successful;
+                    await _actionsRepository.UpdateActionRecord(new SalesforceActionRecord { Id = actionRecord.Id, OssStatus = StatusType.Successful });
+                }
+                else // Is error, do not EXIT.. continue to Oracle
+                {
+                    response.OSSStatus = StatusType.Error;
+                    response.OSSErrorMessage = updatedAccount.Item2;
+                    await _actionsRepository.UpdateActionRecord(new SalesforceActionRecord { Id = actionRecord.Id, OssStatus = StatusType.Error, OssErrorMessage = updatedAccount.Item2 });
+                }
+            }
+            #endregion
+        }
+        #endregion
 
         // TODO: is this even required for CLDSRV? Only needed for Oracle perhaps?
         #region Process Address Create
@@ -207,7 +211,6 @@ public class AccountBrokerService : IAccountBrokerService
         //}
         #endregion
 
-        //return response;
-        throw new NotImplementedException();
+        return response;
     }
 }
