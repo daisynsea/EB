@@ -13,7 +13,7 @@ public interface IOracleService
 
 public class OracleService : IOracleService
 {
-    private IOracleClient _oracleClient;
+    private readonly IOracleClient _oracleClient;
 
     public OracleService(IOracleClient oracleClient)
     {
