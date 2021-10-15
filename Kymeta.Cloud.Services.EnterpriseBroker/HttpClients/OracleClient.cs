@@ -46,6 +46,8 @@ public class OracleClient : IOracleClient
         {
             // check for empty content
             if (string.IsNullOrEmpty(soapEnvelope)) return null;
+            if (string.IsNullOrEmpty(oracleServiceUrl)) return null;
+            if (string.IsNullOrEmpty(soapAction)) return null;
 
             // encode the XML envelope (payload)
             byte[] byteArray = Encoding.UTF8.GetBytes(soapEnvelope);
@@ -80,10 +82,8 @@ public class OracleClient : IOracleClient
             // get the response and process it (print out the response XDocument doc)
             using (WebResponse response = await request.GetResponseAsync())
             {
-                using (Stream stream = response.GetResponseStream())
-                {
-                    doc = XDocument.Load(stream);
-                }
+                using Stream stream = response.GetResponseStream();
+                doc = XDocument.Load(stream);
             }
             Console.WriteLine(doc);
             return doc;
@@ -104,14 +104,14 @@ public class OracleClient : IOracleClient
         var response = await _client.PostAsJsonAsync($"crmRestApi/resources/latest/accounts", model, new JsonSerializerOptions { PropertyNameCaseInsensitive = false });
         string data = await response.Content.ReadAsStringAsync();
 
-        if (response.IsSuccessStatusCode)
+        if (!response.IsSuccessStatusCode)
         {
-            var deserializedObject = JsonSerializer.Deserialize<OracleAccountObject>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            return new Tuple<OracleAccountObject, string>(deserializedObject, null);
+            _logger.LogCritical($"Failed AddAccount Oracle HTTP call: {(int)response.StatusCode} | {data} | Model sent: {JsonSerializer.Serialize(model)}");
+            return new Tuple<OracleAccountObject, string>(null, data);
         }
 
-        _logger.LogCritical($"Failed AddAccount Oracle HTTP call: {(int)response.StatusCode} | {data} | Model sent: {JsonSerializer.Serialize(model)}");
-        return new Tuple<OracleAccountObject, string>(null, data);
+        var deserializedObject = JsonSerializer.Deserialize<OracleAccountObject>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        return new Tuple<OracleAccountObject, string>(deserializedObject, null);
     }
 
     public async Task<Tuple<OracleAddressObject, string>> CreateAddress(string accountNumber, CreateOracleAddressViewModel model)
@@ -119,14 +119,14 @@ public class OracleClient : IOracleClient
         var response = await _client.PostAsJsonAsync($"crmRestApi/resources/latest/accounts/{accountNumber}/child/Address", model, new JsonSerializerOptions { PropertyNameCaseInsensitive = false });
         string data = await response.Content.ReadAsStringAsync();
 
-        if (response.IsSuccessStatusCode)
+        if (!response.IsSuccessStatusCode)
         {
-            var deserializedObject = JsonSerializer.Deserialize<OracleAddressObject>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            return new Tuple<OracleAddressObject, string>(deserializedObject, null);
+            _logger.LogCritical($"Failed AddAddress Oracle HTTP call: {(int)response.StatusCode} | {data} | Model sent: {JsonSerializer.Serialize(model)}");
+            return new Tuple<OracleAddressObject, string>(null, data);
         }
 
-        _logger.LogCritical($"Failed AddAddress Oracle HTTP call: {(int)response.StatusCode} | {data} | Model sent: {JsonSerializer.Serialize(model)}");
-        return new Tuple<OracleAddressObject, string>(null, data);
+        var deserializedObject = JsonSerializer.Deserialize<OracleAddressObject>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        return new Tuple<OracleAddressObject, string>(deserializedObject, null);
     }
 
     public async Task<Tuple<OracleAccountObject, string>> UpdateAccount(CreateOracleAccountViewModel model, string partyNumber)
@@ -138,14 +138,14 @@ public class OracleClient : IOracleClient
 
         string data = await response.Content.ReadAsStringAsync();
 
-        if (response.IsSuccessStatusCode)
+        if (!response.IsSuccessStatusCode)
         {
-            var deserializedObject = JsonSerializer.Deserialize<OracleAccountObject>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            return new Tuple<OracleAccountObject, string>(deserializedObject, null);
+            _logger.LogCritical($"Failed UpdateAccount Oracle HTTP call: {(int)response.StatusCode} | {data} | Model sent: {JsonSerializer.Serialize(model)}");
+            return new Tuple<OracleAccountObject, string>(null, data);
         }
 
-        _logger.LogCritical($"Failed UpdateAccount Oracle HTTP call: {(int)response.StatusCode} | {data} | Model sent: {JsonSerializer.Serialize(model)}");
-        return new Tuple<OracleAccountObject, string>(null, data);
+        var deserializedObject = JsonSerializer.Deserialize<OracleAccountObject>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        return new Tuple<OracleAccountObject, string>(deserializedObject, null);
     }
 
     public async Task<Tuple<OracleAddressObject, string>> UpdateAddress(string accountNumber, CreateOracleAddressViewModel model, string partyNumber)
@@ -157,13 +157,13 @@ public class OracleClient : IOracleClient
 
         string data = await response.Content.ReadAsStringAsync();
 
-        if (response.IsSuccessStatusCode)
+        if (!response.IsSuccessStatusCode)
         {
-            var deserializedObject = JsonSerializer.Deserialize<OracleAddressObject>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            return new Tuple<OracleAddressObject, string>(deserializedObject, null);
+            _logger.LogCritical($"Failed UpdateAddress Oracle HTTP call: {(int)response.StatusCode} | {data} | Model sent: {JsonSerializer.Serialize(model)}");
+            return new Tuple<OracleAddressObject, string>(null, data);
         }
 
-        _logger.LogCritical($"Failed UpdateAddress Oracle HTTP call: {(int)response.StatusCode} | {data} | Model sent: {JsonSerializer.Serialize(model)}");
-        return new Tuple<OracleAddressObject, string>(null, data);
+        var deserializedObject = JsonSerializer.Deserialize<OracleAddressObject>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        return new Tuple<OracleAddressObject, string>(deserializedObject, null);
     }
 }
