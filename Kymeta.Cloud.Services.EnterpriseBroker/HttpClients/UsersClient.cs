@@ -30,13 +30,14 @@ public class UsersClient : IUsersClient
         var response = await _client.PostAsJsonAsync($"v1/roles", model);
         string data = await response.Content.ReadAsStringAsync();
 
-        if (response.IsSuccessStatusCode)
+        if (!response.IsSuccessStatusCode)
         {
-            return JsonSerializer.Deserialize<Role>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            _logger.LogCritical($"Failed AddRole HTTP call: {(int)response.StatusCode} | {data} | Model sent: {JsonSerializer.Serialize(model)}");
+            return null;
         }
 
-        _logger.LogCritical($"Failed AddRole HTTP call: {(int)response.StatusCode} | {data} | Model sent: {JsonSerializer.Serialize(model)}");
-        return null;
+        return JsonSerializer.Deserialize<Role>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
     }
 
     public async Task<Role> EditRolePermissions(Guid roleId, List<Guid> permissionIds)
@@ -44,13 +45,13 @@ public class UsersClient : IUsersClient
         var response = await _client.PutAsJsonAsync($"v1/roles/{roleId}/permissions", permissionIds);
         string data = await response.Content.ReadAsStringAsync();
 
-        if (response.IsSuccessStatusCode)
+        if (!response.IsSuccessStatusCode)
         {
-            return JsonSerializer.Deserialize<Role>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            _logger.LogCritical($"Failed EditRolePermissions HTTP call: {(int)response.StatusCode} | {data} | RoleId: {roleId}");
+            return null;
         }
 
-        _logger.LogCritical($"Failed EditRolePermissions HTTP call: {(int)response.StatusCode} | {data} | RoleId: {roleId}");
-        return null;
+        return JsonSerializer.Deserialize<Role>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
     }
 
     public async Task<List<Permission>> GetPermissions(Guid? roleId)
@@ -58,13 +59,13 @@ public class UsersClient : IUsersClient
         var response = await _client.GetAsync($"v1/permissions?roleId={roleId}");
         string data = await response.Content.ReadAsStringAsync();
 
-        if (response.IsSuccessStatusCode)
+        if (!response.IsSuccessStatusCode)
         {
-            return JsonSerializer.Deserialize<List<Permission>>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            _logger.LogCritical($"Failed GetPermissions HTTP call: {(int)response.StatusCode} | {data} | RoleId: {roleId}");
+            return null;
         }
 
-        _logger.LogCritical($"Failed GetPermissions HTTP call: {(int)response.StatusCode} | {data} | RoleId: {roleId}");
-        return null;
+        return JsonSerializer.Deserialize<List<Permission>>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
     }
 
     public async Task<User> GetUserByEmail(string email)
@@ -72,12 +73,12 @@ public class UsersClient : IUsersClient
         var response = await _client.GetAsync($"v2/users/email/{email}");
         string data = await response.Content.ReadAsStringAsync();
 
-        if (response.IsSuccessStatusCode)
+        if (!response.IsSuccessStatusCode)
         {
-            return JsonSerializer.Deserialize<User>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            _logger.LogCritical($"Failed GetUserByEmail HTTP call: {(int)response.StatusCode} | {data}");
+            return null;
         }
 
-        _logger.LogCritical($"Failed GetUserByEmail HTTP call: {(int)response.StatusCode} | {data}");
-        return null;
+        return JsonSerializer.Deserialize<User>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
     }
 }
