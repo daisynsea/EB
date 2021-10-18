@@ -33,6 +33,10 @@ public class OssService : IOssService
         _config = config;
         _accountsClient = accountsClient;
         _usersClient = usersClient;
+
+        // system user configs
+        _systemUser.Id = new Guid(config["SystemUserId"]);
+        _systemUser.AccountId = new Guid(config["KymetaAccountId"]);
     }
 
     public async Task<Tuple<Account, string>> AddAccount(SalesforceActionObject model, string oracleAccountId)
