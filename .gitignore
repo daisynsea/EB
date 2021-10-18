@@ -4,6 +4,10 @@
 # Dev environment
 appsettings.Development.json
 
+# Coverlet Test Results
+TestResults/
+coveragereport/
+
 # User-specific files
 *.suo
 *.user
