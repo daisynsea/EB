@@ -1,5 +1,4 @@
 ﻿using Dapper;
-using Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce;
 using System.Data;
 using System.Data.SqlClient;
 

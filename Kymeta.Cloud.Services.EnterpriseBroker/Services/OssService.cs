@@ -1,6 +1,4 @@
-﻿using Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce;
-
-namespace Kymeta.Cloud.Services.EnterpriseBroker.Services;
+﻿namespace Kymeta.Cloud.Services.EnterpriseBroker.Services;
 
 /// <summary>
 /// Service used to translate data between salesforce/oracle and OSS

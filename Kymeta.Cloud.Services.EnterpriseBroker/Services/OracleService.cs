@@ -1,7 +1,4 @@
-﻿using Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle;
-using Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce;
-
-namespace Kymeta.Cloud.Services.EnterpriseBroker.Services;
+﻿namespace Kymeta.Cloud.Services.EnterpriseBroker.Services;
 
 public interface IOracleService
 {
