@@ -5,7 +5,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Services;
 
 public interface IOracleService
 {
-    Task<Tuple<string, string>> AddAccount(SalesforceActionObject model);
+    Task<Tuple<long?, string>> AddAccount(SalesforceActionObject model);
     Task<Tuple<string, string>> UpdateAccount(SalesforceActionObject model);
     Task<Tuple<string, string>> AddAddress(SalesforceActionObject model);
     Task<Tuple<string, string>> UpdateAddress(SalesforceActionObject model);
@@ -20,12 +20,17 @@ public class OracleService : IOracleService
         _oracleClient = oracleClient;
     }
 
-    public async Task<Tuple<string, string>> AddAccount(SalesforceActionObject model)
+    public async Task<Tuple<long?, string>> AddAccount(SalesforceActionObject model)
     {
         var account = RemapSalesforceAccountToOracleAccount(model);
+        // create the Organization via REST endpoint
         var added = await _oracleClient.CreateAccount(account);
-        if (!string.IsNullOrEmpty(added.Item2)) return new Tuple<string, string>(null, $"There was an error adding the account to Oracle: {added.Item2}");
-        return new Tuple<string, string>(added.Item1.PartyNumber, string.Empty);
+        if (!string.IsNullOrEmpty(added.Item2)) return new Tuple<long?, string>(null, $"There was an error adding the account to Oracle: {added.Item2}");
+
+        // TODO: creat the Customer Account via SOAP service (using added.Item1.PartyId which is necessary for the request)
+
+
+        return new Tuple<long?, string>(added.Item1.PartyId, string.Empty);
     }
 
     public async Task<Tuple<string, string>> UpdateAccount(SalesforceActionObject model)

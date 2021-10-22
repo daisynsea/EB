@@ -87,7 +87,7 @@ public class AccountBrokerService : IAccountBrokerService
         };
         #endregion
 
-        string oracleAccountId = null;
+        long? oracleAccountId = null;
 
         #region Process Account Create
         // If it's an account
