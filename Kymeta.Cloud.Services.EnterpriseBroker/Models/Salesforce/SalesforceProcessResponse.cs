@@ -9,6 +9,6 @@ public class SalesforceProcessResponse
     public string? OSSErrorMessage { get; set; }
     public string? OracleErrorMessage { get; set; }
     public string? AddedOssAccountId { get; set; }
-    public long? AddedOracleAccountId { get; set; }
+    public string? AddedOracleAccountId { get; set; }
 }
 

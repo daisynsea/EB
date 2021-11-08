@@ -10,7 +10,7 @@ public interface IOssService
     /// </summary>
     /// <param name="account">Account model</param>
     /// <returns>Added account</returns>
-    Task<Tuple<Account, string>> AddAccount(SalesforceActionObject model, long? oracleAccountId);
+    Task<Tuple<Account, string>> AddAccount(SalesforceActionObject model, string oracleAccountId);
     /// <summary>
     /// Update an existing account to OSS
     /// </summary>
@@ -37,7 +37,7 @@ public class OssService : IOssService
         _systemUser.AccountId = new Guid(config["KymetaAccountId"]);
     }
 
-    public async Task<Tuple<Account, string>> AddAccount(SalesforceActionObject model, long? oracleAccountId)
+    public async Task<Tuple<Account, string>> AddAccount(SalesforceActionObject model, string oracleAccountId)
     {
         // Verify exists
         var existingAccount = await GetAccount(model.ObjectId);
@@ -85,7 +85,7 @@ public class OssService : IOssService
         return await _accountsClient.GetAccountBySalesforceId(salesforceId);
     }
 
-    private Account RemapSalesforceAccountToOssAccount(SalesforceActionObject model, User user, long? oracleAccountId = null)
+    private Account RemapSalesforceAccountToOssAccount(SalesforceActionObject model, User user, string? oracleAccountId = null)
     {
         var account = new Account
         {
@@ -95,7 +95,7 @@ public class OssService : IOssService
             Origin = CreatedOriginEnum.SF,
             CreatedById = user.Id,
             ModifiedById = user.Id,
-            OracleAccountId = oracleAccountId.HasValue ? oracleAccountId.Value.ToString() : null,
+            OracleAccountId = oracleAccountId,
             // TODO: Add ParentId based on the Parent account id property from Salesforce
             ParentId = _config.GetValue<Guid>("KymetaAccountId")
         };

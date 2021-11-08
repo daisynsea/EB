@@ -48,9 +48,8 @@ public static class OracleSoapTemplates
         }
 
         // TODO: verify XML and required fields via guidance from RSM or Oracle guru (OrigSystem, CreatedByModule, OriginalSystemReference, OwnerTableName, etc...)
-        // TODO: must identify template values to be populated from previous Oracle requests (OrgId etc...)
         var customerAccountEnvelope = 
-            "<soap:Envelope xmlns: soap = \"http://schemas.xmlsoap.org/soap/envelope/\">" +
+            "<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">" +
                "<soap:Body xmlns:ns1=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/applicationModule/types/\">" +
                   "<ns1:createCustomerAccount>" +
                      "<ns1:customerAccount xmlns:ns2=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/\">" +
@@ -99,7 +98,7 @@ public static class OracleSoapTemplates
                         //"</ns2:CustomerAccountSite>" +
         #endregion
                         "<ns2:OriginalSystemReference xmlns:ns7=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/\">" +
-                           "<ns7:OrigSystem>ONE_TIME_PAYMENTS</ns7:OrigSystem>" +
+                           "<ns7:OrigSystem>SFDC</ns7:OrigSystem>" +
                            $"<ns7:OrigSystemReference>{Guid.NewGuid()}</ns7:OrigSystemReference>" + // TODO: do we need to store/save this value to our DB?
                            "<ns7:OwnerTableName>HZ_CUST_ACCOUNTS</ns7:OwnerTableName>" +
                            "<ns7:CreatedByModule>HZ_WS</ns7:CreatedByModule>" +
