@@ -22,10 +22,12 @@ public interface IOracleService
 public class OracleService : IOracleService
 {
     private readonly IOracleClient _oracleClient;
+    private readonly IConfiguration _config;
 
-    public OracleService(IOracleClient oracleClient)
+    public OracleService(IOracleClient oracleClient, IConfiguration config)
     {
         _oracleClient = oracleClient;
+        _config = config;
     }
 
     public async Task<Tuple<string, string>> AddAccount(SalesforceActionObject model)
@@ -40,7 +42,7 @@ public class OracleService : IOracleService
         var customerAccountEnvelope = OracleSoapTemplates.CreateCustomerAccount(added.Item1.PartyId.ToString(), timestamp.ToString(), $"{added.Item1.OrganizationName} Acc");
 
         // create the Customer Account via SOAP service (using added.Item1.PartyId acquired from creating the Organization above)
-        var customerAccountServiceUrl = $"https://ebxw-test.fa.us2.oraclecloud.com:443/crmService/CustomerAccountService"; // TODO: make base URL a config value
+        var customerAccountServiceUrl = _config["Oracle:Services:CustomerAccount"];
         var customerAccountResponse = await _oracleClient.SendSoapRequest(customerAccountEnvelope, customerAccountServiceUrl);
         if (!string.IsNullOrEmpty(customerAccountResponse.Item2)) return new Tuple<string, string>(null, $"There was an error creating the Customer Account in Oracle: {customerAccountResponse.Item2}.");
 
