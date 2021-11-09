@@ -13,7 +13,7 @@ public interface IOracleClient
     Task<Tuple<OracleAccountObject, string>> UpdateAccount(CreateOracleAccountViewModel model, string partyNumber);
     Task<Tuple<OracleAddressObject, string>> CreateAddress(string accountNumber, CreateOracleAddressViewModel model);
     Task<Tuple<OracleAddressObject, string>> UpdateAddress(string accountNumber, CreateOracleAddressViewModel model, string partyNumber);
-    Task<XDocument> SendSoapRequest(string soapEnvelope, string oracleServiceUrl, string soapAction);
+    Task<Tuple<XDocument, string>> SendSoapRequest(string soapEnvelope, string oracleServiceUrl);
 }
 
 public class OracleClient : IOracleClient
@@ -38,16 +38,14 @@ public class OracleClient : IOracleClient
     /// </summary>
     /// <param name="soapEnvelope"></param>
     /// <param name="oracleServiceUrl"></param>
-    /// <param name="soapAction"></param>
     /// <returns></returns>
-    public async Task<XDocument> SendSoapRequest(string soapEnvelope, string oracleServiceUrl, string soapAction)
+    public async Task<Tuple<XDocument, string>> SendSoapRequest(string soapEnvelope, string oracleServiceUrl)
     {
         try
         {
             // check for empty content
-            if (string.IsNullOrEmpty(soapEnvelope)) return null;
-            if (string.IsNullOrEmpty(oracleServiceUrl)) return null;
-            if (string.IsNullOrEmpty(soapAction)) return null;
+            if (string.IsNullOrEmpty(soapEnvelope)) return new Tuple<XDocument, string>(null, $"soapEnvelope is required.");
+            if (string.IsNullOrEmpty(oracleServiceUrl)) return new Tuple<XDocument, string>(null, $"oracleServiceUrl is required.");
 
             // encode the XML envelope (payload)
             byte[] byteArray = Encoding.UTF8.GetBytes(soapEnvelope);
@@ -70,9 +68,6 @@ public class OracleClient : IOracleClient
             // configure the request to use basic authentication, with base64 encoded user name and password
             request.Headers.Add("Authorization", $"Basic {credentials}");
 
-            // set the SOAP action to be invoked; while the call works without this, the value is expected to be set based as per standards
-            request.Headers.Add("SOAPAction", soapAction);
-
             // write the xml payload to the request
             Stream dataStream = request.GetRequestStream();
             dataStream.Write(byteArray, 0, byteArray.Length);
@@ -86,17 +81,20 @@ public class OracleClient : IOracleClient
                 doc = XDocument.Load(stream);
             }
             Console.WriteLine(doc);
-            return doc;
+            return new Tuple<XDocument, string>(doc, null);
         }
         catch (WebException wex)
         {
-            Console.WriteLine(wex);
+            using var stream = wex.Response.GetResponseStream();
+            using var reader = new StreamReader(stream);
+            Console.WriteLine(reader.ReadToEnd());
+            return new Tuple<XDocument, string>(null, wex.Message);
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex);
+            Console.WriteLine(ex.Message);
+            return new Tuple<XDocument, string>(null, ex.Message);
         }
-        return null;
     }
 
     public async Task<Tuple<OracleAccountObject, string>> CreateAccount(CreateOracleAccountViewModel model)

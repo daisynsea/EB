@@ -1,7 +1,18 @@
-﻿namespace Kymeta.Cloud.Services.EnterpriseBroker.Services;
+﻿using Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.SOAP;
+using System.Xml.Serialization;
+
+namespace Kymeta.Cloud.Services.EnterpriseBroker.Services;
 
 public interface IOracleService
 {
+    /// <summary>
+    /// Add an Account to Oracle. This includes the Organization, Location (Site), Customer Account, and Customer Profile objects.
+    /// </summary>
+    /// <param name="model"></param>
+    /// <returns>
+    /// Item1 is the partyNumber (unique Id) of the new Organization in Oracle
+    /// Item2 is an error message should any problem arise during execution.
+    /// </returns>
     Task<Tuple<string, string>> AddAccount(SalesforceActionObject model);
     Task<Tuple<string, string>> UpdateAccount(SalesforceActionObject model);
     Task<Tuple<string, string>> AddAddress(SalesforceActionObject model);
@@ -11,17 +22,34 @@ public interface IOracleService
 public class OracleService : IOracleService
 {
     private readonly IOracleClient _oracleClient;
+    private readonly IConfiguration _config;
 
-    public OracleService(IOracleClient oracleClient)
+    public OracleService(IOracleClient oracleClient, IConfiguration config)
     {
         _oracleClient = oracleClient;
+        _config = config;
     }
 
     public async Task<Tuple<string, string>> AddAccount(SalesforceActionObject model)
     {
         var account = RemapSalesforceAccountToOracleAccount(model);
+        // create the Organization via REST endpoint
         var added = await _oracleClient.CreateAccount(account);
         if (!string.IsNullOrEmpty(added.Item2)) return new Tuple<string, string>(null, $"There was an error adding the account to Oracle: {added.Item2}");
+
+        // TODO: consider using a DB generated value to track AccountNumber (Oracle) value on our end
+        var timestamp = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
+        var customerAccountEnvelope = OracleSoapTemplates.CreateCustomerAccount(added.Item1.PartyId.ToString(), timestamp.ToString(), $"{added.Item1.OrganizationName} Acc");
+
+        // create the Customer Account via SOAP service (using added.Item1.PartyId acquired from creating the Organization above)
+        var customerAccountServiceUrl = _config["Oracle:Services:CustomerAccount"];
+        var customerAccountResponse = await _oracleClient.SendSoapRequest(customerAccountEnvelope, customerAccountServiceUrl);
+        if (!string.IsNullOrEmpty(customerAccountResponse.Item2)) return new Tuple<string, string>(null, $"There was an error creating the Customer Account in Oracle: {customerAccountResponse.Item2}.");
+
+        // deserialize the xml response envelope
+        XmlSerializer serializer = new(typeof(CreateCustomerAccountResponseEnvelope));
+        var oracleCustomerAccount = (CreateCustomerAccountResponseEnvelope)serializer.Deserialize(customerAccountResponse.Item1.CreateReader());
+
         return new Tuple<string, string>(added.Item1.PartyNumber, string.Empty);
     }
 

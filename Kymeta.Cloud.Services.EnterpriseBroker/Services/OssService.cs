@@ -85,7 +85,7 @@ public class OssService : IOssService
         return await _accountsClient.GetAccountBySalesforceId(salesforceId);
     }
 
-    private Account RemapSalesforceAccountToOssAccount(SalesforceActionObject model, User user, string oracleAccountId = null)
+    private Account RemapSalesforceAccountToOssAccount(SalesforceActionObject model, User user, string? oracleAccountId = null)
     {
         var account = new Account
         {
