@@ -180,33 +180,33 @@ public class AccountBrokerService : IAccountBrokerService
         }
         #endregion
 
-        // TODO: is this even required for CLDSRV? Only needed for Oracle perhaps?
+        // Only needed for Oracle, not applicable for OSS
         #region Process Address Create
-        //// If it's an account
-        //if (model.ObjectType == ActionObject.Address && model.ActionType == ActionType.Create)
-        //{
-        //    await _actionsRepository.UpdateActionRecord(new SalesforceActionRecord { Id = actionRecord.Id, OssStatus = StatusType.Skipped, OracleStatus = StatusType.Processing });
-        //    /*
-        //     * SEND TO ORACLE
-        //     */
-        //    #region Send to Oracle
-        //    // first string is the oracle account id
-        //    var addedAddressTuple = await _oracleRepository.AddAddress(model);
-        //    if (string.IsNullOrEmpty(addedAddressTuple.Item2)) // No error!
-        //    {
-        //        response.OracleStatus = StatusType.Successful;
-        //        oracleAccountId = addedAddressTuple.Item1; // accountId
-        //        response.AddedOracleAccountId = addedAddressTuple.Item1;
-        //        await _actionsRepository.UpdateActionRecord(new SalesforceActionRecord { Id = actionRecord.Id, OracleStatus = StatusType.Successful });
-        //    }
-        //    else // Is error, do not EXIT..
-        //    {
-        //        response.OracleStatus = StatusType.Error;
-        //        response.OracleErrorMessage = addedAddressTuple.Item2;
-        //        await _actionsRepository.UpdateActionRecord(new SalesforceActionRecord { Id = actionRecord.Id, OracleStatus = StatusType.Error, OracleErrorMessage = addedAddressTuple.Item2 });
-        //    }
-        //    #endregion
-        //}
+        // check the request for Address & Create actions
+        if (model.ObjectType == ActionObjectType.Address && model.ActionType == ActionType.Create)
+        {
+            await _actionsRepository.UpdateActionRecord(new SalesforceActionRecord { Id = actionRecord.Id, OssStatus = StatusType.Skipped, OracleStatus = StatusType.Processing });
+            /*
+             * SEND TO ORACLE
+             */
+            #region Send to Oracle
+            // first string is the oracle account id
+            var addedAddressTuple = await _oracleService.AddAddress(model);
+            if (string.IsNullOrEmpty(addedAddressTuple.Item2)) // No error!
+            {
+                response.OracleStatus = StatusType.Successful;
+                oracleAccountId = addedAddressTuple.Item1; // accountId
+                response.AddedOracleAccountId = addedAddressTuple.Item1;
+                await _actionsRepository.UpdateActionRecord(new SalesforceActionRecord { Id = actionRecord.Id, OracleStatus = StatusType.Successful });
+            }
+            else // Is error, do not EXIT..
+            {
+                response.OracleStatus = StatusType.Error;
+                response.OracleErrorMessage = addedAddressTuple.Item2;
+                await _actionsRepository.UpdateActionRecord(new SalesforceActionRecord { Id = actionRecord.Id, OracleStatus = StatusType.Error, OracleErrorMessage = addedAddressTuple.Item2 });
+            }
+            #endregion
+        }
         #endregion
 
         return response;

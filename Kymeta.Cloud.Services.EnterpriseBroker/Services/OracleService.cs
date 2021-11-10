@@ -42,7 +42,7 @@ public class OracleService : IOracleService
         var customerAccountEnvelope = OracleSoapTemplates.CreateCustomerAccount(added.Item1.PartyId.ToString(), timestamp.ToString(), $"{added.Item1.OrganizationName} Acc");
 
         // create the Customer Account via SOAP service (using added.Item1.PartyId acquired from creating the Organization above)
-        var customerAccountServiceUrl = _config["Oracle:Services:CustomerAccount"];
+        var customerAccountServiceUrl = $"{_config["Oracle:Endpoint"]}/crmService/CustomerAccountService";
         var customerAccountResponse = await _oracleClient.SendSoapRequest(customerAccountEnvelope, customerAccountServiceUrl);
         if (!string.IsNullOrEmpty(customerAccountResponse.Item2)) return new Tuple<string, string>(null, $"There was an error creating the Customer Account in Oracle: {customerAccountResponse.Item2}.");
 
