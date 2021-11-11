@@ -10,7 +10,7 @@ public static class OracleSoapTemplates
     /// <returns>TBD</returns>
     public static string CreateLocation()
     {
-        // TODO: verify XML and required fields via guidance from RSM or Oracle guru (OrigSystem, CreatedByModule, OriginalSystemReference, OwnerTableName, etc...)
+        // create the SOAP envelope with a beefy string
         // TODO: must identify template values to be populated from previous Oracle requests (OrgId etc...)
         var customerAccountEnvelope = 
             "<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">" +
@@ -35,27 +35,29 @@ public static class OracleSoapTemplates
     ///  A template for creating a Customer Account object in Oracle
     /// </summary>
     /// <returns>SOAP Envelope (payload) for creating a Customer Account in Oracle</returns>
-    public static string CreateCustomerAccount(string organizationPartyId, string accountNumber, string accountName)
+    public static string CreateCustomerAccount(CreateOracleAccountViewModel model)
     {
         // validate the inputs
-        if (string.IsNullOrEmpty(organizationPartyId))
+        if (string.IsNullOrEmpty(model.PartyId))
         {
-            throw new ArgumentException($"'{nameof(organizationPartyId)}' cannot be null or empty.", nameof(organizationPartyId));
+            throw new ArgumentException($"'{nameof(model.PartyId)}' cannot be null or empty.", nameof(model.PartyId));
         }
-        if (string.IsNullOrEmpty(accountNumber))
+        if (string.IsNullOrEmpty(model.AccountNumber))
         {
-            throw new ArgumentException($"'{nameof(accountNumber)}' cannot be null or empty.", nameof(accountNumber));
+            throw new ArgumentException($"'{nameof(model.AccountNumber)}' cannot be null or empty.", nameof(model.AccountNumber));
         }
 
-        // TODO: verify XML and required fields via guidance from RSM or Oracle guru (OrigSystem, CreatedByModule, OriginalSystemReference, OwnerTableName, etc...)
+        // create the SOAP envelope with a beefy string
         var customerAccountEnvelope = 
             "<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">" +
                "<soap:Body xmlns:ns1=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/applicationModule/types/\">" +
                   "<ns1:createCustomerAccount>" +
                      "<ns1:customerAccount xmlns:ns2=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/\">" +
-                        $"<ns2:PartyId>{organizationPartyId}</ns2:PartyId>" + // acquired from the create organization request (via REST)
-                        $"<ns2:AccountNumber>{accountNumber}</ns2:AccountNumber>" + // 22092020
-                        $"<ns2:AccountName>{accountName}</ns2:AccountName>" + // name for the Customer Account (can/should be the same as Organization name with "Acc" suffix on the end...?)
+                        $"<ns2:PartyId>{model.PartyId}</ns2:PartyId>" + // acquired from the create organization request (via REST)
+                        $"<ns2:AccountNumber>{model.AccountNumber}</ns2:AccountNumber>" + // Random but must be unique integer value
+                        $"<ns2:AccountName>{model.OrganizationName} Acc</ns2:AccountName>" + // name for the Customer Account (can/should be the same as Organization name with "Acc" suffix on the end...?)
+                        $"<ns2:AccountType>{model.AccountType}</ns2:AccountType>" + // TODO: this value is not making it into Oracle... needs troubleshooting
+                        $"<ns2:CustomerClass>{model.AccountSubType}</ns2:AccountType>" + // TODO: this value is not making it into Oracle... needs troubleshooting
                         "<ns2:CreatedByModule>HZ_WS</ns2:CreatedByModule>" +
         #region Extra metadata for a later story
                         //"<ns2:CustomerAccountContact>" +
@@ -99,7 +101,7 @@ public static class OracleSoapTemplates
         #endregion
                         "<ns2:OriginalSystemReference xmlns:ns7=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/\">" +
                            "<ns7:OrigSystem>SFDC</ns7:OrigSystem>" +
-                           $"<ns7:OrigSystemReference>{Guid.NewGuid()}</ns7:OrigSystemReference>" + // TODO: do we need to store/save this value to our DB?
+                           $"<ns7:OrigSystemReference>{Guid.NewGuid()}</ns7:OrigSystemReference>" +
                            "<ns7:OwnerTableName>HZ_CUST_ACCOUNTS</ns7:OwnerTableName>" +
                            "<ns7:CreatedByModule>HZ_WS</ns7:CreatedByModule>" +
                         "</ns2:OriginalSystemReference>" +
