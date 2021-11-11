@@ -39,7 +39,9 @@ public class OracleService : IOracleService
 
         // TODO: consider using a DB generated value to track AccountNumber (Oracle) value on our end
         var timestamp = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
-        var customerAccountEnvelope = OracleSoapTemplates.CreateCustomerAccount(added.Item1.PartyId.ToString(), timestamp.ToString(), $"{added.Item1.OrganizationName} Acc");
+        account.PartyId = added.Item1.PartyId.ToString();
+        account.AccountNumber = timestamp.ToString();
+        var customerAccountEnvelope = OracleSoapTemplates.CreateCustomerAccount(account);
 
         // create the Customer Account via SOAP service (using added.Item1.PartyId acquired from creating the Organization above)
         var customerAccountServiceUrl = $"{_config["Oracle:Endpoint"]}/crmService/CustomerAccountService";
@@ -86,6 +88,7 @@ public class OracleService : IOracleService
     {
         var account = new CreateOracleAccountViewModel();
         account.OrganizationName = model.ObjectValues?.GetValue("name")?.ToString();
+        account.AccountType = model.ObjectValues?.GetValue("accountType")?.ToString();
         return account;
     }
 
