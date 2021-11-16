@@ -176,25 +176,22 @@ public class AccountBrokerService : IAccountBrokerService
         // check the request for Address & Create actions
         if (model.ObjectType == ActionObjectType.Address && model.ActionType == ActionType.Create)
         {
-            await _actionsRepository.UpdateActionRecord(new SalesforceActionRecord { Id = actionRecord.Id, OssStatus = StatusType.Skipped, OracleStatus = StatusType.Processing });
             /*
              * SEND TO ORACLE
              */
             #region Send to Oracle
             // first string is the oracle account id
-            var addedAddressTuple = await _oracleService.AddAddress(model);
+            var addedAddressTuple = await _oracleService.AddAddress(model, salesforceTransaction);
             if (string.IsNullOrEmpty(addedAddressTuple.Item2)) // No error!
             {
                 response.OracleStatus = StatusType.Successful;
                 oracleAccountId = addedAddressTuple.Item1; // accountId
                 response.AddedOracleAccountId = addedAddressTuple.Item1;
-                await _actionsRepository.UpdateActionRecord(new SalesforceActionRecord { Id = actionRecord.Id, OracleStatus = StatusType.Successful });
             }
             else // Is error, do not EXIT..
             {
                 response.OracleStatus = StatusType.Error;
                 response.OracleErrorMessage = addedAddressTuple.Item2;
-                await _actionsRepository.UpdateActionRecord(new SalesforceActionRecord { Id = actionRecord.Id, OracleStatus = StatusType.Error, OracleErrorMessage = addedAddressTuple.Item2 });
             }
             #endregion
         }
