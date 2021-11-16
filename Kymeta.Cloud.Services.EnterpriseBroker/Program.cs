@@ -34,6 +34,7 @@ else
 {
     builder.Logging.AddKymetaAzureTableStorage(builder.Configuration.GetSection("KymetaLogging"), instanceId ?? "0", pid);
 }
+
 // Add health
 builder.Services.AddHealthChecks();
 // Add services

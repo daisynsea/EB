@@ -37,12 +37,14 @@ public class OracleService : IOracleService
         var added = await _oracleClient.CreateAccount(account);
         if (!string.IsNullOrEmpty(added.Item2)) return new Tuple<string, string>(null, $"There was an error adding the account to Oracle: {added.Item2}");
 
-        // TODO: consider using a DB generated value to track AccountNumber (Oracle) value on our end
-        var timestamp = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
-        var customerAccountEnvelope = OracleSoapTemplates.CreateCustomerAccount(added.Item1.PartyId.ToString(), timestamp.ToString(), $"{added.Item1.OrganizationName} Acc");
+        // map the model values to the expected Customer Account payload
+        var customerAccount = RemapOrganizationToOracleCustomerAccount(model);
+        // set the PartyId acquired from the successful creation of the Organization above
+        customerAccount.PartyId = added.Item1.PartyId.ToString();
+        var customerAccountEnvelope = OracleSoapTemplates.CreateCustomerAccount(customerAccount);
 
-        // create the Customer Account via SOAP service (using added.Item1.PartyId acquired from creating the Organization above)
-        var customerAccountServiceUrl = _config["Oracle:Services:CustomerAccount"];
+        // create the Customer Account via SOAP service
+        var customerAccountServiceUrl = $"{_config["Oracle:Endpoint"]}/crmService/CustomerAccountService";
         var customerAccountResponse = await _oracleClient.SendSoapRequest(customerAccountEnvelope, customerAccountServiceUrl);
         if (!string.IsNullOrEmpty(customerAccountResponse.Item2)) return new Tuple<string, string>(null, $"There was an error creating the Customer Account in Oracle: {customerAccountResponse.Item2}.");
 
@@ -84,17 +86,39 @@ public class OracleService : IOracleService
 
     private CreateOracleAccountViewModel RemapSalesforceAccountToOracleAccount(SalesforceActionObject model)
     {
-        var account = new CreateOracleAccountViewModel();
-        account.OrganizationName = model.ObjectValues?.GetValue("name")?.ToString();
+        var account = new CreateOracleAccountViewModel
+        {
+            OrganizationName = model.ObjectValues?.GetValue("name")?.ToString(),
+            TaxpayerIdentificationNumber = model.ObjectValues?.GetValue("taxId")?.ToString()
+        };
+        return account;
+    }
+
+    private CreateOracleCustomerAccountViewModel RemapOrganizationToOracleCustomerAccount(SalesforceActionObject model)
+    {
+        var account = new CreateOracleCustomerAccountViewModel
+        {
+            SalesforceId = model.ObjectId,
+            OrganizationName = model.ObjectValues?.GetValue("name")?.ToString(),
+            TaxId = model.ObjectValues?.GetValue("taxId")?.ToString()
+        };
+        // check for accountType
+        var accountType = model.ObjectValues?.GetValue("accountType")?.ToString();
+        if (!string.IsNullOrEmpty(accountType)) account.AccountType = OracleSoapTemplates.CustomerTypeMap.GetValue(accountType);
+        // check for account sub-type
+        var accountSubType = model.ObjectValues?.GetValue("subType")?.ToString();
+        if (!string.IsNullOrEmpty(accountSubType)) account.AccountSubType = OracleSoapTemplates.CustomerClassMap.GetValue(accountSubType);
         return account;
     }
 
     private CreateOracleAddressViewModel RemapSalesforceAddressToOracleAddress(SalesforceActionObject model)
     {
-        var address = new CreateOracleAddressViewModel();
-        address.Address1 = model.ObjectValues?.GetValue("address1")?.ToString();
-        address.Address2 = model.ObjectValues?.GetValue("address2")?.ToString();
-        address.Country = model.ObjectValues?.GetValue("country")?.ToString();
+        var address = new CreateOracleAddressViewModel
+        {
+            Address1 = model.ObjectValues?.GetValue("address1")?.ToString(),
+            Address2 = model.ObjectValues?.GetValue("address2")?.ToString(),
+            Country = model.ObjectValues?.GetValue("country")?.ToString()
+        };
         return address;
     }
 }
