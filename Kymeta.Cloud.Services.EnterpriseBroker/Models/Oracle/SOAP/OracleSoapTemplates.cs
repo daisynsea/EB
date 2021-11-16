@@ -35,80 +35,114 @@ public static class OracleSoapTemplates
     ///  A template for creating a Customer Account object in Oracle
     /// </summary>
     /// <returns>SOAP Envelope (payload) for creating a Customer Account in Oracle</returns>
-    public static string CreateCustomerAccount(CreateOracleAccountViewModel model)
+    public static string CreateCustomerAccount(CreateOracleCustomerAccountViewModel model)
     {
         // validate the inputs
         if (string.IsNullOrEmpty(model.PartyId))
         {
             throw new ArgumentException($"'{nameof(model.PartyId)}' cannot be null or empty.", nameof(model.PartyId));
         }
-        if (string.IsNullOrEmpty(model.AccountNumber))
-        {
-            throw new ArgumentException($"'{nameof(model.AccountNumber)}' cannot be null or empty.", nameof(model.AccountNumber));
-        }
 
         // create the SOAP envelope with a beefy string
-        var customerAccountEnvelope = 
-            "<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">" +
-               "<soap:Body xmlns:ns1=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/applicationModule/types/\">" +
-                  "<ns1:createCustomerAccount>" +
-                     "<ns1:customerAccount xmlns:ns2=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/\">" +
-                        $"<ns2:PartyId>{model.PartyId}</ns2:PartyId>" + // acquired from the create organization request (via REST)
-                        $"<ns2:AccountNumber>{model.AccountNumber}</ns2:AccountNumber>" + // Random but must be unique integer value
-                        $"<ns2:AccountName>{model.OrganizationName} Acc</ns2:AccountName>" + // name for the Customer Account (can/should be the same as Organization name with "Acc" suffix on the end...?)
-                        $"<ns2:AccountType>{model.AccountType}</ns2:AccountType>" + // TODO: this value is not making it into Oracle... needs troubleshooting
-                        $"<ns2:CustomerClass>{model.AccountSubType}</ns2:AccountType>" + // TODO: this value is not making it into Oracle... needs troubleshooting
-                        "<ns2:CreatedByModule>HZ_WS</ns2:CreatedByModule>" +
+        var customerAccountEnvelope =
+            "<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:info=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/flex/custAccount/\">" +
+                "<soap:Body xmlns:typ=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/applicationModule/types/\">" +
+                  "<typ:createCustomerAccount>" +
+                     "<typ:customerAccount xmlns:cus=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/\">" +
+                        $"<cus:PartyId>{model.PartyId}</cus:PartyId>" + // acquired from the create Organization response (via REST)
+                        $"<cus:AccountName>{model.OrganizationName} Acc</cus:AccountName>" + // description for the Customer Account
+                        $"<cus:CustomerType>{model.AccountType}</cus:CustomerType>" +
+                        $"<cus:CustomerClassCode>{model.AccountSubType}</cus:CustomerClassCode>" +
+                        "<cus:CreatedByModule>HZ_WS</cus:CreatedByModule>" +
+                        "<cus:CustAcctInformation>" +
+                            $"<info:salesforceId>{model.SalesforceId}</info:salesforceId>" +
+                            $"<info:ksnId>{model.OssId}</info:ksnId>" +
+                        "</cus:CustAcctInformation>" +
         #region Extra metadata for a later story
-                        //"<ns2:CustomerAccountContact>" +
-                        //   "<ns2:RoleType>CONTACT</ns2:RoleType>" +
-                        //   "<ns2:CreatedByModule>HZ_WS</ns2:CreatedByModule>" +
-                        //   "<ns2:RelationshipId>300000090083090</ns2:RelationshipId>" +
-                        //   "<ns2:OriginalSystemReference xmlns:ns3=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/\">" +
+                        //"<cus:CustomerAccountContact>" +
+                        //   "<cus:RoleType>CONTACT</cus:RoleType>" +
+                        //   "<cus:CreatedByModule>HZ_WS</cus:CreatedByModule>" +
+                        //   "<cus:RelationshipId>300000090083090</cus:RelationshipId>" +
+                        //   "<cus:OriginalSystemReference xmlns:ns3=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/\">" +
                         //      "<ns3:OrigSystem>ONE_TIME_PAYMENTS</ns3:OrigSystem>" +
                         //      "<ns3:OrigSystemReference>LEG1_CFS_CUST_ACCOUNT_ROLE</ns3:OrigSystemReference>" +
                         //      "<ns3:OwnerTableName>HZ_CUST_ACCOUNT_ROLES</ns3:OwnerTableName>" +
                         //      "<ns3:CreatedByModule>HZ_WS</ns3:CreatedByModule>" +
-                        //   "</ns2:OriginalSystemReference>" +
-                        //"</ns2:CustomerAccountContact>" +
-                        //"<ns2:CustomerAccountSite>" +
-                        //   "<ns2:PartySiteId>300000090083081</ns2:PartySiteId>" +
-                        //   "<ns2:CreatedByModule>HZ_WS</ns2:CreatedByModule>" +
-                        //   "<ns2:SetId>300000001127004</ns2:SetId>" +
-                        //   "<ns2:CustomerAccountSiteUse>" +
-                        //      "<ns2:SiteUseCode>BILL_TO</ns2:SiteUseCode>" +
-                        //      "<ns2:Location>London (BILL TO)</ns2:Location>" +
-                        //      "<ns2:CreatedByModule>HZ_WS</ns2:CreatedByModule>" +
-                        //      "<ns2:OriginalSystemReference xmlns:ns4=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/\">" +
+                        //   "</cus:OriginalSystemReference>" +
+                        //"</cus:CustomerAccountContact>" +
+                        //"<cus:CustomerAccountSite>" +
+                        //   "<cus:PartySiteId>300000090083081</cus:PartySiteId>" +
+                        //   "<cus:CreatedByModule>HZ_WS</cus:CreatedByModule>" +
+                        //   "<cus:SetId>300000001127004</cus:SetId>" +
+                        //   "<cus:CustomerAccountSiteUse>" +
+                        //      "<cus:SiteUseCode>BILL_TO</cus:SiteUseCode>" +
+                        //      "<cus:Location>London (BILL TO)</cus:Location>" +
+                        //      "<cus:CreatedByModule>HZ_WS</cus:CreatedByModule>" +
+                        //      "<cus:OriginalSystemReference xmlns:ns4=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/\">" +
                         //         "<ns4:OrigSystem>ONE_TIME_PAYMENTS</ns4:OrigSystem>" +
                         //         "<ns4:OrigSystemReference>LEG1_CFS_CUST_SITE_USE_BILL_TO</ns4:OrigSystemReference>" +
                         //         "<ns4:OwnerTableName>HZ_CUST_SITE_USES_ALL</ns4:OwnerTableName>" +
                         //         "<ns4:CreatedByModule>HZ_WS</ns4:CreatedByModule>" +
-                        //      "</ns2:OriginalSystemReference>" +
-                        //   "</ns2:CustomerAccountSiteUse>" +
-                        //   "<ns2:CustomerAccountSiteUse>" +
-                        //      "<ns2:SiteUseCode>SHIP_TO</ns2:SiteUseCode>" +
-                        //      "<ns2:Location>London (SHIP TO)</ns2:Location>" +
-                        //      "<ns2:CreatedByModule>HZ_WS</ns2:CreatedByModule>" +
-                        //      "<ns2:OriginalSystemReference xmlns:ns4=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/\">" +
+                        //      "</cus:OriginalSystemReference>" +
+                        //   "</cus:CustomerAccountSiteUse>" +
+                        //   "<cus:CustomerAccountSiteUse>" +
+                        //      "<cus:SiteUseCode>SHIP_TO</cus:SiteUseCode>" +
+                        //      "<cus:Location>London (SHIP TO)</cus:Location>" +
+                        //      "<cus:CreatedByModule>HZ_WS</cus:CreatedByModule>" +
+                        //      "<cus:OriginalSystemReference xmlns:ns4=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/\">" +
                         //         "<ns4:OrigSystem>ONE_TIME_PAYMENTS</ns4:OrigSystem>" +
                         //         "<ns4:OrigSystemReference>LEG1_CFS_CUST_SITE_USE_SHIP_TO</ns4:OrigSystemReference>" +
                         //         "<ns4:OwnerTableName>HZ_CUST_SITE_USES_ALL</ns4:OwnerTableName>" +
                         //         "<ns4:CreatedByModule>HZ_WS</ns4:CreatedByModule>" +
-                        //      "</ns2:OriginalSystemReference>" +
-                        //   "</ns2:CustomerAccountSiteUse>" +
-                        //"</ns2:CustomerAccountSite>" +
+                        //      "</cus:OriginalSystemReference>" +
+                        //   "</cus:CustomerAccountSiteUse>" +
+                        //"</cus:CustomerAccountSite>" +
         #endregion
-                        "<ns2:OriginalSystemReference xmlns:ns7=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/\">" +
+                        "<cus:OriginalSystemReference xmlns:ns7=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/\">" +
                            "<ns7:OrigSystem>SFDC</ns7:OrigSystem>" +
-                           $"<ns7:OrigSystemReference>{Guid.NewGuid()}</ns7:OrigSystemReference>" +
+                           $"<ns7:OrigSystemReference>{model.SalesforceId}</ns7:OrigSystemReference>" +
                            "<ns7:OwnerTableName>HZ_CUST_ACCOUNTS</ns7:OwnerTableName>" +
                            "<ns7:CreatedByModule>HZ_WS</ns7:CreatedByModule>" +
-                        "</ns2:OriginalSystemReference>" +
-                     "</ns1:customerAccount>" +
-                  "</ns1:createCustomerAccount>" +
+                        "</cus:OriginalSystemReference>" +
+                     "</typ:customerAccount>" +
+                  "</typ:createCustomerAccount>" +
                "</soap:Body>" +
             "</soap:Envelope>";
         return customerAccountEnvelope;
     }
+
+
+    public static readonly Dictionary<string, string> CustomerTypeMap = new()
+    {
+        { "Consultant", "CONSULTANT" },
+        { "End Customer", "ENDCUSTOMER" },
+        { "External", "R" },
+        { "Internal", "I" },
+        { "Internal Dept", "INTERNALDEPT" },
+        { "Partner", "PARTNER" },
+        { "Partner Affiliate", "PARTNERAFFILIATE" },
+        { "Prospect", "PROSPECT" },
+        { "Regulatory Organization", "REGULATORY" },
+        { "SubDistributor", "SUBDISTRIBUTOR" },
+        { "Supplier", "SUPPLIER" },
+        { "Other", "OTHER" }
+    };
+
+    public static readonly Dictionary<string, string> CustomerClassMap = new()
+    {
+        { "End User", "END USER" },
+        { "VAR/Distributor", "VAR/ DISTRIBUTOR" },
+        { "Integrator", "INTEGRATOR" },
+        { "Eqpmt Mfr", "EQPMT MFR" },
+        { "Component Mfr", "COMPONENT MFR" },
+        { "OEM", "OEM" },
+        { "SSO", "SSO" },
+        { "SSP", "SSP" },
+        { "Technology Partner", "TECHNOLOGY PARTNER" },
+        { "Technology Provider", "TECHNOLOGY PROVIDER" },
+        { "Consulting Svcs", "CONSULTING SVCS" },
+        { "Financial Svcs", "FINANCIAL SVCS" },
+        { "Legal Svcs", "LEGAL SVCS" },
+        { "Other", "OTHER" }
+    };
 }
