@@ -5,6 +5,7 @@ using Kymeta.Cloud.Logging;
 using Kymeta.Cloud.Services.EnterpriseBroker;
 using Kymeta.Cloud.Services.EnterpriseBroker.Repositories;
 using System.Diagnostics;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 // Use a custom port (TODO: This doesn't work right now, known issue, fixed in RC2)
@@ -39,6 +40,7 @@ builder.Services.AddHealthChecks();
 builder.Services.AddHttpClient<IAccountsClient, AccountsClient>();
 builder.Services.AddHttpClient<IOracleClient, OracleClient>();
 builder.Services.AddHttpClient<IUsersClient, UsersClient>();
+builder.Services.AddCosmosDb(builder.Configuration.GetConnectionString("AzureCosmosDB"));
 builder.Services.AddScoped<IActionsRepository, ActionsRepository>();
 builder.Services.AddScoped<IOssService, OssService>();
 builder.Services.AddScoped<IAccountBrokerService, AccountBrokerService>();
@@ -56,7 +58,15 @@ builder.Services.AddHealthClient(new HealthServiceOptions
 builder.Services.AddApiVersioning();
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    });
+
+// Add Razor Pages
+builder.Services.AddRazorPages();
 
 // END: ConfigureServices
 // START: Configure
@@ -67,5 +77,6 @@ app.UseApiVersionPathMiddleware();
 app.UseAuthKeyMiddleware();
 app.UseAuthorization();
 app.MapControllers();
+app.MapRazorPages();
 app.UseHealthChecks("/health");
 app.Run();

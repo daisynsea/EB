@@ -13,10 +13,10 @@ public interface IOracleService
     /// Item1 is the partyNumber (unique Id) of the new Organization in Oracle
     /// Item2 is an error message should any problem arise during execution.
     /// </returns>
-    Task<Tuple<string, string>> AddAccount(SalesforceActionObject model);
-    Task<Tuple<string, string>> UpdateAccount(SalesforceActionObject model);
-    Task<Tuple<string, string>> AddAddress(SalesforceActionObject model);
-    Task<Tuple<string, string>> UpdateAddress(SalesforceActionObject model);
+    Task<Tuple<string, string>> AddAccount(SalesforceActionObject model, SalesforceActionTransaction transaction);
+    Task<Tuple<string, string>> UpdateAccount(SalesforceActionObject model, SalesforceActionTransaction transaction);
+    Task<Tuple<string, string>> AddAddress(SalesforceActionObject model, SalesforceActionTransaction transaction);
+    Task<Tuple<string, string>> UpdateAddress(SalesforceActionObject model, SalesforceActionTransaction transaction);
 }
 
 public class OracleService : IOracleService
@@ -30,7 +30,7 @@ public class OracleService : IOracleService
         _config = config;
     }
 
-    public async Task<Tuple<string, string>> AddAccount(SalesforceActionObject model)
+    public async Task<Tuple<string, string>> AddAccount(SalesforceActionObject model, SalesforceActionTransaction transaction)
     {
         var account = RemapSalesforceAccountToOracleAccount(model);
         // create the Organization via REST endpoint
@@ -53,7 +53,7 @@ public class OracleService : IOracleService
         return new Tuple<string, string>(added.Item1.PartyNumber, string.Empty);
     }
 
-    public async Task<Tuple<string, string>> UpdateAccount(SalesforceActionObject model)
+    public async Task<Tuple<string, string>> UpdateAccount(SalesforceActionObject model, SalesforceActionTransaction transaction)
     {
         var account = RemapSalesforceAccountToOracleAccount(model);
         var partyNumber = model.ObjectValues?.GetValue("oracleAccountId")?.ToString();
@@ -63,7 +63,7 @@ public class OracleService : IOracleService
         return new Tuple<string, string>(added.Item1.PartyNumber, string.Empty);
     }
 
-    public async Task<Tuple<string, string>> AddAddress(SalesforceActionObject model)
+    public async Task<Tuple<string, string>> AddAddress(SalesforceActionObject model, SalesforceActionTransaction transaction)
     {
         var address = RemapSalesforceAddressToOracleAddress(model);
         var accountNumber = model.ObjectValues?.GetValue("parentAccountOracleId")?.ToString();
@@ -72,7 +72,7 @@ public class OracleService : IOracleService
         return new Tuple<string, string>(added.Item1.PartyNumber, string.Empty);
     }
 
-    public async Task<Tuple<string, string>> UpdateAddress(SalesforceActionObject model)
+    public async Task<Tuple<string, string>> UpdateAddress(SalesforceActionObject model, SalesforceActionTransaction transaction)
     {
         var address = RemapSalesforceAddressToOracleAddress(model);
         var accountNumber = model.ObjectValues?.GetValue("parentAccountOracleId")?.ToString();

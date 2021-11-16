@@ -42,10 +42,10 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
 
         // Mock successful addition of record to the actions repository
         _fixture.ActionsRepository
-            .Setup(ar => ar.InsertActionRecord(It.IsAny<SalesforceActionRecord>()))
+            .Setup(ar => ar.InsertActionRecord(It.IsAny<SalesforceActionTransaction>()))
             .ReturnsAsync(true);
         _fixture.ActionsRepository
-            .Setup(ar => ar.UpdateActionRecord(It.IsAny<SalesforceActionRecord>()))
+            .Setup(ar => ar.UpdateActionRecord(It.IsAny<SalesforceActionTransaction>()))
             .ReturnsAsync(true);
         var accountFromOss = new Account { Id = Guid.NewGuid() };
         _fixture.OssService
@@ -89,10 +89,10 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
 
         // Mock successful addition of record to the actions repository
         _fixture.ActionsRepository
-            .Setup(ar => ar.InsertActionRecord(It.IsAny<SalesforceActionRecord>()))
+            .Setup(ar => ar.InsertActionRecord(It.IsAny<SalesforceActionTransaction>()))
             .ReturnsAsync(true);
         _fixture.ActionsRepository
-            .Setup(ar => ar.UpdateActionRecord(It.IsAny<SalesforceActionRecord>()))
+            .Setup(ar => ar.UpdateActionRecord(It.IsAny<SalesforceActionTransaction>()))
             .ReturnsAsync(true);
         var accountFromOss = new Account { Id = Guid.NewGuid() };
         _fixture.OssService
@@ -139,10 +139,10 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
 
         // Mock successful addition of record to the actions repository
         _fixture.ActionsRepository
-            .Setup(ar => ar.InsertActionRecord(It.IsAny<SalesforceActionRecord>()))
+            .Setup(ar => ar.InsertActionRecord(It.IsAny<SalesforceActionTransaction>()))
             .ReturnsAsync(true);
         _fixture.ActionsRepository
-            .Setup(ar => ar.UpdateActionRecord(It.IsAny<SalesforceActionRecord>()))
+            .Setup(ar => ar.UpdateActionRecord(It.IsAny<SalesforceActionTransaction>()))
             .ReturnsAsync(true);
         _fixture.OracleService
             .Setup(ors => ors.AddAccount(It.IsAny<SalesforceActionObject>()))
