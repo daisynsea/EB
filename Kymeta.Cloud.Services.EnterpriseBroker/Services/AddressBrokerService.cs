@@ -1,41 +1,27 @@
-﻿using System.Text.Json;
+﻿namespace Kymeta.Cloud.Services.EnterpriseBroker.Services;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Kymeta.Cloud.Services.EnterpriseBroker.Services;
-
-/// <summary>
-/// Service used to translate data between salesforce/oracle and OSS
-/// </summary>
-public interface IAccountBrokerService
+public interface IAddressBrokerService
 {
-    /// <summary>
-    /// Process account being created for the first time, after approval
-    /// </summary>
-    /// <param name="model">Create payload</param>
-    /// <returns>Added account</returns>
-    Task<CreateAccountResponse> ProcessAccountCreate(CreateAccountModel model);
-    /// <summary>
-    /// Process account being updated
-    /// </summary>
-    /// <param name="model">Update payload</param>
-    /// <returns>Updated account response</returns>
-    Task<UpdateAccountResponse> ProcessAccountUpdate(UpdateAccountModel model);
+    Task<CreateAddressResponse> CreateAddress(CreateAddressModel model);
+    Task<UpdateAddressResponse> UpdateAddress(UpdateAddressModel model);
 }
 
-public class AccountBrokerService : IAccountBrokerService
+public class AddressBrokerService : IAddressBrokerService
 {
     private readonly IActionsRepository _actionsRepository;
-    private readonly IOracleService _oracleService;
     private readonly IOssService _ossService;
+    private readonly IOracleService _oracleService;
 
-    public AccountBrokerService(IActionsRepository actionsRepository, IOracleService oracleService, IOssService ossService)
+    public AddressBrokerService(IActionsRepository actionsRepository, IOssService ossService, IOracleService oracleService)
     {
         _actionsRepository = actionsRepository;
-        _oracleService = oracleService;
         _ossService = ossService;
+        _oracleService = oracleService;
     }
 
-    public async Task<CreateAccountResponse> ProcessAccountCreate(CreateAccountModel model)
+    public async Task<CreateAddressResponse> CreateAddress(CreateAddressModel model)
     {
         /*
         * WHERE TO SYNC
@@ -54,7 +40,7 @@ public class AccountBrokerService : IAccountBrokerService
         {
             Id = Guid.NewGuid(),
             Action = ActionType.Create,
-            Object = ActionObjectType.Account,
+            Object = ActionObjectType.Address,
             ObjectId = model.ObjectId,
             CreatedOn = DateTime.UtcNow,
             UserName = model.UserName,
@@ -63,7 +49,6 @@ public class AccountBrokerService : IAccountBrokerService
             OriginalTransactionId = null, // TODO: Populate this later when hooking up Retry
             TransactionLog = new List<SalesforceActionRecord>()
         };
-
         // Insert the event into the database, receive the response object and update the existing variable
         salesforceTransaction = await _actionsRepository.InsertActionRecord(salesforceTransaction);
         #endregion
@@ -72,7 +57,7 @@ public class AccountBrokerService : IAccountBrokerService
          * MARSHAL UP RESPONSE
          */
         #region Build initial response object
-        var response = new CreateAccountResponse
+        var response = new CreateAddressResponse
         {
             ObjectId = model.ObjectId,
             OracleStatus = syncToOracle ? StatusType.Started : StatusType.Skipped,
@@ -80,68 +65,36 @@ public class AccountBrokerService : IAccountBrokerService
         };
         #endregion
 
-        string oracleCustomerAccountId = null;
-
-        #region Process Account Create
-        /*
-         * SEND TO ORACLE IF REQUIRED
-         */
         #region Send to Oracle
         if (syncToOracle)
         {
-            // TODO: Actually hook this up
-
-            // first string is the oracle account id
-            //var addedAccountTuple = await _oracleService.AddAccount(model, salesforceTransaction);
-            //if (string.IsNullOrEmpty(addedAccountTuple.Item2)) // No error!
-            //{
-            //    response.OracleStatus = StatusType.Successful;
-            //    oracleAccountId = addedAccountTuple.Item1; // accountId
-            //    response.AddedOracleAccountId = addedAccountTuple.Item1;
-            //}
-            //else // Is error, do not EXIT..
-            //{
-            //    response.OracleStatus = StatusType.Error;
-            //    response.OracleErrorMessage = addedAccountTuple.Item2;
-            //}
-
-            // TODO: Delete this mock response
+            // TODO: Delete this mock response and hook this up
             Random rnd = new Random();
             response.OracleStatus = StatusType.Successful;
-            oracleCustomerAccountId = $"MockCustomerAccountId{rnd.Next(100000, 999999)}";
-            var oracleCustomerProfileId = $"MockCustomerProfileId${rnd.Next(100000, 999999)}";
-            var oracleOrganizationId = $"MockOrganizationId${rnd.Next(100000, 999999)}";
-            response.OracleCustomerAccountId = oracleCustomerAccountId;
-            response.OracleOrganizationId = oracleOrganizationId;
-            response.OracleCustomerProfileId = oracleCustomerProfileId;
+            response.OracleAddressId = $"MockOracleAddressId{rnd.Next(100000, 999999)}";
         }
         #endregion
 
-        /*
-         * SEND TO OSS IF REQUIRED
-         */
         #region Send to OSS
         if (syncToOss)
         {
-            var addedAccountTuple = await _ossService.AddAccount(model, oracleCustomerAccountId, salesforceTransaction);
-            if (string.IsNullOrEmpty(addedAccountTuple.Item2)) // No error!
+            var addedAddressTuple = await _ossService.UpdateAccountAddress(new UpdateAddressModel { Address1 = model.Address1, Address2 = model.Address2, Country = model.Country }, salesforceTransaction);
+            if (string.IsNullOrEmpty(addedAddressTuple.Item2)) // No error!
             {
                 response.OSSStatus = StatusType.Successful;
-                response.OssAccountId = addedAccountTuple.Item1.Id.ToString();
             }
             else // Is error, do not EXIT..
             {
                 response.OSSStatus = StatusType.Error;
-                response.OSSErrorMessage = addedAccountTuple.Item2;
+                response.OSSErrorMessage = addedAddressTuple.Item2;
             }
         }
-        #endregion
         #endregion
 
         return response;
     }
-    
-    public async Task<UpdateAccountResponse> ProcessAccountUpdate(UpdateAccountModel model)
+
+    public async Task<UpdateAddressResponse> UpdateAddress(UpdateAddressModel model)
     {
         /*
         * WHERE TO SYNC
@@ -160,7 +113,7 @@ public class AccountBrokerService : IAccountBrokerService
         {
             Id = Guid.NewGuid(),
             Action = ActionType.Update,
-            Object = ActionObjectType.Account,
+            Object = ActionObjectType.Address,
             ObjectId = model.ObjectId,
             CreatedOn = DateTime.UtcNow,
             UserName = model.UserName,
@@ -169,7 +122,6 @@ public class AccountBrokerService : IAccountBrokerService
             OriginalTransactionId = null, // TODO: Populate this later when hooking up Retry
             TransactionLog = new List<SalesforceActionRecord>()
         };
-
         // Insert the event into the database, receive the response object and update the existing variable
         salesforceTransaction = await _actionsRepository.InsertActionRecord(salesforceTransaction);
         #endregion
@@ -178,7 +130,7 @@ public class AccountBrokerService : IAccountBrokerService
          * MARSHAL UP RESPONSE
          */
         #region Build initial response object
-        var response = new UpdateAccountResponse
+        var response = new UpdateAddressResponse
         {
             ObjectId = model.ObjectId,
             OracleStatus = syncToOracle ? StatusType.Started : StatusType.Skipped,
@@ -189,31 +141,25 @@ public class AccountBrokerService : IAccountBrokerService
         #region Send to Oracle
         if (syncToOracle)
         {
-            var updatedAccount = await _oracleService.UpdateAccount(model, salesforceTransaction);
-            if (string.IsNullOrEmpty(updatedAccount.Item2)) // No error!
-            {
-                response.OracleStatus = StatusType.Successful;
-            }
-            else // Is error, do not EXIT.. continue to Oracle
-            {
-                response.OracleStatus = StatusType.Error;
-                response.OracleErrorMessage = updatedAccount.Item2;
-            }
+            // TODO: Delete this mock response and hook this up
+            Random rnd = new Random();
+            response.OracleStatus = StatusType.Successful;
+            response.OracleAddressId = $"MockOracleAddressId{rnd.Next(100000, 999999)}";
         }
         #endregion
 
         #region Send to OSS
         if (syncToOss)
         {
-            var updatedAccount = await _ossService.UpdateAccount(model, salesforceTransaction);
-            if (string.IsNullOrEmpty(updatedAccount.Item2)) // No error!
+            var updatedAddressTuple = await _ossService.UpdateAccountAddress(new UpdateAddressModel { Address1 = model.Address1, Address2 = model.Address2, Country = model.Country }, salesforceTransaction);
+            if (string.IsNullOrEmpty(updatedAddressTuple.Item2)) // No error!
             {
                 response.OSSStatus = StatusType.Successful;
             }
-            else // Is error, do not EXIT.. continue to Oracle
+            else // Is error, do not EXIT..
             {
                 response.OSSStatus = StatusType.Error;
-                response.OSSErrorMessage = updatedAccount.Item2;
+                response.OSSErrorMessage = updatedAddressTuple.Item2;
             }
         }
         #endregion
@@ -221,3 +167,4 @@ public class AccountBrokerService : IAccountBrokerService
         return response;
     }
 }
+

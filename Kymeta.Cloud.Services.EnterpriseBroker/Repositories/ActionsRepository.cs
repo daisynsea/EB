@@ -1,7 +1,4 @@
-﻿using Dapper;
-using Microsoft.Azure.Cosmos;
-using System.Data;
-using System.Data.SqlClient;
+﻿using Microsoft.Azure.Cosmos;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.Repositories;
 

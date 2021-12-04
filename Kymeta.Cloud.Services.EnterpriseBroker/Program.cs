@@ -3,7 +3,6 @@ using Kymeta.Cloud.Commons.AspNet.DistributedConfig;
 using Kymeta.Cloud.Commons.AspNet.Health;
 using Kymeta.Cloud.Logging;
 using Kymeta.Cloud.Services.EnterpriseBroker;
-using Kymeta.Cloud.Services.EnterpriseBroker.Repositories;
 using System.Diagnostics;
 using System.Text.Json.Serialization;
 

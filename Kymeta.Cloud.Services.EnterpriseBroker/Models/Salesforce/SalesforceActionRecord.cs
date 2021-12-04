@@ -101,7 +101,10 @@ public enum SalesforceTransactionAction
     UpdateOrganizationInOracle,
     UpdateCustomerAccountInOracle,
     UpdateCustomerProfileInOracle,
-    UpdateCustomerAccountSiteInOracle
+    UpdateCustomerAccountSiteInOracle,
+    UpdateAddressInOss,
+    CreateSiteInOracle,
+    UpdateSiteInOracle
 }
 
 public enum ActionType

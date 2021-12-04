@@ -54,7 +54,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
 
         // Act
         var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object);
-        var result = await svc.ProcessSalesforceAction(model);
+        var result = await svc.ProcessAccountCreate(model);
 
         // Assert
         Assert.NotNull(result);
@@ -104,7 +104,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
 
         // Act
         var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object);
-        var result = await svc.ProcessSalesforceAction(model);
+        var result = await svc.ProcessAccountCreate(model);
 
         // Assert
         Assert.NotNull(result);
@@ -150,7 +150,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
 
         // Act
         var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object);
-        var result = await svc.ProcessSalesforceAction(model);
+        var result = await svc.ProcessAccountCreate(model);
 
         // Assert
         Assert.NotNull(result);
