@@ -126,10 +126,10 @@ public class OssService : IOssService
         await LogAction(transaction.Id, SalesforceTransactionAction.UpdateAddressInOss, StatusType.Started, transaction.Action);
         string error = null;
 
-        var existingAccount = await GetAccount(model.ObjectId);
+        var existingAccount = await GetAccount(model.ParentAccountId);
         if (existingAccount == null) // Account doesn't exist, return from this action with an error
         {
-            error = $"Account with Salesforce ID {model.ObjectId} does not exist in OSS.";
+            error = $"Account with Salesforce ID {model.ParentAccountId} does not exist in OSS.";
             await LogAction(transaction.Id, SalesforceTransactionAction.UpdateAddressInOss, StatusType.Error, transaction.Action, null, error);
             return new Tuple<Account, string>(null, error);
         }
@@ -141,7 +141,7 @@ public class OssService : IOssService
         }
         if (existingUser == null) existingUser = _systemUser;
 
-        var account = RemapSalesforceAddressToOssAccount(model.Address1, model.Address2, model.Country);
+        var account = RemapSalesforceAddressToOssAccount(model.Address1, model.Address2, model.Country, existingUser.Id);
         try
         {
             var updated = await _accountsClient.UpdateAccount(existingAccount.Id.GetValueOrDefault(), account);
@@ -197,11 +197,13 @@ public class OssService : IOssService
     private Account RemapSalesforceAddressToOssAccount(
         string address1,
         string address2,
-        string country
+        string country,
+        Guid userId
         )
     {
         var account = new Account
         {
+            ModifiedById = userId,
             BillingAddressLine1 = address1,
             BillingAddressLine2 = address2,
             BillingCountryCode = country

@@ -68,7 +68,7 @@ public class OracleService : IOracleService
     public async Task<Tuple<string, string>> AddAddress(CreateAddressModel model, SalesforceActionTransaction transaction)
     {
         var address = RemapSalesforceAddressToOracleAddress(model.Address1, model.Address2, model.Country);
-        var accountNumber = model.ParentAccountOracleId;
+        var accountNumber = model.ParentOracleAccountId;
         var added = await _oracleClient.CreateAddress(accountNumber, address);
         if (!string.IsNullOrEmpty(added.Item2)) return new Tuple<string, string>(null, $"There was an error adding the address to Oracle: {added.Item2}");
         return new Tuple<string, string>(added.Item1.PartyNumber, string.Empty);

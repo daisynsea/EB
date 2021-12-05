@@ -78,7 +78,7 @@ public class AddressBrokerService : IAddressBrokerService
         #region Send to OSS
         if (syncToOss)
         {
-            var addedAddressTuple = await _ossService.UpdateAccountAddress(new UpdateAddressModel { Address1 = model.Address1, Address2 = model.Address2, Country = model.Country }, salesforceTransaction);
+            var addedAddressTuple = await _ossService.UpdateAccountAddress(new UpdateAddressModel { ParentAccountId = model.ParentAccountId, Address1 = model.Address1, Address2 = model.Address2, Country = model.Country }, salesforceTransaction);
             if (string.IsNullOrEmpty(addedAddressTuple.Item2)) // No error!
             {
                 response.OSSStatus = StatusType.Successful;

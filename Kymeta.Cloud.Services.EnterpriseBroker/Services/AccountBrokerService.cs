@@ -58,7 +58,7 @@ public class AccountBrokerService : IAccountBrokerService
             ObjectId = model.ObjectId,
             CreatedOn = DateTime.UtcNow,
             UserName = model.UserName,
-            SerializedObjectValues = JsonSerializer.Serialize(model),
+            SerializedObjectValues = body,
             LastUpdatedOn = DateTime.UtcNow,
             OriginalTransactionId = null, // TODO: Populate this later when hooking up Retry
             TransactionLog = new List<SalesforceActionRecord>()
@@ -109,8 +109,8 @@ public class AccountBrokerService : IAccountBrokerService
             Random rnd = new Random();
             response.OracleStatus = StatusType.Successful;
             oracleCustomerAccountId = $"MockCustomerAccountId{rnd.Next(100000, 999999)}";
-            var oracleCustomerProfileId = $"MockCustomerProfileId${rnd.Next(100000, 999999)}";
-            var oracleOrganizationId = $"MockOrganizationId${rnd.Next(100000, 999999)}";
+            var oracleCustomerProfileId = $"MockCustomerProfileId{rnd.Next(100000, 999999)}";
+            var oracleOrganizationId = $"MockOrganizationId{rnd.Next(100000, 999999)}";
             response.OracleCustomerAccountId = oracleCustomerAccountId;
             response.OracleOrganizationId = oracleOrganizationId;
             response.OracleCustomerProfileId = oracleCustomerProfileId;
@@ -138,6 +138,7 @@ public class AccountBrokerService : IAccountBrokerService
         #endregion
         #endregion
 
+        response.CompletedOn = DateTime.UtcNow;
         return response;
     }
     
@@ -164,7 +165,7 @@ public class AccountBrokerService : IAccountBrokerService
             ObjectId = model.ObjectId,
             CreatedOn = DateTime.UtcNow,
             UserName = model.UserName,
-            SerializedObjectValues = JsonSerializer.Serialize(model),
+            SerializedObjectValues = body,
             LastUpdatedOn = DateTime.UtcNow,
             OriginalTransactionId = null, // TODO: Populate this later when hooking up Retry
             TransactionLog = new List<SalesforceActionRecord>()
@@ -189,16 +190,19 @@ public class AccountBrokerService : IAccountBrokerService
         #region Send to Oracle
         if (syncToOracle)
         {
-            var updatedAccount = await _oracleService.UpdateAccount(model, salesforceTransaction);
-            if (string.IsNullOrEmpty(updatedAccount.Item2)) // No error!
-            {
-                response.OracleStatus = StatusType.Successful;
-            }
-            else // Is error, do not EXIT.. continue to Oracle
-            {
-                response.OracleStatus = StatusType.Error;
-                response.OracleErrorMessage = updatedAccount.Item2;
-            }
+            response.OracleStatus = StatusType.Successful;
+            // TODO: Bring this back when implemented correctly
+
+            //var updatedAccount = await _oracleService.UpdateAccount(model, salesforceTransaction);
+            //if (string.IsNullOrEmpty(updatedAccount.Item2)) // No error!
+            //{
+            //    response.OracleStatus = StatusType.Successful;
+            //}
+            //else // Is error, do not EXIT.. continue to Oracle
+            //{
+            //    response.OracleStatus = StatusType.Error;
+            //    response.OracleErrorMessage = updatedAccount.Item2;
+            //}
         }
         #endregion
 

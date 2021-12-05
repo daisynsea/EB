@@ -44,6 +44,8 @@ builder.Services.AddCosmosDb(builder.Configuration.GetConnectionString("AzureCos
 builder.Services.AddScoped<IActionsRepository, ActionsRepository>();
 builder.Services.AddScoped<IOssService, OssService>();
 builder.Services.AddScoped<IAccountBrokerService, AccountBrokerService>();
+builder.Services.AddScoped<IAddressBrokerService, AddressBrokerService>();
+builder.Services.AddScoped<IContactBrokerService, ContactBrokerService>();
 builder.Services.AddScoped<IOracleService, OracleService>();
 // TODO: Add more here
 
