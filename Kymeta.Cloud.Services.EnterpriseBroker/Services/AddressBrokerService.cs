@@ -151,15 +151,22 @@ public class AddressBrokerService : IAddressBrokerService
         #region Send to OSS
         if (syncToOss)
         {
-            var updatedAddressTuple = await _ossService.UpdateAccountAddress(new UpdateAddressModel { Address1 = model.Address1, Address2 = model.Address2, Country = model.Country }, salesforceTransaction);
-            if (string.IsNullOrEmpty(updatedAddressTuple.Item2)) // No error!
+            // We only care about billing and shipping address type
+            if (model.Type != "Billing & Shipping") 
             {
-                response.OSSStatus = StatusType.Successful;
-            }
-            else // Is error, do not EXIT..
+                response.OSSStatus = StatusType.Skipped;
+            } else
             {
-                response.OSSStatus = StatusType.Error;
-                response.OSSErrorMessage = updatedAddressTuple.Item2;
+                var updatedAddressTuple = await _ossService.UpdateAccountAddress(new UpdateAddressModel { Address1 = model.Address1, Address2 = model.Address2, Country = model.Country }, salesforceTransaction);
+                if (string.IsNullOrEmpty(updatedAddressTuple.Item2)) // No error!
+                {
+                    response.OSSStatus = StatusType.Successful;
+                }
+                else // Is error, do not EXIT..
+                {
+                    response.OSSStatus = StatusType.Error;
+                    response.OSSErrorMessage = updatedAddressTuple.Item2;
+                }
             }
         }
         #endregion

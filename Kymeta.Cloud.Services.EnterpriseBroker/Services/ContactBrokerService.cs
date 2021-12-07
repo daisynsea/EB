@@ -23,7 +23,6 @@ public class ContactBrokerService : IContactBrokerService
         /*
         * WHERE TO SYNC
         */
-        var syncToOss = model.SyncToOss.GetValueOrDefault();
         var syncToOracle = model.SyncToOracle.GetValueOrDefault();
 
         /*
@@ -58,7 +57,7 @@ public class ContactBrokerService : IContactBrokerService
         {
             ObjectId = model.ObjectId,
             OracleStatus = syncToOracle ? StatusType.Started : StatusType.Skipped,
-            OSSStatus = syncToOss ? StatusType.Started : StatusType.Skipped
+            OSSStatus = StatusType.Skipped // We don't sync Contacts to OSS
         };
         #endregion
 
