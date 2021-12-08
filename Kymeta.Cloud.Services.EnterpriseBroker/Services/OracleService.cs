@@ -77,7 +77,7 @@ public class OracleService : IOracleService
     public async Task<Tuple<string, string>> UpdateAddress(UpdateAddressModel model, SalesforceActionTransaction transaction)
     {
         var address = RemapSalesforceAddressToOracleAddress(model.Address1, model.Address2, model.Country);
-        var accountNumber = model.ParentAccountOracleId;
+        var accountNumber = model.ParentOracleAccountId;
         // TODO: Is this refactored anyway?
         var partyNumber = model.AddressOracleId; // This is the actual Id of the Address record in Oracle (it has to be stored on the record itself)
         var added = await _oracleClient.UpdateAddress(accountNumber, address, partyNumber);
