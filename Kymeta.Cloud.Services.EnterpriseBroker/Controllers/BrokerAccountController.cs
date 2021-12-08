@@ -43,7 +43,7 @@ public class BrokerAccountController : ControllerBase
     /// <param name="model"></param>
     /// <returns></returns>
     [HttpPut]
-    public async Task<ActionResult<SalesforceProcessResponse>> UpdateAccount([FromBody] UpdateAccountModel model)
+    public async Task<ActionResult<UpdateAccountResponse>> UpdateAccount([FromBody] UpdateAccountModel model)
     {
         try
         {
