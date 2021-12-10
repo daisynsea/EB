@@ -9,7 +9,7 @@ public class SalesforceActionObject
     [Required]
     public ActionType? ActionType { get; set; }
     public string? UserName { get; set; }
-    public string? SalesforceOriginUri { get; set; } // TODO: consider making this more generic for "EnterpriseOriginUri"
+    public string? SalesforceOriginUri { get; set; }
     [Required]
     public string ObjectId { get; set; }
     [Required]

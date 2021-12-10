@@ -8,10 +8,21 @@ public class CreateOracleAccountViewModel
 
 public class CreateOracleCustomerAccountViewModel : CreateOracleAccountViewModel
 {
-    public string PartyId { get; set; }
+    public string OrganizationPartyId { get; set; }
+    public string OrganizationPartySiteId { get; set; }
     public string AccountType { get; set; }
     public string AccountSubType { get; set; }
     public string TaxId { get; set; }
+    public string SalesforceId { get; set; }
+    public string OssId { get; set; }
+}
+
+public class UpdateOracleCustomerAccountViewModel : CreateOracleAccountViewModel
+{
+    public string CustomerAccountId { get; set; }
+    public string CustomerAccountPartyId { get; set; }
+    public string AccountType { get; set; }
+    public string AccountSubType { get; set; }
     public string SalesforceId { get; set; }
     public string OssId { get; set; }
 }

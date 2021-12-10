@@ -40,7 +40,7 @@ public class OracleService : IOracleService
         // map the model values to the expected Customer Account payload
         var customerAccount = RemapOrganizationToOracleCustomerAccount(model);
         // set the PartyId acquired from the successful creation of the Organization above
-        customerAccount.PartyId = added.Item1.PartyId.ToString();
+        customerAccount.OrganizationPartyId = added.Item1.PartyId.ToString();
         var customerAccountEnvelope = OracleSoapTemplates.CreateCustomerAccount(customerAccount);
 
         // create the Customer Account via SOAP service
