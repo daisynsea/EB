@@ -4,14 +4,19 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce;
 
 public class SalesforceActionObject
 {
-    [Required]
-    public ActionObjectType? ObjectType { get; set; }
-    [Required]
-    public ActionType? ActionType { get; set; }
+    /// <summary>
+    /// Who initiated the request. This is usually an e-mail.
+    /// </summary>
     public string? UserName { get; set; }
-    public string? SalesforceOriginUri { get; set; }
+    /// <summary>
+    /// Origin URI of the request.
+    /// </summary>
+    public string? EnterpriseOriginUri { get; set; }
+    /// <summary>
+    /// Id of the Salesforce Object.
+    /// </summary>
     [Required]
-    public string ObjectId { get; set; }
-    [Required]
-    public Dictionary<string, object> ObjectValues { get; set; }
+    public string? ObjectId { get; set; }
+    public bool? SyncToOss { get; set; }
+    public bool? SyncToOracle { get; set; }
 }

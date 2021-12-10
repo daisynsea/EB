@@ -16,7 +16,14 @@ public class AuthKeyMiddleware
 
     public async Task Invoke(HttpContext context)
     {
-        var keyHeader = context.Request.Headers.FirstOrDefault(o => o.Key == SHARED_KEY_HEADER);
+        // If it's not an API call, means it's a RazorPages call, so skip the auth key validation
+        if (context.Request.Path.HasValue && !context.Request.Path.Value.Contains("api/"))
+        {
+            await _next.Invoke(context);
+            return;
+        }
+
+        var keyHeader = context.Request.Headers.FirstOrDefault(o => o.Key.ToLower() == SHARED_KEY_HEADER.ToLower());
 
         if (string.IsNullOrEmpty(keyHeader.Value) || keyHeader.Value != _config["EnterpriseBrokerKey"])
         {

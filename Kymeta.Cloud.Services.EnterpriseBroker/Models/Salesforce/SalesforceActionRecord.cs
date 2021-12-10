@@ -1,49 +1,110 @@
-﻿namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
-public class SalesforceActionRecord
+namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce;
+
+public class SalesforceActionTransaction
 {
     /// <summary>
     /// Event Id
     /// </summary>
+    [JsonProperty("id")]
     public Guid Id { get; set; }
     /// <summary>
     /// Timestamp when the request occurred.
     /// </summary>
-    public DateTime Timestamp { get; set; }
+    [JsonProperty("createdOn")]
+    public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
     /// <summary>
     /// User name (email) of the Salesforce user performing the action
     /// </summary>
-    public string UserName { get; set; }
+    [JsonProperty("userName")]
+    public string? UserName { get; set; }
     /// <summary>
     /// Action performed on the Object (ie. Create, Update)
     /// </summary>
+    [JsonProperty("action")]
+    [JsonConverter(typeof(StringEnumConverter))]
     public ActionType? Action { get; set; }
     /// <summary>
     /// Object type (ie. Account, Contact)
     /// </summary>
+    [JsonProperty("object")]
+    [JsonConverter(typeof(StringEnumConverter))]
     public ActionObjectType? Object { get; set; }
     /// <summary>
     /// Id of the Salesforce object
     /// </summary>
-    public string ObjectId { get; set; }
+    [JsonProperty("objectId")]
+    public string? ObjectId { get; set; }
     /// <summary>
     /// Datetime the EnterpriseAction record was last updated on
     /// </summary>
+    [JsonProperty("lastUpdatedOn")]
     public DateTime? LastUpdatedOn { get; set; }
     /// <summary>
     /// Body of the request that came in. Can be null.
     /// </summary>
-    public string? Body { get; set; }
+    [JsonProperty("serializedObjectValues")]
+    public string SerializedObjectValues { get; set; }
     /// <summary>
-    /// Status of the syncing to Oracle
+    /// (Optional) If this transaction is a retry of a previous transaction, this field will be populated.
     /// </summary>
-    public StatusType? OracleStatus { get; set; }
+    [JsonProperty("originalTransactionId")]
+    public string? OriginalTransactionId { get; set; }
     /// <summary>
-    /// Status of the syncing to OSS
+    /// Log of actions in this transaction
     /// </summary>
-    public StatusType? OssStatus { get; set; }
-    public string? OracleErrorMessage { get; set; }
-    public string? OssErrorMessage { get; set; }
+    [JsonProperty("transactionLog")]
+    public List<SalesforceActionRecord>? TransactionLog { get; set; }
+
+    [JsonIgnore]
+    public StatusType? OssStatus
+    {
+        get
+        {
+            var ossStatuses = TransactionLog?.Where(a => a.Action.ToString().ToLower().Contains("oss")).OrderByDescending(t => t.Timestamp);
+            return ossStatuses?.FirstOrDefault()?.Status ?? StatusType.Skipped;
+        }
+    }
+
+    [JsonIgnore]
+    public StatusType? OracleStatus
+    {
+        get
+        {
+            var oracleStatuses = TransactionLog?.Where(a => a.Action.ToString().ToLower().Contains("oracle")).OrderByDescending(t => t.Timestamp);
+            return oracleStatuses?.FirstOrDefault()?.Status ?? StatusType.Skipped;
+        }
+    }
+}
+
+public class SalesforceActionRecord
+{
+    [JsonConverter(typeof(StringEnumConverter))]
+    public SalesforceTransactionAction Action { get; set; }
+    [JsonConverter(typeof(StringEnumConverter))]
+    public StatusType Status { get; set; }
+    public DateTime? Timestamp { get; set; }
+    public string? ErrorMessage { get; set; }
+    public string? EntityId { get; set; }
+}
+
+public enum SalesforceTransactionAction
+{
+    CreateAccountInOss,
+    CreateOrganizationInOracle,
+    CreateCustomerAccountInOracle,
+    CreateCustomerProfileInOracle,
+    CreateCustomerAccountSiteInOracle,
+    UpdateAccountInOss,
+    UpdateOrganizationInOracle,
+    UpdateCustomerAccountInOracle,
+    UpdateCustomerProfileInOracle,
+    UpdateCustomerAccountSiteInOracle,
+    UpdateAddressInOss,
+    CreateSiteInOracle,
+    UpdateSiteInOracle
 }
 
 public enum ActionType
@@ -62,7 +123,7 @@ public enum ActionObjectType
 public enum StatusType
 {
     Skipped,
-    Processing,
+    Started,
     Successful,
     Error
 }

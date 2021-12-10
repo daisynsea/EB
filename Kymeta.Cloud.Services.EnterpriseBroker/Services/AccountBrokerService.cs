@@ -9,11 +9,17 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Services;
 public interface IAccountBrokerService
 {
     /// <summary>
-    /// Process Salesforce actions received by the EnterpriseBroker
+    /// Process account being created for the first time, after approval
     /// </summary>
-    /// <param name="account">Account model</param>
+    /// <param name="model">Create payload</param>
     /// <returns>Added account</returns>
-    Task<SalesforceProcessResponse> ProcessSalesforceAction(SalesforceActionObject model);
+    Task<CreateAccountResponse> ProcessAccountCreate(CreateAccountModel model);
+    /// <summary>
+    /// Process account being updated
+    /// </summary>
+    /// <param name="model">Update payload</param>
+    /// <returns>Updated account response</returns>
+    Task<UpdateAccountResponse> ProcessAccountUpdate(UpdateAccountModel model);
 }
 
 public class AccountBrokerService : IAccountBrokerService
@@ -29,183 +35,190 @@ public class AccountBrokerService : IAccountBrokerService
         _ossService = ossService;
     }
 
-    public async Task<SalesforceProcessResponse> ProcessSalesforceAction(SalesforceActionObject model)
+    public async Task<CreateAccountResponse> ProcessAccountCreate(CreateAccountModel model)
     {
         /*
-        * DETERMINE WHERE TO SYNC
+        * WHERE TO SYNC
         */
-        var syncToOss = false;
-        var syncToOracle = false;
-
-        // verify if model.ObjectValues contains keys 'syncToOss' and 'syncToOracle' and parse them
-        if (model.ObjectValues.ContainsKey("syncToOss"))
-        {
-            bool.TryParse(model.ObjectValues.GetValueOrDefault("syncToOss").ToString(), out syncToOss);
-        }
-        if (model.ObjectValues.ContainsKey("syncToOracle"))
-        {
-            bool.TryParse(model.ObjectValues.GetValueOrDefault("syncToOracle").ToString(), out syncToOracle);
-        }
+        var syncToOss = model.SyncToOss.GetValueOrDefault();
+        var syncToOracle = model.SyncToOracle.GetValueOrDefault();
 
         /*
          * LOG THE ENTERPRISE APPLICATION BROKER ACTION
          */
         #region Log the Enterprise Action
         // Serialize the body coming in
-        string body = JsonSerializer.Serialize(model.ObjectValues, new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } });
+        string body = JsonSerializer.Serialize(model, new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } });
         // Create the action record object
-        var actionRecord = new SalesforceActionRecord
+        var salesforceTransaction = new SalesforceActionTransaction
         {
             Id = Guid.NewGuid(),
-            Action = model.ActionType,
-            Object = model.ObjectType,
+            Action = ActionType.Create,
+            Object = ActionObjectType.Account,
             ObjectId = model.ObjectId,
-            Timestamp = DateTime.UtcNow,
+            CreatedOn = DateTime.UtcNow,
             UserName = model.UserName,
-            Body = body,
-            OssStatus = StatusType.Skipped,
-            OracleStatus = StatusType.Skipped
+            SerializedObjectValues = body,
+            LastUpdatedOn = DateTime.UtcNow,
+            OriginalTransactionId = null, // TODO: Populate this later when hooking up Retry
+            TransactionLog = new List<SalesforceActionRecord>()
         };
-        if (syncToOss) actionRecord.OssStatus = StatusType.Processing;
-        if (syncToOracle) actionRecord.OracleStatus = StatusType.Processing;
 
-        // Insert the event into the database, either both processing, or one processing and one skipped (or both skipped)
-        var result = await _actionsRepository.InsertActionRecord(actionRecord);
+        // Insert the event into the database, receive the response object and update the existing variable
+        salesforceTransaction = await _actionsRepository.InsertActionRecord(salesforceTransaction);
         #endregion
 
         /*
          * MARSHAL UP RESPONSE
          */
         #region Build initial response object
-        var response = new SalesforceProcessResponse
+        var response = new CreateAccountResponse
         {
             ObjectId = model.ObjectId,
-            OracleStatus = actionRecord.OracleStatus.Value,
-            OSSStatus = actionRecord.OssStatus.Value
+            OracleStatus = syncToOracle ? StatusType.Started : StatusType.Skipped,
+            OSSStatus = syncToOss ? StatusType.Started : StatusType.Skipped
         };
         #endregion
 
-        string oracleAccountId = null;
+        string oracleCustomerAccountId = null;
 
         #region Process Account Create
-        // If it's an account
-        if (model.ObjectType == ActionObjectType.Account && model.ActionType == ActionType.Create)
+        /*
+         * SEND TO ORACLE IF REQUIRED
+         */
+        #region Send to Oracle
+        if (syncToOracle)
         {
-            /*
-             * SEND TO ORACLE IF REQUIRED
-             */
-            #region Send to Oracle
-            if (syncToOracle)
-            {
-                // first string is the oracle account id
-                var addedAccountTuple = await _oracleService.AddAccount(model);
-                if (string.IsNullOrEmpty(addedAccountTuple.Item2)) // No error!
-                {
-                    response.OracleStatus = StatusType.Successful;
-                    oracleAccountId = addedAccountTuple.Item1; // accountId
-                    response.AddedOracleAccountId = addedAccountTuple.Item1;
-                    await _actionsRepository.UpdateActionRecord(new SalesforceActionRecord { Id = actionRecord.Id, OracleStatus = StatusType.Successful });
-                }
-                else // Is error, do not EXIT..
-                {
-                    response.OracleStatus = StatusType.Error;
-                    response.OracleErrorMessage = addedAccountTuple.Item2;
-                    await _actionsRepository.UpdateActionRecord(new SalesforceActionRecord { Id = actionRecord.Id, OracleStatus = StatusType.Error, OracleErrorMessage = addedAccountTuple.Item2 });
-                }
-            }
-            #endregion
+            // TODO: Actually hook this up
 
-            /*
-             * SEND TO OSS IF REQUIRED
-             */
-            #region Send to OSS
-            if (syncToOss)
-            {
-                var addedAccountTuple = await _ossService.AddAccount(model, oracleAccountId);
-                if (string.IsNullOrEmpty(addedAccountTuple.Item2)) // No error!
-                {
-                    response.OSSStatus = StatusType.Successful;
-                    response.AddedOssAccountId = addedAccountTuple.Item1.Id.ToString();
-                    await _actionsRepository.UpdateActionRecord(new SalesforceActionRecord { Id = actionRecord.Id, OssStatus = StatusType.Successful });
-                }
-                else // Is error, do not EXIT..
-                {
-                    response.OSSStatus = StatusType.Error;
-                    response.OSSErrorMessage = addedAccountTuple.Item2;
-                    await _actionsRepository.UpdateActionRecord(new SalesforceActionRecord { Id = actionRecord.Id, OssStatus = StatusType.Error, OssErrorMessage = addedAccountTuple.Item2 });
-                }
-            }
-            #endregion
-        }
-        #endregion
-
-        #region Process Account Update
-        if (model.ObjectType == ActionObjectType.Account && model.ActionType == ActionType.Update)
-        {
-            #region Send to Oracle
-            if (syncToOracle)
-            {
-                var updatedAccount = await _oracleService.UpdateAccount(model);
-                if (string.IsNullOrEmpty(updatedAccount.Item2)) // No error!
-                {
-                    response.OracleStatus = StatusType.Successful;
-                    await _actionsRepository.UpdateActionRecord(new SalesforceActionRecord { Id = actionRecord.Id, OracleStatus = StatusType.Successful });
-                }
-                else // Is error, do not EXIT.. continue to Oracle
-                {
-                    response.OracleStatus = StatusType.Error;
-                    response.OracleErrorMessage = updatedAccount.Item2;
-                    await _actionsRepository.UpdateActionRecord(new SalesforceActionRecord { Id = actionRecord.Id, OracleStatus = StatusType.Error, OracleErrorMessage = updatedAccount.Item2 });
-                }
-            }
-            #endregion
-
-            #region Send to OSS
-            if (syncToOss)
-            {
-                var updatedAccount = await _ossService.UpdateAccount(model);
-                if (string.IsNullOrEmpty(updatedAccount.Item2)) // No error!
-                {
-                    response.OSSStatus = StatusType.Successful;
-                    await _actionsRepository.UpdateActionRecord(new SalesforceActionRecord { Id = actionRecord.Id, OssStatus = StatusType.Successful });
-                }
-                else // Is error, do not EXIT.. continue to Oracle
-                {
-                    response.OSSStatus = StatusType.Error;
-                    response.OSSErrorMessage = updatedAccount.Item2;
-                    await _actionsRepository.UpdateActionRecord(new SalesforceActionRecord { Id = actionRecord.Id, OssStatus = StatusType.Error, OssErrorMessage = updatedAccount.Item2 });
-                }
-            }
-            #endregion
-        }
-        #endregion
-
-        // Only needed for Oracle, not applicable for OSS
-        #region Process Address Create
-        // check the request for Address & Create actions
-        if (model.ObjectType == ActionObjectType.Address && model.ActionType == ActionType.Create)
-        {
-            await _actionsRepository.UpdateActionRecord(new SalesforceActionRecord { Id = actionRecord.Id, OssStatus = StatusType.Skipped, OracleStatus = StatusType.Processing });
-            /*
-             * SEND TO ORACLE
-             */
-            #region Send to Oracle
             // first string is the oracle account id
-            var addedAddressTuple = await _oracleService.AddAddress(model);
-            if (string.IsNullOrEmpty(addedAddressTuple.Item2)) // No error!
+            //var addedAccountTuple = await _oracleService.AddAccount(model, salesforceTransaction);
+            //if (string.IsNullOrEmpty(addedAccountTuple.Item2)) // No error!
+            //{
+            //    response.OracleStatus = StatusType.Successful;
+            //    oracleAccountId = addedAccountTuple.Item1; // accountId
+            //    response.AddedOracleAccountId = addedAccountTuple.Item1;
+            //}
+            //else // Is error, do not EXIT..
+            //{
+            //    response.OracleStatus = StatusType.Error;
+            //    response.OracleErrorMessage = addedAccountTuple.Item2;
+            //}
+
+            // TODO: Delete this mock response
+            Random rnd = new Random();
+            response.OracleStatus = StatusType.Successful;
+            oracleCustomerAccountId = $"MockCustomerAccountId{rnd.Next(100000, 999999)}";
+            var oracleCustomerProfileId = $"MockCustomerProfileId{rnd.Next(100000, 999999)}";
+            var oracleOrganizationId = $"MockOrganizationId{rnd.Next(100000, 999999)}";
+            response.OracleCustomerAccountId = oracleCustomerAccountId;
+            response.OracleOrganizationId = oracleOrganizationId;
+            response.OracleCustomerProfileId = oracleCustomerProfileId;
+        }
+        #endregion
+
+        /*
+         * SEND TO OSS IF REQUIRED
+         */
+        #region Send to OSS
+        if (syncToOss)
+        {
+            var addedAccountTuple = await _ossService.AddAccount(model, oracleCustomerAccountId, salesforceTransaction);
+            if (string.IsNullOrEmpty(addedAccountTuple.Item2)) // No error!
             {
-                response.OracleStatus = StatusType.Successful;
-                oracleAccountId = addedAddressTuple.Item1; // accountId
-                response.AddedOracleAccountId = addedAddressTuple.Item1;
-                await _actionsRepository.UpdateActionRecord(new SalesforceActionRecord { Id = actionRecord.Id, OracleStatus = StatusType.Successful });
+                response.OSSStatus = StatusType.Successful;
+                response.OssAccountId = addedAccountTuple.Item1.Id.ToString();
             }
             else // Is error, do not EXIT..
             {
-                response.OracleStatus = StatusType.Error;
-                response.OracleErrorMessage = addedAddressTuple.Item2;
-                await _actionsRepository.UpdateActionRecord(new SalesforceActionRecord { Id = actionRecord.Id, OracleStatus = StatusType.Error, OracleErrorMessage = addedAddressTuple.Item2 });
+                response.OSSStatus = StatusType.Error;
+                response.OSSErrorMessage = addedAccountTuple.Item2;
             }
-            #endregion
+        }
+        #endregion
+        #endregion
+
+        response.CompletedOn = DateTime.UtcNow;
+        return response;
+    }
+    
+    public async Task<UpdateAccountResponse> ProcessAccountUpdate(UpdateAccountModel model)
+    {
+        /*
+        * WHERE TO SYNC
+        */
+        var syncToOss = model.SyncToOss.GetValueOrDefault();
+        var syncToOracle = model.SyncToOracle.GetValueOrDefault();
+
+        /*
+         * LOG THE ENTERPRISE APPLICATION BROKER ACTION
+         */
+        #region Log the Enterprise Action
+        // Serialize the body coming in
+        string body = JsonSerializer.Serialize(model, new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } });
+        // Create the action record object
+        var salesforceTransaction = new SalesforceActionTransaction
+        {
+            Id = Guid.NewGuid(),
+            Action = ActionType.Update,
+            Object = ActionObjectType.Account,
+            ObjectId = model.ObjectId,
+            CreatedOn = DateTime.UtcNow,
+            UserName = model.UserName,
+            SerializedObjectValues = body,
+            LastUpdatedOn = DateTime.UtcNow,
+            OriginalTransactionId = null, // TODO: Populate this later when hooking up Retry
+            TransactionLog = new List<SalesforceActionRecord>()
+        };
+
+        // Insert the event into the database, receive the response object and update the existing variable
+        salesforceTransaction = await _actionsRepository.InsertActionRecord(salesforceTransaction);
+        #endregion
+
+        /*
+         * MARSHAL UP RESPONSE
+         */
+        #region Build initial response object
+        var response = new UpdateAccountResponse
+        {
+            ObjectId = model.ObjectId,
+            OracleStatus = syncToOracle ? StatusType.Started : StatusType.Skipped,
+            OSSStatus = syncToOss ? StatusType.Started : StatusType.Skipped
+        };
+        #endregion
+
+        #region Send to Oracle
+        if (syncToOracle)
+        {
+            response.OracleStatus = StatusType.Successful;
+            // TODO: Bring this back when implemented correctly
+
+            //var updatedAccount = await _oracleService.UpdateAccount(model, salesforceTransaction);
+            //if (string.IsNullOrEmpty(updatedAccount.Item2)) // No error!
+            //{
+            //    response.OracleStatus = StatusType.Successful;
+            //}
+            //else // Is error, do not EXIT.. continue to Oracle
+            //{
+            //    response.OracleStatus = StatusType.Error;
+            //    response.OracleErrorMessage = updatedAccount.Item2;
+            //}
+        }
+        #endregion
+
+        #region Send to OSS
+        if (syncToOss)
+        {
+            var updatedAccount = await _ossService.UpdateAccount(model, salesforceTransaction);
+            if (string.IsNullOrEmpty(updatedAccount.Item2)) // No error!
+            {
+                response.OSSStatus = StatusType.Successful;
+            }
+            else // Is error, do not EXIT.. continue to Oracle
+            {
+                response.OSSStatus = StatusType.Error;
+                response.OSSErrorMessage = updatedAccount.Item2;
+            }
         }
         #endregion
 

@@ -1,51 +1,98 @@
-﻿using Dapper;
-using System.Data;
-using System.Data.SqlClient;
+﻿using Microsoft.Azure.Cosmos;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.Repositories;
 
 public interface IActionsRepository
 {
-    Task<bool> InsertActionRecord(SalesforceActionRecord model);
-    Task<IEnumerable<SalesforceActionRecord>> GetActionRecords();
-    Task<bool> UpdateActionRecord(SalesforceActionRecord model);
+    Task<SalesforceActionTransaction> InsertActionRecord(SalesforceActionTransaction model);
+    Task<IEnumerable<SalesforceActionTransaction>> GetActionRecords();
+    Task<SalesforceActionTransaction> UpdateActionRecord(SalesforceActionTransaction model);
+    Task<SalesforceActionTransaction> GetActionRecord(Guid id, string partitionKey);
+    Task AddTransactionRecord(Guid id, string partitionKey, SalesforceActionRecord model);
 }
 
 public class ActionsRepository : IActionsRepository
 {
-    private readonly string _connString;
+    public Container Container { get; }
+    public PartitionKey ResolvePartitionKey(string action) => new PartitionKey(action);
 
-    public ActionsRepository(IConfiguration configuration)
+    public ActionsRepository(
+            IConfiguration config,
+            CosmosClient cosmosClient)
     {
-        _connString = configuration.GetConnectionString("ServicesConnection");
+        string databaseName = config["AzureDocumentDB:KCSDatabase"] ?? "KymetaCloudServices";
+        string containerName = config["AzureDocumentDB:EnterpriseActionsCollection"] ?? "EnterpriseActions";
+        Container = cosmosClient.GetContainer(databaseName, containerName);
     }
 
-    public async Task<IEnumerable<SalesforceActionRecord>> GetActionRecords()
+    public async Task<SalesforceActionTransaction> GetActionRecord(Guid id, string partitionKey)
     {
-        using var db = new SqlConnection(_connString);
-        var result = await db.QueryAsync<SalesforceActionRecord>("EnterpriseActionsGet", commandType: CommandType.StoredProcedure);
-        return result;
+        var response = await Container.ReadItemAsync<SalesforceActionTransaction>(id.ToString(), ResolvePartitionKey(partitionKey));
+        return response.Resource;
     }
 
-    public async Task<bool> InsertActionRecord(SalesforceActionRecord model)
+    public async Task<IEnumerable<SalesforceActionTransaction>> GetActionRecords()
     {
-        using var db = new SqlConnection(_connString);
-        var result = await db.ExecuteAsync("EnterpriseActionsAdd", model, commandType: CommandType.StoredProcedure);
-        return result > 0;
-    }
+        var sqlQueryText = "SELECT * FROM c";
 
-    public async Task<bool> UpdateActionRecord(SalesforceActionRecord model)
-    {
-        using var db = new SqlConnection(_connString);
-        var result = await db.ExecuteAsync("EnterpriseActionsUpdate", new
+        QueryDefinition queryDefinition = new QueryDefinition(sqlQueryText);
+        FeedIterator<SalesforceActionTransaction> queryResultSetIterator = this.Container.GetItemQueryIterator<SalesforceActionTransaction>(queryDefinition);
+
+        List<SalesforceActionTransaction> records = new List<SalesforceActionTransaction>();
+
+        while (queryResultSetIterator.HasMoreResults)
         {
-            model.Id,
-            model.OssStatus,
-            model.OracleStatus,
-            model.LastUpdatedOn,
-            model.OracleErrorMessage,
-            model.OssErrorMessage
-        }, commandType: CommandType.StoredProcedure);
-        return result > 0;
+            FeedResponse<SalesforceActionTransaction> currentResultSet = await queryResultSetIterator.ReadNextAsync();
+            foreach (SalesforceActionTransaction record in currentResultSet)
+            {
+                records.Add(record);
+            }
+        }
+
+        return records;
+    }
+
+    public async Task<SalesforceActionTransaction> InsertActionRecord(SalesforceActionTransaction model)
+    {
+        var response = await Container.UpsertItemAsync(model, ResolvePartitionKey(model.Action.ToString() ?? "Unset"));
+        return response.Resource;
+    }
+
+    public async Task<SalesforceActionTransaction> UpdateActionRecord(SalesforceActionTransaction model)
+    {
+        if (!model.Action.HasValue) return null;
+        var existingRecord = await GetActionRecord(model.Id, model.Action.ToString());
+        if (existingRecord == null) return null;
+        existingRecord.LastUpdatedOn = DateTime.UtcNow;
+        var response = await Container.UpsertItemAsync(model, ResolvePartitionKey(model.Action.ToString() ?? "Unset"));
+        return response.Resource;
+    }
+
+    public async Task AddTransactionRecord(Guid id, string partitionKey, SalesforceActionRecord model)
+    {
+        var existingRecord = await GetActionRecord(id, partitionKey);
+        if (existingRecord == null) return;
+        if (existingRecord.TransactionLog == null) existingRecord.TransactionLog = new List<SalesforceActionRecord>();
+        existingRecord.TransactionLog.Add(model);
+        await UpdateActionRecord(existingRecord);
+    }
+}
+
+public static class ServiceCollectionCosmosDbExtensions
+{
+    public static IServiceCollection AddCosmosDb(this IServiceCollection services, string connectionString)
+    {
+        var cosmosClient = new CosmosClient(connectionString, new CosmosClientOptions { 
+            ConnectionMode = ConnectionMode.Direct, 
+            RequestTimeout = TimeSpan.FromSeconds(10),
+            SerializerOptions = new CosmosSerializationOptions
+            {
+                PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase,
+                IgnoreNullValues = false,
+                Indented = true
+            }
+        });
+        services.AddSingleton<CosmosClient>(cosmosClient);
+        return services;
     }
 }

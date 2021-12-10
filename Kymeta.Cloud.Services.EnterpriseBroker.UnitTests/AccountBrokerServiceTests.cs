@@ -42,10 +42,10 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
 
         // Mock successful addition of record to the actions repository
         _fixture.ActionsRepository
-            .Setup(ar => ar.InsertActionRecord(It.IsAny<SalesforceActionRecord>()))
+            .Setup(ar => ar.InsertActionRecord(It.IsAny<SalesforceActionTransaction>()))
             .ReturnsAsync(true);
         _fixture.ActionsRepository
-            .Setup(ar => ar.UpdateActionRecord(It.IsAny<SalesforceActionRecord>()))
+            .Setup(ar => ar.UpdateActionRecord(It.IsAny<SalesforceActionTransaction>()))
             .ReturnsAsync(true);
         var accountFromOss = new Account { Id = Guid.NewGuid() };
         _fixture.OssService
@@ -54,7 +54,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
 
         // Act
         var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object);
-        var result = await svc.ProcessSalesforceAction(model);
+        var result = await svc.ProcessAccountCreate(model);
 
         // Assert
         Assert.NotNull(result);
@@ -89,10 +89,10 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
 
         // Mock successful addition of record to the actions repository
         _fixture.ActionsRepository
-            .Setup(ar => ar.InsertActionRecord(It.IsAny<SalesforceActionRecord>()))
+            .Setup(ar => ar.InsertActionRecord(It.IsAny<SalesforceActionTransaction>()))
             .ReturnsAsync(true);
         _fixture.ActionsRepository
-            .Setup(ar => ar.UpdateActionRecord(It.IsAny<SalesforceActionRecord>()))
+            .Setup(ar => ar.UpdateActionRecord(It.IsAny<SalesforceActionTransaction>()))
             .ReturnsAsync(true);
         var accountFromOss = new Account { Id = Guid.NewGuid() };
         _fixture.OssService
@@ -104,7 +104,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
 
         // Act
         var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object);
-        var result = await svc.ProcessSalesforceAction(model);
+        var result = await svc.ProcessAccountCreate(model);
 
         // Assert
         Assert.NotNull(result);
@@ -139,10 +139,10 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
 
         // Mock successful addition of record to the actions repository
         _fixture.ActionsRepository
-            .Setup(ar => ar.InsertActionRecord(It.IsAny<SalesforceActionRecord>()))
+            .Setup(ar => ar.InsertActionRecord(It.IsAny<SalesforceActionTransaction>()))
             .ReturnsAsync(true);
         _fixture.ActionsRepository
-            .Setup(ar => ar.UpdateActionRecord(It.IsAny<SalesforceActionRecord>()))
+            .Setup(ar => ar.UpdateActionRecord(It.IsAny<SalesforceActionTransaction>()))
             .ReturnsAsync(true);
         _fixture.OracleService
             .Setup(ors => ors.AddAccount(It.IsAny<SalesforceActionObject>()))
@@ -150,7 +150,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
 
         // Act
         var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object);
-        var result = await svc.ProcessSalesforceAction(model);
+        var result = await svc.ProcessAccountCreate(model);
 
         // Assert
         Assert.NotNull(result);
