@@ -22,36 +22,16 @@ public class BrokerContactController : ControllerBase
     /// <param name="model">Incoming Payload</param>
     /// <returns>Response model</returns>
     [HttpPost]
-    public async Task<ActionResult<CreateContactResponse>> CreateContact([FromBody] SalesforceContactModel model)
+    public async Task<ActionResult<ContactResponse>> ProcessContact([FromBody] SalesforceContactModel model)
     {
         try
         {
-            var result = await _contactService.CreateContact(model);
+            var result = await _contactService.ProcessContactAction(model);
             return result;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error processing create contact action due to an exception: {ex.Message}");
-            return StatusCode(500, ex.Message);
-        }
-    }
-
-    /// <summary>
-    /// This endpoint accepts a contact Payload
-    /// </summary>
-    /// <param name="model">Incoming Payload</param>
-    /// <returns>Response model</returns>
-    [HttpPut]
-    public async Task<ActionResult<UpdateContactResponse>> UpdateContact([FromBody] UpdateContactModel model)
-    {
-        try
-        {
-            var result = await _contactService.UpdateContact(model);
-            return result;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error processing update contact action due to an exception: {ex.Message}");
+            _logger.LogError(ex, $"Error processing contact action due to an exception: {ex.Message}");
             return StatusCode(500, ex.Message);
         }
     }

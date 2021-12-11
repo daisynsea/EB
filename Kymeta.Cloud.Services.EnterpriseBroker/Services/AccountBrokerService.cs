@@ -152,36 +152,53 @@ public class AccountBrokerService : IAccountBrokerService
         {
             // We have to create 3 entities in Oracle: Organization, CustomerAccount, CustomerAccountProfile
             var existingOrganization = await _oracleService.GetOrganizationBySalesforceAccountId(model.ObjectId);
+            // If Organization does not exist, create it
+            if (existingOrganization == null)
+            {
+                var addedOrganization = await _oracleService.CreateOrganization(model, salesforceTransaction);
+                oracleOrganizationId = addedOrganization.Item1;
 
-            // TODO: Actually hook this up
+            } else // Otherwise, update it
+            {
+                // TODO: Party Number here?
+                var updatedOrganization = await _oracleService.UpdateOrganization(existingOrganization.Item1.PartyNumber, model, salesforceTransaction);
+                oracleOrganizationId = existingOrganization.Item1.PartyNumber;
+            }
 
-            // first string is the oracle account id
-            //var addedAccountTuple = await _oracleService.AddAccount(model, salesforceTransaction);
-            //if (string.IsNullOrEmpty(addedAccountTuple.Item2)) // No error!
-            //{
-            //    response.OracleStatus = StatusType.Successful;
-            //    oracleAccountId = addedAccountTuple.Item1; // accountId
-            //    response.AddedOracleAccountId = addedAccountTuple.Item1;
-            //}
-            //else // Is error, do not EXIT..
-            //{
-            //    response.OracleStatus = StatusType.Error;
-            //    response.OracleErrorMessage = addedAccountTuple.Item2;
-            //}
+            var existingCustomerAccount = await _oracleService.GetCustomerAccountBySalesforceAccountId(model.ObjectId);
+            // If Customer Account does not exist, create it
+            if (existingCustomerAccount == null)
+            {
+                var addedCustomerAccount = await _oracleService.CreateCustomerAccount(oracleOrganizationId, model, salesforceTransaction);
+                oracleCustomerAccountId = addedCustomerAccount.Item1;
+            } else // Otherwise, update it
+            {
+                // TODO: Need a corresponding Id here?
+                var updatedCustomerAccount = await _oracleService.UpdateCustomerAccount(model, salesforceTransaction);
+                oracleCustomerAccountId = existingCustomerAccount.Item1.PartyNumber;
+            }
 
-            // TODO: Delete this mock response
-            Random rnd = new Random();
+            var existingCustomerAccountProfile = await _oracleService.GetCustomerAccountProfileBySalesforceAccountId(model.ObjectId);
+            // If Customer Account does not exist, create it
+            if (existingCustomerAccountProfile == null)
+            {
+                var addedCustomerAccountProfile = await _oracleService.CreateCustomerAccountProfile(oracleCustomerAccountId, model, salesforceTransaction);
+                oracleCustomerAccountProfileId = addedCustomerAccountProfile.Item1;
+            } else // Otherwise, update it
+            {
+                // TODO: Need a corresponding Id here?
+                var updatedCustomerAccountProfile = await _oracleService.UpdateCustomerAccountProfile(model, salesforceTransaction);
+                oracleCustomerAccountProfileId = existingCustomerAccountProfile.Item1.PartyNumber;
+            }
+
             response.OracleStatus = StatusType.Successful;
-            oracleCustomerAccountId = $"MockCustomerAccountId{rnd.Next(100000, 999999)}";
-            oracleCustomerAccountProfileId = $"MockCustomerProfileId{rnd.Next(100000, 999999)}";
-            oracleOrganizationId = $"MockOrganizationId{rnd.Next(100000, 999999)}";
             response.OracleCustomerAccountId = oracleCustomerAccountId;
             response.OracleOrganizationId = oracleOrganizationId;
             response.OracleCustomerProfileId = oracleCustomerAccountProfileId;
+
+            // TODO: Need to create the contacts and addresses, but how will we return the Ids from these child entities back to Salesforce??
         }
         #endregion
-
-        
         #endregion
 
         response.CompletedOn = DateTime.UtcNow;

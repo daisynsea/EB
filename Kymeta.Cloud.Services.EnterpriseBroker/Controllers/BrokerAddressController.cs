@@ -22,31 +22,11 @@ public class BrokerAddressController : ControllerBase
     /// <param name="model">Incoming Payload</param>
     /// <returns>Response model</returns>
     [HttpPost]
-    public async Task<ActionResult<CreateAddressResponse>> CreateAddress([FromBody] SalesforceAddressModel model)
+    public async Task<ActionResult<AddressResponse>> ProcessAddress([FromBody] SalesforceAddressModel model)
     {
         try
         {
-            var result = await _addressService.CreateAddress(model);
-            return result;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error processing address action due to an exception: {ex.Message}");
-            return StatusCode(500, ex.Message);
-        }
-    }
-
-    /// <summary>
-    /// This endpoint accepts an address Payload
-    /// </summary>
-    /// <param name="model">Incoming Payload</param>
-    /// <returns>Response model</returns>
-    [HttpPut]
-    public async Task<ActionResult<UpdateAddressResponse>> UpdateAddress([FromBody] UpdateAddressModel model)
-    {
-        try
-        {
-            var result = await _addressService.UpdateAddress(model);
+            var result = await _addressService.ProcessAddressAction(model);
             return result;
         }
         catch (Exception ex)

@@ -12,8 +12,9 @@ public interface IOracleService
     Task<Tuple<string, string>> UpdateOrganization(string organizationId, SalesforceAccountModel model, SalesforceActionTransaction transaction);
     Task<Tuple<string, string>> UpdateCustomerAccount(SalesforceAccountModel model, SalesforceActionTransaction transaction); // TODO: Not sure what's necessary in this signature
     Task<Tuple<string, string>> UpdateCustomerAccountProfile(SalesforceAccountModel model, SalesforceActionTransaction transaction); // TODO: Same as above
-    Task<Tuple<OracleOrganizationObject, string>> GetOrganizationBySalesforceAccountId(string salesforceAccountId);
-    Task<Tuple<OracleCustomerAccountObject, string>> GetCustomerAccountSalesforceAccountId(string salesforceAccountId);
+    Task<Tuple<OracleOrganization, string>> GetOrganizationBySalesforceAccountId(string salesforceAccountId);
+    Task<Tuple<OracleCustomerAccount, string>> GetCustomerAccountBySalesforceAccountId(string salesforceAccountId);
+    Task<Tuple<OracleCustomerAccountProfile, string>> GetCustomerAccountProfileBySalesforceAccountId(string salesforceAccountId);
     // Address Endpoints
     Task<Tuple<string, string>> CreateLocation(SalesforceAddressModel model, SalesforceActionTransaction transaction);
     Task<Tuple<string, string>> UpdateLocation(SalesforceContactModel model, SalesforceActionTransaction transaction);
@@ -80,11 +81,15 @@ public class OracleService : IOracleService
     {
         throw new NotImplementedException();
     }
-    public async Task<Tuple<OracleOrganizationObject, string>> GetOrganizationBySalesforceAccountId(string salesforceAccountId)
+    public async Task<Tuple<OracleOrganization, string>> GetOrganizationBySalesforceAccountId(string salesforceAccountId)
     {
         throw new NotImplementedException();
     }
-    public async Task<Tuple<OracleCustomerAccountObject, string>> GetCustomerAccountSalesforceAccountId(string salesforceAccountId)
+    public async Task<Tuple<OracleCustomerAccount, string>> GetCustomerAccountBySalesforceAccountId(string salesforceAccountId)
+    {
+        throw new NotImplementedException();
+    }
+    public Task<Tuple<OracleCustomerAccountProfile, string>> GetCustomerAccountProfileBySalesforceAccountId(string salesforceAccountId)
     {
         throw new NotImplementedException();
     }

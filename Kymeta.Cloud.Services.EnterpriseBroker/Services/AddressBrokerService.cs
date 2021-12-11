@@ -4,8 +4,7 @@ using System.Text.Json.Serialization;
 
 public interface IAddressBrokerService
 {
-    Task<CreateAddressResponse> CreateAddress(SalesforceAddressModel model);
-    Task<UpdateAddressResponse> UpdateAddress(UpdateAddressModel model);
+    Task<AddressResponse> ProcessAddressAction(SalesforceAddressModel model);
 }
 
 public class AddressBrokerService : IAddressBrokerService
@@ -21,7 +20,7 @@ public class AddressBrokerService : IAddressBrokerService
         _oracleService = oracleService;
     }
 
-    public async Task<CreateAddressResponse> CreateAddress(SalesforceAddressModel model)
+    public async Task<AddressResponse> ProcessAddressAction(SalesforceAddressModel model)
     {
         /*
         * WHERE TO SYNC
@@ -55,22 +54,12 @@ public class AddressBrokerService : IAddressBrokerService
          * MARSHAL UP RESPONSE
          */
         #region Build initial response object
-        var response = new CreateAddressResponse
+        var response = new AddressResponse
         {
             SalesforceObjectId = model.ObjectId,
             OracleStatus = syncToOracle ? StatusType.Started : StatusType.Skipped,
             OSSStatus = syncToOss ? StatusType.Started : StatusType.Skipped
         };
-        #endregion
-
-        #region Send to Oracle
-        if (syncToOracle)
-        {
-            // TODO: Delete this mock response and hook this up
-            Random rnd = new Random();
-            response.OracleStatus = StatusType.Successful;
-            response.OracleAddressId = $"MockOracleAddressId{rnd.Next(100000, 999999)}";
-        }
         #endregion
 
         #region Send to OSS
@@ -89,81 +78,24 @@ public class AddressBrokerService : IAddressBrokerService
         }
         #endregion
 
-        return response;
-    }
-
-    public async Task<UpdateAddressResponse> UpdateAddress(UpdateAddressModel model)
-    {
-        /*
-        * WHERE TO SYNC
-        */
-        var syncToOss = model.SyncToOss.GetValueOrDefault();
-        var syncToOracle = model.SyncToOracle.GetValueOrDefault();
-
-        /*
-         * LOG THE ENTERPRISE APPLICATION BROKER ACTION
-         */
-        #region Log the Enterprise Action
-        // Serialize the body coming in
-        string body = JsonSerializer.Serialize(model, new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } });
-        // Create the action record object
-        var salesforceTransaction = new SalesforceActionTransaction
-        {
-            Id = Guid.NewGuid(),
-            Object = ActionObjectType.Address,
-            ObjectId = model.ObjectId,
-            CreatedOn = DateTime.UtcNow,
-            UserName = model.UserName,
-            SerializedObjectValues = JsonSerializer.Serialize(model),
-            LastUpdatedOn = DateTime.UtcNow,
-            TransactionLog = new List<SalesforceActionRecord>()
-        };
-        // Insert the event into the database, receive the response object and update the existing variable
-        salesforceTransaction = await _actionsRepository.InsertActionRecord(salesforceTransaction);
-        #endregion
-
-        /*
-         * MARSHAL UP RESPONSE
-         */
-        #region Build initial response object
-        var response = new UpdateAddressResponse
-        {
-            SalesforceObjectId = model.ObjectId,
-            OracleStatus = syncToOracle ? StatusType.Started : StatusType.Skipped,
-            OSSStatus = syncToOss ? StatusType.Started : StatusType.Skipped
-        };
-        #endregion
-
         #region Send to Oracle
         if (syncToOracle)
         {
-            // TODO: Delete this mock response and hook this up
-            Random rnd = new Random();
-            response.OracleStatus = StatusType.Successful;
-            response.OracleAddressId = $"MockOracleAddressId{rnd.Next(100000, 999999)}";
-        }
-        #endregion
-
-        #region Send to OSS
-        if (syncToOss)
-        {
-            // We only care about billing and shipping address type
-            if (model.Type != "Billing & Shipping") 
+            // Get customer account by Salesforce Account Id
+            var customerAccount = await _oracleService.GetCustomerAccountBySalesforceAccountId(model.ParentAccountId);
+            if (customerAccount == null)
             {
-                response.OSSStatus = StatusType.Skipped;
-            } else
-            {
-                var updatedAddressTuple = await _ossService.UpdateAccountAddress(new UpdateAddressModel { Address1 = model.Address1, Address2 = model.Address2, Country = model.Country }, salesforceTransaction);
-                if (string.IsNullOrEmpty(updatedAddressTuple.Item2)) // No error!
-                {
-                    response.OSSStatus = StatusType.Successful;
-                }
-                else // Is error, do not EXIT..
-                {
-                    response.OSSStatus = StatusType.Error;
-                    response.OSSErrorMessage = updatedAddressTuple.Item2;
-                }
+                response.OracleStatus = StatusType.Error;
+                response.OracleErrorMessage = $"Error syncing Address to Oracle: Customer Account object with SF reference Id {model.ParentAccountId} was not found.";
             }
+
+            // TODO: Figure out how to get an existing location from the customer account
+
+            // If exists, update
+            // Otherwise, create
+
+            // TODO: Delete this mock response and hook this up
+            response.OracleStatus = StatusType.Successful;
         }
         #endregion
 

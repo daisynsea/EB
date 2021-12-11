@@ -3,8 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 public interface IContactBrokerService
 {
-    Task<CreateContactResponse> CreateContact(SalesforceContactModel model);
-    Task<UpdateContactResponse> UpdateContact(UpdateContactModel model);
+    Task<ContactResponse> ProcessContactAction(SalesforceContactModel model);
 }
 
 public class ContactBrokerService : IContactBrokerService
@@ -18,7 +17,7 @@ public class ContactBrokerService : IContactBrokerService
         _oracleService = oracleService;
     }
 
-    public async Task<CreateContactResponse> CreateContact(SalesforceContactModel model)
+    public async Task<ContactResponse> ProcessContactAction(SalesforceContactModel model)
     {
         /*
         * WHERE TO SYNC
@@ -51,7 +50,7 @@ public class ContactBrokerService : IContactBrokerService
          * MARSHAL UP RESPONSE
          */
         #region Build initial response object
-        var response = new CreateContactResponse
+        var response = new ContactResponse
         {
             SalesforceObjectId = model.ObjectId,
             OracleStatus = syncToOracle ? StatusType.Started : StatusType.Skipped,
@@ -66,59 +65,6 @@ public class ContactBrokerService : IContactBrokerService
             Random rnd = new Random();
             response.OracleStatus = StatusType.Successful;
             response.OraclePersonId = $"MockOraclePersonId{rnd.Next(100000, 999999)}";
-        }
-        #endregion
-
-        return response;
-    }
-
-    public async Task<UpdateContactResponse> UpdateContact(UpdateContactModel model)
-    {
-        /*
-        * WHERE TO SYNC
-        */
-        var syncToOracle = model.SyncToOracle.GetValueOrDefault();
-
-        /*
-         * LOG THE ENTERPRISE APPLICATION BROKER ACTION
-         */
-        #region Log the Enterprise Action
-        // Serialize the body coming in
-        string body = JsonSerializer.Serialize(model, new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } });
-        // Create the action record object
-        var salesforceTransaction = new SalesforceActionTransaction
-        {
-            Id = Guid.NewGuid(),
-            Object = ActionObjectType.Contact,
-            ObjectId = model.ObjectId,
-            CreatedOn = DateTime.UtcNow,
-            UserName = model.UserName,
-            SerializedObjectValues = JsonSerializer.Serialize(model),
-            LastUpdatedOn = DateTime.UtcNow,
-            TransactionLog = new List<SalesforceActionRecord>()
-        };
-        // Insert the event into the database, receive the response object and update the existing variable
-        salesforceTransaction = await _actionsRepository.InsertActionRecord(salesforceTransaction);
-        #endregion
-
-        /*
-         * MARSHAL UP RESPONSE
-         */
-        #region Build initial response object
-        var response = new UpdateContactResponse
-        {
-            SalesforceObjectId = model.ObjectId,
-            OracleStatus = syncToOracle ? StatusType.Started : StatusType.Skipped,
-            OSSStatus = StatusType.Skipped
-        };
-        #endregion
-
-        #region Send to Oracle
-        if (syncToOracle)
-        {
-            // TODO: Delete this mock response and hook this up
-            Random rnd = new Random();
-            response.OracleStatus = StatusType.Successful;
         }
         #endregion
 
