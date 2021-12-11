@@ -22,7 +22,7 @@ public class BrokerContactController : ControllerBase
     /// <param name="model">Incoming Payload</param>
     /// <returns>Response model</returns>
     [HttpPost]
-    public async Task<ActionResult<CreateContactResponse>> CreateContact([FromBody] CreateContactModel model)
+    public async Task<ActionResult<CreateContactResponse>> CreateContact([FromBody] SalesforceContactModel model)
     {
         try
         {

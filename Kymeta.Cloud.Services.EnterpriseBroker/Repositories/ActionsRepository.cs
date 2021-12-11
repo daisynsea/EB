@@ -14,7 +14,7 @@ public interface IActionsRepository
 public class ActionsRepository : IActionsRepository
 {
     public Container Container { get; }
-    public PartitionKey ResolvePartitionKey(string action) => new PartitionKey(action);
+    public PartitionKey ResolvePartitionKey(string objectType) => new PartitionKey(objectType);
 
     public ActionsRepository(
             IConfiguration config,
@@ -54,17 +54,17 @@ public class ActionsRepository : IActionsRepository
 
     public async Task<SalesforceActionTransaction> InsertActionRecord(SalesforceActionTransaction model)
     {
-        var response = await Container.UpsertItemAsync(model, ResolvePartitionKey(model.Action.ToString() ?? "Unset"));
+        var response = await Container.UpsertItemAsync(model, ResolvePartitionKey(model.Object.ToString() ?? "Unset"));
         return response.Resource;
     }
 
     public async Task<SalesforceActionTransaction> UpdateActionRecord(SalesforceActionTransaction model)
     {
-        if (!model.Action.HasValue) return null;
-        var existingRecord = await GetActionRecord(model.Id, model.Action.ToString());
+        if (!model.Object.HasValue) return null;
+        var existingRecord = await GetActionRecord(model.Id, model.Object.ToString());
         if (existingRecord == null) return null;
         existingRecord.LastUpdatedOn = DateTime.UtcNow;
-        var response = await Container.UpsertItemAsync(model, ResolvePartitionKey(model.Action.ToString() ?? "Unset"));
+        var response = await Container.UpsertItemAsync(model, ResolvePartitionKey(model.Object.ToString() ?? "Unset"));
         return response.Resource;
     }
 

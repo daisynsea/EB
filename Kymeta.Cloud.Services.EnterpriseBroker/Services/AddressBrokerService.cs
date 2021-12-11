@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 public interface IAddressBrokerService
 {
-    Task<CreateAddressResponse> CreateAddress(CreateAddressModel model);
+    Task<CreateAddressResponse> CreateAddress(SalesforceAddressModel model);
     Task<UpdateAddressResponse> UpdateAddress(UpdateAddressModel model);
 }
 
@@ -21,7 +21,7 @@ public class AddressBrokerService : IAddressBrokerService
         _oracleService = oracleService;
     }
 
-    public async Task<CreateAddressResponse> CreateAddress(CreateAddressModel model)
+    public async Task<CreateAddressResponse> CreateAddress(SalesforceAddressModel model)
     {
         /*
         * WHERE TO SYNC
@@ -39,14 +39,12 @@ public class AddressBrokerService : IAddressBrokerService
         var salesforceTransaction = new SalesforceActionTransaction
         {
             Id = Guid.NewGuid(),
-            Action = ActionType.Create,
             Object = ActionObjectType.Address,
             ObjectId = model.ObjectId,
             CreatedOn = DateTime.UtcNow,
             UserName = model.UserName,
             SerializedObjectValues = JsonSerializer.Serialize(model),
             LastUpdatedOn = DateTime.UtcNow,
-            OriginalTransactionId = null, // TODO: Populate this later when hooking up Retry
             TransactionLog = new List<SalesforceActionRecord>()
         };
         // Insert the event into the database, receive the response object and update the existing variable
@@ -59,7 +57,7 @@ public class AddressBrokerService : IAddressBrokerService
         #region Build initial response object
         var response = new CreateAddressResponse
         {
-            ObjectId = model.ObjectId,
+            SalesforceObjectId = model.ObjectId,
             OracleStatus = syncToOracle ? StatusType.Started : StatusType.Skipped,
             OSSStatus = syncToOss ? StatusType.Started : StatusType.Skipped
         };
@@ -112,14 +110,12 @@ public class AddressBrokerService : IAddressBrokerService
         var salesforceTransaction = new SalesforceActionTransaction
         {
             Id = Guid.NewGuid(),
-            Action = ActionType.Update,
             Object = ActionObjectType.Address,
             ObjectId = model.ObjectId,
             CreatedOn = DateTime.UtcNow,
             UserName = model.UserName,
             SerializedObjectValues = JsonSerializer.Serialize(model),
             LastUpdatedOn = DateTime.UtcNow,
-            OriginalTransactionId = null, // TODO: Populate this later when hooking up Retry
             TransactionLog = new List<SalesforceActionRecord>()
         };
         // Insert the event into the database, receive the response object and update the existing variable
@@ -132,7 +128,7 @@ public class AddressBrokerService : IAddressBrokerService
         #region Build initial response object
         var response = new UpdateAddressResponse
         {
-            ObjectId = model.ObjectId,
+            SalesforceObjectId = model.ObjectId,
             OracleStatus = syncToOracle ? StatusType.Started : StatusType.Skipped,
             OSSStatus = syncToOss ? StatusType.Started : StatusType.Skipped
         };

@@ -22,7 +22,7 @@ public class BrokerAddressController : ControllerBase
     /// <param name="model">Incoming Payload</param>
     /// <returns>Response model</returns>
     [HttpPost]
-    public async Task<ActionResult<CreateAddressResponse>> CreateAddress([FromBody] CreateAddressModel model)
+    public async Task<ActionResult<CreateAddressResponse>> CreateAddress([FromBody] SalesforceAddressModel model)
     {
         try
         {

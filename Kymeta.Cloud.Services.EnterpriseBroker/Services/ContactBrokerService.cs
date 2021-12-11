@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 public interface IContactBrokerService
 {
-    Task<CreateContactResponse> CreateContact(CreateContactModel model);
+    Task<CreateContactResponse> CreateContact(SalesforceContactModel model);
     Task<UpdateContactResponse> UpdateContact(UpdateContactModel model);
 }
 
@@ -18,7 +18,7 @@ public class ContactBrokerService : IContactBrokerService
         _oracleService = oracleService;
     }
 
-    public async Task<CreateContactResponse> CreateContact(CreateContactModel model)
+    public async Task<CreateContactResponse> CreateContact(SalesforceContactModel model)
     {
         /*
         * WHERE TO SYNC
@@ -35,14 +35,12 @@ public class ContactBrokerService : IContactBrokerService
         var salesforceTransaction = new SalesforceActionTransaction
         {
             Id = Guid.NewGuid(),
-            Action = ActionType.Create,
             Object = ActionObjectType.Contact,
             ObjectId = model.ObjectId,
             CreatedOn = DateTime.UtcNow,
             UserName = model.UserName,
             SerializedObjectValues = JsonSerializer.Serialize(model),
             LastUpdatedOn = DateTime.UtcNow,
-            OriginalTransactionId = null, // TODO: Populate this later when hooking up Retry
             TransactionLog = new List<SalesforceActionRecord>()
         };
         // Insert the event into the database, receive the response object and update the existing variable
@@ -55,7 +53,7 @@ public class ContactBrokerService : IContactBrokerService
         #region Build initial response object
         var response = new CreateContactResponse
         {
-            ObjectId = model.ObjectId,
+            SalesforceObjectId = model.ObjectId,
             OracleStatus = syncToOracle ? StatusType.Started : StatusType.Skipped,
             OSSStatus = StatusType.Skipped // We don't sync Contacts to OSS
         };
@@ -91,14 +89,12 @@ public class ContactBrokerService : IContactBrokerService
         var salesforceTransaction = new SalesforceActionTransaction
         {
             Id = Guid.NewGuid(),
-            Action = ActionType.Update,
             Object = ActionObjectType.Contact,
             ObjectId = model.ObjectId,
             CreatedOn = DateTime.UtcNow,
             UserName = model.UserName,
             SerializedObjectValues = JsonSerializer.Serialize(model),
             LastUpdatedOn = DateTime.UtcNow,
-            OriginalTransactionId = null, // TODO: Populate this later when hooking up Retry
             TransactionLog = new List<SalesforceActionRecord>()
         };
         // Insert the event into the database, receive the response object and update the existing variable
@@ -111,7 +107,7 @@ public class ContactBrokerService : IContactBrokerService
         #region Build initial response object
         var response = new UpdateContactResponse
         {
-            ObjectId = model.ObjectId,
+            SalesforceObjectId = model.ObjectId,
             OracleStatus = syncToOracle ? StatusType.Started : StatusType.Skipped,
             OSSStatus = StatusType.Skipped
         };

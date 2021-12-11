@@ -23,36 +23,16 @@ public class BrokerAccountController : ControllerBase
     /// <param name="model">Incoming Payload</param>
     /// <returns>Response model</returns>
     [HttpPost]
-    public async Task<ActionResult<CreateAccountResponse>> CreateAccount([FromBody] CreateAccountModel model)
+    public async Task<ActionResult<AccountResponse>> ProcessAccount([FromBody] SalesforceAccountModel model)
     {
         try
         {
-            var result = await _accountBrokerService.ProcessAccountCreate(model);
+            var result = await _accountBrokerService.ProcessAccountAction(model);
             return result;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Error processing create account action due to an exception: {ex.Message}");
-            return StatusCode(500, ex.Message);
-        }
-    }
-
-    /// <summary>
-    /// This endpoint accepts just the account object
-    /// </summary>
-    /// <param name="model"></param>
-    /// <returns></returns>
-    [HttpPut]
-    public async Task<ActionResult<UpdateAccountResponse>> UpdateAccount([FromBody] UpdateAccountModel model)
-    {
-        try
-        {
-            var result = await _accountBrokerService.ProcessAccountUpdate(model);
-            return result;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error processing update account action due to an exception: {ex.Message}");
             return StatusCode(500, ex.Message);
         }
     }

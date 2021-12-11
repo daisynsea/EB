@@ -15,7 +15,7 @@ public class SalesforceActionObject
     /// <summary>
     /// Id of the Salesforce Object.
     /// </summary>
-    [Required]
+    [Required(AllowEmptyStrings = false)]
     public string? ObjectId { get; set; }
     public bool? SyncToOss { get; set; }
     public bool? SyncToOracle { get; set; }

@@ -5,18 +5,21 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Services;
 
 public interface IOracleService
 {
-    /// <summary>
-    /// Add an Account to Oracle. This includes the Organization, Location (Site), Customer Account, and Customer Profile objects.
-    /// </summary>
-    /// <param name="model"></param>
-    /// <returns>
-    /// Item1 is the partyNumber (unique Id) of the new Organization in Oracle
-    /// Item2 is an error message should any problem arise during execution.
-    /// </returns>
-    Task<Tuple<string, string>> AddAccount(CreateAccountModel model, SalesforceActionTransaction transaction);
-    Task<Tuple<string, string>> UpdateAccount(UpdateAccountModel model, SalesforceActionTransaction transaction);
-    Task<Tuple<string, string>> AddAddress(CreateAddressModel model, SalesforceActionTransaction transaction);
-    Task<Tuple<string, string>> UpdateAddress(UpdateAddressModel model, SalesforceActionTransaction transaction);
+    // Account Endpoints
+    Task<Tuple<string, string>> CreateOrganization(SalesforceAccountModel model, SalesforceActionTransaction transaction);
+    Task<Tuple<string, string>> CreateCustomerAccount(string organizationId, SalesforceAccountModel model, SalesforceActionTransaction transaction);
+    Task<Tuple<string, string>> CreateCustomerAccountProfile(string customerAccountId, SalesforceAccountModel model, SalesforceActionTransaction transaction);
+    Task<Tuple<string, string>> UpdateOrganization(string organizationId, SalesforceAccountModel model, SalesforceActionTransaction transaction);
+    Task<Tuple<string, string>> UpdateCustomerAccount(SalesforceAccountModel model, SalesforceActionTransaction transaction); // TODO: Not sure what's necessary in this signature
+    Task<Tuple<string, string>> UpdateCustomerAccountProfile(SalesforceAccountModel model, SalesforceActionTransaction transaction); // TODO: Same as above
+    Task<Tuple<OracleOrganizationObject, string>> GetOrganizationBySalesforceAccountId(string salesforceAccountId);
+    Task<Tuple<OracleCustomerAccountObject, string>> GetCustomerAccountSalesforceAccountId(string salesforceAccountId);
+    // Address Endpoints
+    Task<Tuple<string, string>> CreateLocation(SalesforceAddressModel model, SalesforceActionTransaction transaction);
+    Task<Tuple<string, string>> UpdateLocation(SalesforceContactModel model, SalesforceActionTransaction transaction);
+    // Contact Endpoints
+    Task<Tuple<string, string>> CreatePerson(SalesforceContactModel model, SalesforceActionTransaction transaction);
+    Task<Tuple<string, string>> UpdatePerson(SalesforceContactModel model, SalesforceContactModel transaction);
 }
 
 public class OracleService : IOracleService
@@ -30,62 +33,88 @@ public class OracleService : IOracleService
         _config = config;
     }
 
-    public async Task<Tuple<string, string>> AddAccount(CreateAccountModel model, SalesforceActionTransaction transaction)
+    #region Account / Organization / Customer Account / Customer Profile
+    public async Task<Tuple<string, string>> CreateOrganization(SalesforceAccountModel model, SalesforceActionTransaction transaction)
     {
-        var account = RemapSalesforceAccountToOracleAccount(model.Name, model.TaxId);
-        // create the Organization via REST endpoint
-        var added = await _oracleClient.CreateAccount(account);
+        // TODO: This needs to be updated to reflect the actual organization creation
+        var added = await _oracleClient.CreateOrganization(model.Name);
         if (!string.IsNullOrEmpty(added.Item2)) return new Tuple<string, string>(null, $"There was an error adding the account to Oracle: {added.Item2}");
-
+        // TODO: The first string in this tuple should be the "organizationId" -- whatever that is
+        return new Tuple<string, string>(added.Item1.PartyNumber, String.Empty);
+    }
+    public async Task<Tuple<string, string>> CreateCustomerAccount(string organizationId, SalesforceAccountModel model, SalesforceActionTransaction transaction) 
+    {
         // map the model values to the expected Customer Account payload
         var customerAccount = RemapOrganizationToOracleCustomerAccount(model);
         // set the PartyId acquired from the successful creation of the Organization above
-        customerAccount.OrganizationPartyId = added.Item1.PartyId.ToString();
+        customerAccount.OrganizationPartyId = organizationId;
         var customerAccountEnvelope = OracleSoapTemplates.CreateCustomerAccount(customerAccount);
-
         // create the Customer Account via SOAP service
         var customerAccountServiceUrl = $"{_config["Oracle:Endpoint"]}/crmService/CustomerAccountService";
         var customerAccountResponse = await _oracleClient.SendSoapRequest(customerAccountEnvelope, customerAccountServiceUrl);
         if (!string.IsNullOrEmpty(customerAccountResponse.Item2)) return new Tuple<string, string>(null, $"There was an error creating the Customer Account in Oracle: {customerAccountResponse.Item2}.");
-
         // deserialize the xml response envelope
         XmlSerializer serializer = new(typeof(CreateCustomerAccountResponseEnvelope));
         var oracleCustomerAccount = (CreateCustomerAccountResponseEnvelope)serializer.Deserialize(customerAccountResponse.Item1.CreateReader());
 
-        return new Tuple<string, string>(added.Item1.PartyNumber, string.Empty);
+        // TODO: Which Id are we returning to store in SF?
+        return new Tuple<string, string>(oracleCustomerAccount?.Body?.createCustomerAccountResponse?.result?.Value?.CustomerAccountId.ToString(), string.Empty);
     }
-
-    public async Task<Tuple<string, string>> UpdateAccount(UpdateAccountModel model, SalesforceActionTransaction transaction)
+    public async Task<Tuple<string, string>> CreateCustomerAccountProfile(string customerAccountId, SalesforceAccountModel model, SalesforceActionTransaction transaction)
     {
-        var account = RemapSalesforceAccountToOracleAccount(model.Name, model.TaxId);
-        var partyNumber = model.OracleCustomerAccountId;
-        if (string.IsNullOrEmpty(partyNumber)) return new Tuple<string, string>(null, $"oracleCustomerAccountId must be present to update the Oracle Account record.");
-        var added = await _oracleClient.UpdateAccount(account, partyNumber);
+        throw new NotImplementedException();
+    }
+    public async Task<Tuple<string, string>> UpdateOrganization(string organizationId, SalesforceAccountModel model, SalesforceActionTransaction transaction)
+    {
+        var account = RemapSalesforceAccountToOracleOrganization(model.Name, model.TaxId);
+        if (string.IsNullOrEmpty(organizationId)) return new Tuple<string, string>(null, $"oracleCustomerAccountId must be present to update the Oracle Account record.");
+        var added = await _oracleClient.UpdateAccount(account, organizationId);
         if (!string.IsNullOrEmpty(added.Item2)) return new Tuple<string, string>(null, $"There was an error updating the account in Oracle: {added.Item2}");
         return new Tuple<string, string>(added.Item1.PartyNumber, string.Empty);
     }
-
-    public async Task<Tuple<string, string>> AddAddress(CreateAddressModel model, SalesforceActionTransaction transaction)
+    public Task<Tuple<string, string>> UpdateCustomerAccount(SalesforceAccountModel model, SalesforceActionTransaction transaction)
     {
-        var address = RemapSalesforceAddressToOracleAddress(model.Address1, model.Address2, model.Country);
-        var accountNumber = model.ParentOracleAccountId;
-        var added = await _oracleClient.CreateAddress(accountNumber, address);
-        if (!string.IsNullOrEmpty(added.Item2)) return new Tuple<string, string>(null, $"There was an error adding the address to Oracle: {added.Item2}");
-        return new Tuple<string, string>(added.Item1.PartyNumber, string.Empty);
+        throw new NotImplementedException();
+    }
+    public Task<Tuple<string, string>> UpdateCustomerAccountProfile(SalesforceAccountModel model, SalesforceActionTransaction transaction)
+    {
+        throw new NotImplementedException();
+    }
+    public async Task<Tuple<OracleOrganizationObject, string>> GetOrganizationBySalesforceAccountId(string salesforceAccountId)
+    {
+        throw new NotImplementedException();
+    }
+    public async Task<Tuple<OracleCustomerAccountObject, string>> GetCustomerAccountSalesforceAccountId(string salesforceAccountId)
+    {
+        throw new NotImplementedException();
+    }
+    #endregion
+
+    #region Address/Location
+    public async Task<Tuple<string, string>> CreateLocation(SalesforceAddressModel model, SalesforceActionTransaction transaction)
+    {
+        throw new NotImplementedException();
     }
 
-    public async Task<Tuple<string, string>> UpdateAddress(UpdateAddressModel model, SalesforceActionTransaction transaction)
+    public Task<Tuple<string, string>> UpdateLocation(SalesforceContactModel model, SalesforceActionTransaction transaction)
     {
-        var address = RemapSalesforceAddressToOracleAddress(model.Address1, model.Address2, model.Country);
-        var accountNumber = model.ParentOracleAccountId;
-        // TODO: Is this refactored anyway?
-        var partyNumber = model.AddressOracleId; // This is the actual Id of the Address record in Oracle (it has to be stored on the record itself)
-        var added = await _oracleClient.UpdateAddress(accountNumber, address, partyNumber);
-        if (!string.IsNullOrEmpty(added.Item2)) return new Tuple<string, string>(null, $"There was an error updating the address in Oracle: {added.Item2}");
-        return new Tuple<string, string>(added.Item1.PartyNumber, string.Empty);
+        throw new NotImplementedException();
+    }
+    #endregion
+
+    #region Contact/Person
+    public async Task<Tuple<string, string>> CreatePerson(SalesforceContactModel model, SalesforceActionTransaction transaction)
+    {
+        throw new NotImplementedException();
     }
 
-    private CreateOracleAccountViewModel RemapSalesforceAccountToOracleAccount(string name, string taxId)
+    public Task<Tuple<string, string>> UpdatePerson(SalesforceContactModel model, SalesforceContactModel transaction)
+    {
+        throw new NotImplementedException();
+    }
+    #endregion
+
+    private CreateOracleAccountViewModel RemapSalesforceAccountToOracleOrganization(string name, string taxId)
     {
         var account = new CreateOracleAccountViewModel
         {
@@ -95,7 +124,7 @@ public class OracleService : IOracleService
         return account;
     }
 
-    private CreateOracleCustomerAccountViewModel RemapOrganizationToOracleCustomerAccount(CreateAccountModel model)
+    private CreateOracleCustomerAccountViewModel RemapOrganizationToOracleCustomerAccount(SalesforceAccountModel model)
     {
         var account = new CreateOracleCustomerAccountViewModel
         {
@@ -110,16 +139,5 @@ public class OracleService : IOracleService
         var accountSubType = model.SubType;
         if (!string.IsNullOrEmpty(accountSubType)) account.AccountSubType = OracleSoapTemplates.CustomerClassMap.GetValue(accountSubType);
         return account;
-    }
-
-    private CreateOracleAddressViewModel RemapSalesforceAddressToOracleAddress(string address1, string address2, string country)
-    {
-        var address = new CreateOracleAddressViewModel
-        {
-            Address1 = address1,
-            Address2 = address2,
-            Country = country
-        };
-        return address;
     }
 }

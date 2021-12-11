@@ -1,6 +1,6 @@
 ﻿namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce
 {
-    public class CreateContactModel : SalesforceActionObject
+    public class SalesforceContactModel : SalesforceActionObject
     {
         public string? FirstName { get; set; }
         public string? LastName { get; set; }

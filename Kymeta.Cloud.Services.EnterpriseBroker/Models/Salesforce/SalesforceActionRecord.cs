@@ -21,12 +21,6 @@ public class SalesforceActionTransaction
     [JsonProperty("userName")]
     public string? UserName { get; set; }
     /// <summary>
-    /// Action performed on the Object (ie. Create, Update)
-    /// </summary>
-    [JsonProperty("action")]
-    [JsonConverter(typeof(StringEnumConverter))]
-    public ActionType? Action { get; set; }
-    /// <summary>
     /// Object type (ie. Account, Contact)
     /// </summary>
     [JsonProperty("object")]
@@ -46,12 +40,7 @@ public class SalesforceActionTransaction
     /// Body of the request that came in. Can be null.
     /// </summary>
     [JsonProperty("serializedObjectValues")]
-    public string SerializedObjectValues { get; set; }
-    /// <summary>
-    /// (Optional) If this transaction is a retry of a previous transaction, this field will be populated.
-    /// </summary>
-    [JsonProperty("originalTransactionId")]
-    public string? OriginalTransactionId { get; set; }
+    public string? SerializedObjectValues { get; set; }
     /// <summary>
     /// Log of actions in this transaction
     /// </summary>
@@ -92,25 +81,28 @@ public class SalesforceActionRecord
 
 public enum SalesforceTransactionAction
 {
+    // Create Account
     CreateAccountInOss,
     CreateOrganizationInOracle,
     CreateCustomerAccountInOracle,
     CreateCustomerProfileInOracle,
+    // Create Address
+    CreateLocationInOracle,
     CreateCustomerAccountSiteInOracle,
+    // Update Account
     UpdateAccountInOss,
     UpdateOrganizationInOracle,
     UpdateCustomerAccountInOracle,
     UpdateCustomerProfileInOracle,
-    UpdateCustomerAccountSiteInOracle,
+    // Update Address
     UpdateAddressInOss,
-    CreateSiteInOracle,
-    UpdateSiteInOracle
-}
-
-public enum ActionType
-{
-    Create,
-    Update
+    UpdateCustomerAccountSiteInOracle,
+    // Create Contact
+    CreatePersonInOracle,
+    CreateCustomerProfileContactInOracle,
+    // Update Contact
+    UpdatePersonInOracle,
+    UpdateCustomerProfileContactInOracle
 }
 
 public enum ActionObjectType

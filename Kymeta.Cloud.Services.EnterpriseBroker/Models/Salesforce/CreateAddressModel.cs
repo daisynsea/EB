@@ -1,6 +1,6 @@
 ﻿namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce;
 
-public class CreateAddressModel : SalesforceActionObject
+public class SalesforceAddressModel : SalesforceActionObject
 {
     /// <summary>
     /// Account__c

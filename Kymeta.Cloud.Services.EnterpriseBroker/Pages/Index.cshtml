@@ -9,7 +9,7 @@
         <table class="table is-fullwidth is-striped">
             <thead>
                 <tr>
-                    <th>Action</th>
+                    <th>Object</th>
                     <th>Last Updated</th>
                     <th>Salesforce ID</th>
                     <th>OSS Status</th>
@@ -21,8 +21,8 @@
                 {
                     <tr>
                         <td>
-                            <a asp-page="Detail" asp-route-id="@log.Id" asp-route-action="@log.Action?.ToString()">
-                                @log.Object @log.Action
+                            <a asp-page="Detail" asp-route-id="@log.Id" asp-route-action="@log.Object?.ToString()">
+                                @log.Object @log.Object
                             </a>
                         </td>
                         <td>@(log.LastUpdatedOn.HasValue ? @log.LastUpdatedOn.Value.ToString("G") : @log.CreatedOn.ToString("G"))</td>
