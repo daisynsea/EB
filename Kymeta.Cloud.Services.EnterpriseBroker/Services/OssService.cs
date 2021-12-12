@@ -54,14 +54,14 @@ public class OssService : IOssService
 
     public async Task<Tuple<Account, string>> AddAccount(SalesforceAccountModel model, SalesforceActionTransaction transaction)
     {
-        await LogAction(transaction.Id, SalesforceTransactionAction.CreateAccountInOss, ActionObjectType.Account, StatusType.Started);
+        await LogAction(transaction, SalesforceTransactionAction.CreateAccountInOss, ActionObjectType.Account, StatusType.Started);
         string error = null;
         // Verify exists
         var existingAccount = await GetAccountBySalesforceId(model.ObjectId);
         if (existingAccount != null) // If account exists, return from this action with an error
         {
             error = $"Account with Salesforce ID {model.ObjectId} already exists in the system.";
-            await LogAction(transaction.Id, SalesforceTransactionAction.CreateAccountInOss, ActionObjectType.Account, StatusType.Error, null, error);
+            await LogAction(transaction, SalesforceTransactionAction.CreateAccountInOss, ActionObjectType.Account, StatusType.Error, null, error);
             return new Tuple<Account, string>(null, error);
         }
         // Get the user from OSS system
@@ -80,29 +80,29 @@ public class OssService : IOssService
             if (!string.IsNullOrEmpty(added.Item2)) 
             {
                 error = $"There was an error adding the account to OSS: {added.Item2}";
-                await LogAction(transaction.Id, SalesforceTransactionAction.CreateAccountInOss, ActionObjectType.Account, StatusType.Error, null, error);
+                await LogAction(transaction, SalesforceTransactionAction.CreateAccountInOss, ActionObjectType.Account, StatusType.Error, null, error);
                 return new Tuple<Account, string>(null, error);
             }
-            await LogAction(transaction.Id, SalesforceTransactionAction.CreateAccountInOss, ActionObjectType.Account, StatusType.Successful, added.Item1.Id.ToString());
+            await LogAction(transaction, SalesforceTransactionAction.CreateAccountInOss, ActionObjectType.Account, StatusType.Successful, added.Item1.Id.ToString());
             return new Tuple<Account, string>(added.Item1, string.Empty);
         } catch (Exception ex)
         {
             error = $"There was an error calling the OSS Accounts service: {ex.Message}";
-            await LogAction(transaction.Id, SalesforceTransactionAction.CreateAccountInOss, ActionObjectType.Account, StatusType.Error, null, error);
+            await LogAction(transaction, SalesforceTransactionAction.CreateAccountInOss, ActionObjectType.Account, StatusType.Error, null, error);
             return new Tuple<Account, string>(null, error);
         }
     }
 
     public async Task<Tuple<Account, string>> UpdateAccount(SalesforceAccountModel model, SalesforceActionTransaction transaction)
     {
-        await LogAction(transaction.Id, SalesforceTransactionAction.UpdateAccountInOss, ActionObjectType.Account, StatusType.Started);
+        await LogAction(transaction, SalesforceTransactionAction.UpdateAccountInOss, ActionObjectType.Account, StatusType.Started);
         string error = null;
 
         var existingAccount = await GetAccountBySalesforceId(model.ObjectId);
         if (existingAccount == null) // Account doesn't exist, return from this action with an error
         {
             error = $"Account with Salesforce ID {model.ObjectId} does not exist in OSS.";
-            await LogAction(transaction.Id, SalesforceTransactionAction.UpdateAccountInOss, ActionObjectType.Account, StatusType.Error, null, error);
+            await LogAction(transaction, SalesforceTransactionAction.UpdateAccountInOss, ActionObjectType.Account, StatusType.Error, null, error);
             return new Tuple<Account, string>(null, error);
         }
         // Get the user from OSS system
@@ -120,30 +120,30 @@ public class OssService : IOssService
             if (!string.IsNullOrEmpty(updated.Item2))
             {
                 error = $"There was an error updating the account in OSS: {updated.Item2}";
-                await LogAction(transaction.Id, SalesforceTransactionAction.UpdateAccountInOss, ActionObjectType.Account, StatusType.Error, null, error);
+                await LogAction(transaction, SalesforceTransactionAction.UpdateAccountInOss, ActionObjectType.Account, StatusType.Error, null, error);
                 return new Tuple<Account, string>(null, error);
             }
-            await LogAction(transaction.Id, SalesforceTransactionAction.UpdateAccountInOss, ActionObjectType.Account, StatusType.Successful, updated.Item1.Id.ToString());
+            await LogAction(transaction, SalesforceTransactionAction.UpdateAccountInOss, ActionObjectType.Account, StatusType.Successful, updated.Item1.Id.ToString());
             return new Tuple<Account, string>(updated.Item1, string.Empty);
         }
         catch (Exception ex)
         {
             error = $"There was an error calling the OSS Accounts service: {ex.Message}";
-            await LogAction(transaction.Id, SalesforceTransactionAction.UpdateAccountInOss, ActionObjectType.Account, StatusType.Error, null, error);
+            await LogAction(transaction, SalesforceTransactionAction.UpdateAccountInOss, ActionObjectType.Account, StatusType.Error, null, error);
             return new Tuple<Account, string>(null, error);
         }
     }
 
     public async Task<Tuple<Account, string>> UpdateAccountAddress(UpdateAddressModel model, SalesforceActionTransaction transaction)
     {
-        await LogAction(transaction.Id, SalesforceTransactionAction.UpdateAddressInOss, ActionObjectType.Account, StatusType.Started);
+        await LogAction(transaction, SalesforceTransactionAction.UpdateAddressInOss, ActionObjectType.Account, StatusType.Started);
         string error = null;
 
         var existingAccount = await GetAccountBySalesforceId(model.ParentAccountId);
         if (existingAccount == null) // Account doesn't exist, return from this action with an error
         {
             error = $"Account with Salesforce ID {model.ParentAccountId} does not exist in OSS.";
-            await LogAction(transaction.Id, SalesforceTransactionAction.UpdateAddressInOss, ActionObjectType.Account, StatusType.Error, null, error);
+            await LogAction(transaction, SalesforceTransactionAction.UpdateAddressInOss, ActionObjectType.Account, StatusType.Error, null, error);
             return new Tuple<Account, string>(null, error);
         }
         // Get the user from OSS system
@@ -161,16 +161,16 @@ public class OssService : IOssService
             if (!string.IsNullOrEmpty(updated.Item2))
             {
                 error = $"There was an error updating the account in OSS: {updated.Item2}";
-                await LogAction(transaction.Id, SalesforceTransactionAction.UpdateAddressInOss, ActionObjectType.Account, StatusType.Error, null, error);
+                await LogAction(transaction, SalesforceTransactionAction.UpdateAddressInOss, ActionObjectType.Account, StatusType.Error, null, error);
                 return new Tuple<Account, string>(null, error);
             }
-            await LogAction(transaction.Id, SalesforceTransactionAction.UpdateAddressInOss, ActionObjectType.Account, StatusType.Successful, updated.Item1.Id.ToString());
+            await LogAction(transaction, SalesforceTransactionAction.UpdateAddressInOss, ActionObjectType.Account, StatusType.Successful, updated.Item1.Id.ToString());
             return new Tuple<Account, string>(updated.Item1, string.Empty);
         }
         catch (Exception ex)
         {
             error = $"There was an error calling the OSS Accounts service: {ex.Message}";
-            await LogAction(transaction.Id, SalesforceTransactionAction.UpdateAddressInOss, ActionObjectType.Account, StatusType.Error, null, error);
+            await LogAction(transaction, SalesforceTransactionAction.UpdateAddressInOss, ActionObjectType.Account, StatusType.Error, null, error);
             return new Tuple<Account, string>(null, error);
         }
     }
@@ -232,15 +232,18 @@ public class OssService : IOssService
         return account;
     }
 
-    private async Task LogAction(Guid transactionId, SalesforceTransactionAction action, ActionObjectType objectType, StatusType status, string? entityId = null, string? errorMessage = null)
+    private async Task LogAction(SalesforceActionTransaction transaction, SalesforceTransactionAction action, ActionObjectType objectType, StatusType status, string? entityId = null, string? errorMessage = null)
     {
-        await _actionsRepository.AddTransactionRecord(transactionId, objectType.ToString() ?? "Unknown", new SalesforceActionRecord
+        var actionRecord = new SalesforceActionRecord
         {
             Action = action,
             Status = status,
             Timestamp = DateTime.UtcNow,
             ErrorMessage = errorMessage,
             EntityId = entityId
-        });
+        };
+        if (transaction.TransactionLog == null) transaction.TransactionLog = new List<SalesforceActionRecord>();
+        transaction.TransactionLog?.Add(actionRecord);
+        await _actionsRepository.AddTransactionRecord(transaction.Id, objectType.ToString() ?? "Unknown", actionRecord);
     }
 }

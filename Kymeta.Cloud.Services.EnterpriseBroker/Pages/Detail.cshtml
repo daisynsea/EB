@@ -1,29 +1,13 @@
 ﻿@page "/{objectType}/{id}"
 @model Kymeta.Cloud.Services.EnterpriseBroker.Pages.DetailModel
-@{
-}
 
 <div class="section">
     <div class="container">
-        <div class="level">
-            <div class="level-left">
-                <div class="level-item">
-                    <div>
-                        <h4 title="Transaction Id" class="heading">@Model.SalesforceActionTransaction?.Id</h4>
-                        <h1 class="title">@Model.SalesforceActionTransaction?.Object?.ToString() @Model.SalesforceActionTransaction?.Object?.ToString()</h1>
-                    </div>
-                </div>
-            </div>
-            <div class="level-right">
-                <div class="level-item">
-                    <button class="button is-info">Retry</button>
-                </div>
-            </div>
-        </div>
+        <h4 title="Transaction Id" class="heading">@Model.SalesforceActionTransaction?.Id</h4>
+        <h1 class="title">@Model.SalesforceActionTransaction?.Object?.ToString() Sync</h1>
         <p>Initiated <strong>@Model.SalesforceActionTransaction?.CreatedOn.ToString("G")</strong> on object <strong>@Model.SalesforceActionTransaction?.ObjectId</strong> by <strong>@Model.SalesforceActionTransaction?.UserName</strong>.</p>
     </div>
-</div>
-<div class="section">
+    <hr />
     <div class="container">
         <h3 class="is-size-3 mb-3">Activity</h3>
         @if (Model.SalesforceActionTransaction?.TransactionLog != null)
@@ -53,5 +37,29 @@
         {
             <p>No actions to show here.</p>
         }
+    </div>
+    <hr />
+    <div class="container">
+        <div class="columns">
+            <div class="column is-half">
+                <h3 class="is-size-3 mb-3">Incoming Object</h3>
+                <pre>
+                    @if (!string.IsNullOrEmpty(Model.SerializedTransaction))
+                    {
+                        
+                        @Model.SerializedTransaction;
+                    }
+                </pre>
+            </div>
+            <div class="column is-half">
+                <h3 class="is-size-3 mb-3">Response</h3>
+                <pre>
+                    @if (!string.IsNullOrEmpty(Model.SerializedResponse))
+                    {
+                        @Model.SerializedResponse;
+                    }
+                </pre>
+            </div>
+        </div>
     </div>
 </div>

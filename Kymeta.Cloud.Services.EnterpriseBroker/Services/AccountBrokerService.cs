@@ -202,6 +202,11 @@ public class AccountBrokerService : IAccountBrokerService
         #endregion
 
         response.CompletedOn = DateTime.UtcNow;
+
+        // Attach the response to the action log item
+        salesforceTransaction.Response = response;
+        await _actionsRepository.UpdateActionRecord(salesforceTransaction);
+
         return response;
     }
 }

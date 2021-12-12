@@ -1,4 +1,7 @@
-﻿namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Responses;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+
+namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Responses;
 
 public class SalesforceProcessResponse
 {
@@ -13,10 +16,12 @@ public class SalesforceProcessResponse
     /// <summary>
     /// Status of the OSS process
     /// </summary>
+    [JsonConverter(typeof(StringEnumConverter))]
     public StatusType OSSStatus { get; set; }
     /// <summary>
     /// Status of the Oracle process
     /// </summary>
+    [JsonConverter(typeof(StringEnumConverter))]
     public StatusType OracleStatus { get; set; }
     /// <summary>
     /// Any error messages from OSS

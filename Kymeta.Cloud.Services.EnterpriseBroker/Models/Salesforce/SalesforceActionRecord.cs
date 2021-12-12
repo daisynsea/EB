@@ -47,6 +47,8 @@ public class SalesforceActionTransaction
     [JsonProperty("transactionLog")]
     public List<SalesforceActionRecord>? TransactionLog { get; set; }
 
+    public SalesforceProcessResponse? Response { get; set; }
+
     [JsonIgnore]
     public StatusType? OssStatus
     {

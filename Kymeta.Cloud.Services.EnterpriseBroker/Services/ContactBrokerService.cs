@@ -61,10 +61,21 @@ public class ContactBrokerService : IContactBrokerService
         #region Send to Oracle
         if (syncToOracle)
         {
+            // Get customer account by Salesforce Account Id
+            var customerAccount = await _oracleService.GetCustomerAccountBySalesforceAccountId(model.ParentAccountId);
+            if (customerAccount == null)
+            {
+                response.OracleStatus = StatusType.Error;
+                response.OracleErrorMessage = $"Error syncing Contact to Oracle: Customer Account object with SF reference Id {model.ParentAccountId} was not found.";
+            }
+
+            // TODO: Figure out how to get an existing person from the customer account
+
+            // If exists, update
+            // Otherwise, create
+
             // TODO: Delete this mock response and hook this up
-            Random rnd = new Random();
             response.OracleStatus = StatusType.Successful;
-            response.OraclePersonId = $"MockOraclePersonId{rnd.Next(100000, 999999)}";
         }
         #endregion
 
