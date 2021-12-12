@@ -197,6 +197,12 @@ public class AccountBrokerService : IAccountBrokerService
             response.OracleCustomerProfileId = oracleCustomerAccountProfileId;
 
             // TODO: Need to create the contacts and addresses, but how will we return the Ids from these child entities back to Salesforce??
+
+            // Update OSS with Oracle Id if need be
+            if (syncToOss && !string.IsNullOrEmpty(oracleCustomerAccountId)) // TODO: Is the customer account Id actually what we want?
+            {
+                await _ossService.UpdateAccountOracleId(model, oracleCustomerAccountId, salesforceTransaction);
+            }
         }
         #endregion
         #endregion
