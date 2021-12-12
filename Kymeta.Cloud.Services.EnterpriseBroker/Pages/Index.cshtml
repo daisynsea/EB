@@ -21,8 +21,8 @@
                 {
                     <tr>
                         <td>
-                            <a asp-page="Detail" asp-route-id="@log.Id" asp-route-action="@log.Object?.ToString()">
-                                @log.Object @log.Object
+                            <a asp-page="Detail" asp-route-id="@log.Id" asp-route-objectType="@log.Object">
+                                @log.Object
                             </a>
                         </td>
                         <td>@(log.LastUpdatedOn.HasValue ? @log.LastUpdatedOn.Value.ToString("G") : @log.CreatedOn.ToString("G"))</td>

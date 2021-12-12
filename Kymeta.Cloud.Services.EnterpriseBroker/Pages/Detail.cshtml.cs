@@ -13,9 +13,9 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Pages
             _actionsRepository = actionsRepository;
         }
 
-        public async Task OnGet(Guid id, string action)
+        public async Task OnGet(Guid id, string objectType)
         {
-            SalesforceActionTransaction = await _actionsRepository.GetActionRecord(id, action);
+            SalesforceActionTransaction = await _actionsRepository.GetActionRecord(id, objectType);
         }
     }
 }
