@@ -9,7 +9,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.HttpClients;
 
 public interface IOracleClient
 {
-    Task<Tuple<OracleOrganization, string>> CreateOrganization(string name);
+    Task<Tuple<OracleOrganization, string>> CreateOrganization(SalesforceAccountModel model);
     Task<Tuple<OracleOrganization, string>> UpdateAccount(CreateOracleAccountViewModel model, string partyNumber);
     Task<Tuple<OracleAddressObject, string>> CreateAddress(string accountNumber, CreateOracleAddressViewModel model);
     Task<Tuple<OracleAddressObject, string>> UpdateAddress(string accountNumber, CreateOracleAddressViewModel model, string partyNumber);
@@ -97,14 +97,23 @@ public class OracleClient : IOracleClient
         }
     }
 
-    public async Task<Tuple<OracleOrganization, string>> CreateOrganization(string name)
+    public async Task<Tuple<OracleOrganization, string>> CreateOrganization(SalesforceAccountModel model)
     {
-        var response = await _client.PostAsJsonAsync($"crmRestApi/resources/latest/accounts", new { name }, new JsonSerializerOptions { PropertyNameCaseInsensitive = false });
+        // map model to simplified object
+        var organization = new
+        {
+            OrganizationName = model.Name,
+            TaxpayerIdentificationNumber = model.TaxId,
+            SourceSystem = "SFDC",
+            SourceSystemReferenceValue = model.ObjectId
+        };
+        // create the Organization
+        var response = await _client.PostAsJsonAsync($"crmRestApi/resources/latest/accounts", organization, new JsonSerializerOptions { PropertyNameCaseInsensitive = false });
         string data = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode)
         {
-            _logger.LogCritical($"Failed AddAccount Oracle HTTP call: {(int)response.StatusCode} | {data} | Model sent: {JsonSerializer.Serialize(new { name })}");
+            _logger.LogCritical($"Failed CreateOrganization Oracle HTTP call: {(int)response.StatusCode} | {data} | Model sent: {JsonSerializer.Serialize(organization)}");
             return new Tuple<OracleOrganization, string>(null, data);
         }
 

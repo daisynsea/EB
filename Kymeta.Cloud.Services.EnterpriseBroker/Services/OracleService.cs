@@ -1,4 +1,5 @@
 ﻿using Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.SOAP;
+using Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.SOAP.ResponseModels;
 using System.Xml.Serialization;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.Services;
@@ -12,8 +13,8 @@ public interface IOracleService
     Task<Tuple<string, string>> UpdateOrganization(string organizationId, SalesforceAccountModel model, SalesforceActionTransaction transaction);
     Task<Tuple<string, string>> UpdateCustomerAccount(SalesforceAccountModel model, SalesforceActionTransaction transaction); // TODO: Not sure what's necessary in this signature
     Task<Tuple<string, string>> UpdateCustomerAccountProfile(SalesforceAccountModel model, SalesforceActionTransaction transaction); // TODO: Same as above
-    Task<Tuple<OracleOrganization, string>> GetOrganizationBySalesforceAccountId(string salesforceAccountId);
-    Task<Tuple<OracleCustomerAccount, string>> GetCustomerAccountBySalesforceAccountId(string salesforceAccountId);
+    Task<Tuple<bool, OracleOrganization, string>> GetOrganizationBySalesforceAccountId(string organizationName, string salesforceAccountId);
+    Task<Tuple<bool, OracleCustomerAccount, string>> GetCustomerAccountBySalesforceAccountId(string salesforceAccountId);
     Task<Tuple<OracleCustomerAccountProfile, string>> GetCustomerAccountProfileBySalesforceAccountId(string salesforceAccountId);
     // Address Endpoints
     Task<Tuple<string, string>> CreateLocation(SalesforceAddressModel model, SalesforceActionTransaction transaction);
@@ -37,11 +38,10 @@ public class OracleService : IOracleService
     #region Account / Organization / Customer Account / Customer Profile
     public async Task<Tuple<string, string>> CreateOrganization(SalesforceAccountModel model, SalesforceActionTransaction transaction)
     {
-        // TODO: This needs to be updated to reflect the actual organization creation
-        var added = await _oracleClient.CreateOrganization(model.Name);
-        if (!string.IsNullOrEmpty(added.Item2)) return new Tuple<string, string>(null, $"There was an error adding the account to Oracle: {added.Item2}");
+        var organization = await _oracleClient.CreateOrganization(model);
+        if (!string.IsNullOrEmpty(organization.Item2)) return new Tuple<string, string>(null, $"There was an error adding the account to Oracle: {organization.Item2}");
         // TODO: The first string in this tuple should be the "organizationId" -- whatever that is
-        return new Tuple<string, string>(added.Item1.PartyNumber, String.Empty);
+        return new Tuple<string, string>(organization.Item1.PartyNumber, String.Empty);
     }
     public async Task<Tuple<string, string>> CreateCustomerAccount(string organizationId, SalesforceAccountModel model, SalesforceActionTransaction transaction) 
     {
@@ -67,9 +67,9 @@ public class OracleService : IOracleService
     }
     public async Task<Tuple<string, string>> UpdateOrganization(string organizationId, SalesforceAccountModel model, SalesforceActionTransaction transaction)
     {
-        var account = RemapSalesforceAccountToOracleOrganization(model.Name, model.TaxId);
+        var organization = RemapSalesforceAccountToOracleOrganization(model.Name, model.TaxId);
         if (string.IsNullOrEmpty(organizationId)) return new Tuple<string, string>(null, $"oracleCustomerAccountId must be present to update the Oracle Account record.");
-        var added = await _oracleClient.UpdateAccount(account, organizationId);
+        var added = await _oracleClient.UpdateAccount(organization, organizationId);
         if (!string.IsNullOrEmpty(added.Item2)) return new Tuple<string, string>(null, $"There was an error updating the account in Oracle: {added.Item2}");
         return new Tuple<string, string>(added.Item1.PartyNumber, string.Empty);
     }
@@ -81,13 +81,48 @@ public class OracleService : IOracleService
     {
         throw new NotImplementedException();
     }
-    public async Task<Tuple<OracleOrganization, string>> GetOrganizationBySalesforceAccountId(string salesforceAccountId)
+    public async Task<Tuple<bool, OracleOrganization, string>> GetOrganizationBySalesforceAccountId(string organizationName, string salesforceAccountId)
     {
-        throw new NotImplementedException();
+        var findOrganizationEnvelope = OracleSoapTemplates.FindOrganization(organizationName, salesforceAccountId);
+        // Find the Organization via SOAP service
+        var organizationServiceUrl = $"{_config["Oracle:Endpoint"]}/crmService/FoundationPartiesOrganizationService";
+        var findOrgResponse = await _oracleClient.SendSoapRequest(findOrganizationEnvelope, organizationServiceUrl);
+        if (!string.IsNullOrEmpty(findOrgResponse.Item2)) return new Tuple<bool, OracleOrganization, string>(false, null, $"There was an error finding the Organization in Oracle: {findOrgResponse.Item2}.");
+        // deserialize the xml response envelope
+        XmlSerializer serializer = new(typeof(FindOrganizationEnvelope));
+        var oracleCustomerAccount = (FindOrganizationEnvelope)serializer.Deserialize(findOrgResponse.Item1.CreateReader());
+        if (oracleCustomerAccount.Body?.findOrganizationResponse?.result?.Value == null) return new Tuple<bool, OracleOrganization, string>(true, null, $"Organization not found.");
+        // map the response model into our simplified C# model
+        var organization = new OracleOrganization
+        {
+            OrganizationName = oracleCustomerAccount.Body.findOrganizationResponse.result.Value.PartyName,
+            PartyId = (long)oracleCustomerAccount.Body.findOrganizationResponse.result.Value.PartyId,
+            PartyNumber = oracleCustomerAccount.Body.findOrganizationResponse.result.Value.PartyNumber.ToString(),
+            OrigSystemReference = oracleCustomerAccount.Body.findOrganizationResponse.result.Value.OriginalSystemReference?.OrigSystemReference
+        };
+        if (string.IsNullOrEmpty(organization.OrigSystemReference)) return new Tuple<bool, OracleOrganization, string>(true, null, $"Organization not found.");
+        return new Tuple<bool, OracleOrganization, string>(true, organization, null);
     }
-    public async Task<Tuple<OracleCustomerAccount, string>> GetCustomerAccountBySalesforceAccountId(string salesforceAccountId)
+    public async Task<Tuple<bool, OracleCustomerAccount, string>> GetCustomerAccountBySalesforceAccountId(string salesforceAccountId)
     {
-        throw new NotImplementedException();
+        var findAccountEnvelope = OracleSoapTemplates.FindCustomerAccount(salesforceAccountId);
+        // Find the Organization via SOAP service
+        var accountServiceUrl = $"{_config["Oracle:Endpoint"]}/crmService/CustomerAccountService";
+        var findAccountResponse = await _oracleClient.SendSoapRequest(findAccountEnvelope, accountServiceUrl);
+        if (!string.IsNullOrEmpty(findAccountResponse.Item2)) return new Tuple<bool, OracleCustomerAccount, string>(false, null, $"There was an error finding the Customer Account in Oracle: {findAccountResponse.Item2}.");
+        // deserialize the xml response envelope
+        XmlSerializer serializer = new(typeof(FindCustomerAccountEnvelope));
+        var oracleCustomerAccount = (FindCustomerAccountEnvelope)serializer.Deserialize(findAccountResponse.Item1.CreateReader());
+        if (oracleCustomerAccount.Body?.findCustomerAccountResponse?.result?.Value == null) return new Tuple<bool, OracleCustomerAccount, string>(true, null, $"Customer Account not found.");
+        // map the response model into our simplified C# model
+        var account = new OracleCustomerAccount
+        { 
+            PartyId = oracleCustomerAccount.Body.findCustomerAccountResponse.result.Value.PartyId.ToString(),
+            PartyNumber = oracleCustomerAccount.Body.findCustomerAccountResponse.result.Value.AccountNumber.ToString(),
+            OrigSystemReference = oracleCustomerAccount.Body.findCustomerAccountResponse.result.Value.OrigSystemReference.ToString()
+        };
+        if (string.IsNullOrEmpty(account.OrigSystemReference)) return new Tuple<bool, OracleCustomerAccount, string>(true, null, $"Customer Account not found.");
+        return new Tuple<bool, OracleCustomerAccount, string>(true, account, null);
     }
     public Task<Tuple<OracleCustomerAccountProfile, string>> GetCustomerAccountProfileBySalesforceAccountId(string salesforceAccountId)
     {

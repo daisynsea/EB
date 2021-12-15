@@ -1,5 +1,4 @@
-﻿using System.Text;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.SOAP;
 
@@ -58,6 +57,75 @@ public static class OracleSoapTemplates
     #endregion
 
     #region Organization & PartySite
+    /// <summary>
+    ///  A template for creating an Organization Party Site object in Oracle.
+    /// </summary>
+    /// <returns>TBD</returns>
+    public static string FindOrganization(string organizationName, string originSystemReference)
+    {
+        var locationEnvelope =
+            $@"<soap:Envelope xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
+                <soap:Body>
+                <typ:findOrganization xmlns:typ=""http://xmlns.oracle.com/apps/cdm/foundation/parties/organizationService/applicationModule/types/"">
+                    <typ:findCriteria xmlns:find=""http://xmlns.oracle.com/adf/svc/types/"">
+                    <find:fetchStart>0</find:fetchStart>
+                    <find:fetchSize>-1</find:fetchSize>
+                    <find:filter>
+                        <find:conjunction/>
+                        <find:group>
+                        <find:conjunction/>
+                        <find:upperCaseCompare>false</find:upperCaseCompare>
+                        <find:item>
+                            <find:conjunction/>
+                            <find:upperCaseCompare>false</find:upperCaseCompare>
+                            <find:attribute>PartyName</find:attribute>
+                            <find:operator>=</find:operator>
+                            <find:value>{organizationName}</find:value>
+                        </find:item>
+                        </find:group>
+                    </find:filter>
+                    <find:findAttribute>PartyId</find:findAttribute>
+                    <find:findAttribute>PartyName</find:findAttribute>
+                    <find:findAttribute>PartyNumber</find:findAttribute>
+                    <find:findAttribute>OriginalSystemReference</find:findAttribute>
+                    <find:excludeAttribute>false</find:excludeAttribute>
+                    <find:childFindCriteria>
+                        <find:fetchStart>0</find:fetchStart>
+                        <find:fetchSize>-1</find:fetchSize>
+                        <find:filter>
+                        <find:conjunction>And</find:conjunction>
+                        <find:group>
+                            <find:conjunction>And</find:conjunction>
+                            <find:upperCaseCompare>false</find:upperCaseCompare>
+                            <find:item>
+                            <find:conjunction>And</find:conjunction>
+                            <find:upperCaseCompare>false</find:upperCaseCompare>
+                            <find:attribute>OrigSystemReference</find:attribute>
+                            <find:operator>=</find:operator>
+                            <find:value>{originSystemReference}</find:value>
+                            </find:item>
+                            <find:item>
+                            <find:conjunction>And</find:conjunction>
+                            <find:upperCaseCompare>false</find:upperCaseCompare>
+                            <find:attribute>OrigSystem</find:attribute>
+                            <find:operator>=</find:operator>
+                            <find:value>SFDC</find:value>
+                            </find:item>
+                        </find:group>
+                        </find:filter>
+                        <find:excludeAttribute>false</find:excludeAttribute>
+                        <find:childAttrName>OriginalSystemReference</find:childAttrName>
+                    </find:childFindCriteria>
+                    </typ:findCriteria>
+                    <typ:findControl xmlns:find=""http://xmlns.oracle.com/adf/svc/types/"">
+                    <find:retrieveAllTranslations>false</find:retrieveAllTranslations>
+                    </typ:findControl>
+                </typ:findOrganization>
+                </soap:Body>
+            </soap:Envelope>";
+        return locationEnvelope;
+    }
+
     /// <summary>
     ///  A template for creating an Organization Party Site object in Oracle.
     /// </summary>
@@ -164,6 +232,50 @@ public static class OracleSoapTemplates
     #endregion
 
     #region Customer Account
+    /// <summary>
+    /// Find an Oracle Customer Account by searching with the origin system reference (enterprise Id)
+    /// </summary>
+    /// <param name="enterpriseId">The Id of the originating object from Salesforce</param>
+    /// <returns>A SOAP envelope XML payload to send as a request body.</returns>
+    public static string FindCustomerAccount(string enterpriseId)
+    {
+        var findEnvelope =
+            $@"<soapenv:Envelope
+	            xmlns:soapenv=""http://schemas.xmlsoap.org/soap/envelope/""
+	            xmlns:typ=""http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/applicationModule/types/""
+	            xmlns:typ1=""http://xmlns.oracle.com/adf/svc/types/"">
+	            <soapenv:Header/>
+	            <soapenv:Body>
+		            <typ:findCustomerAccount>
+			            <typ:findCriteria>
+				            <typ1:fetchStart>0</typ1:fetchStart>
+				            <typ1:fetchSize>1</typ1:fetchSize>
+				            <typ1:filter>
+					            <typ1:conjunction/>
+					            <typ1:group>
+						            <typ1:conjunction/>
+						            <typ1:upperCaseCompare>false</typ1:upperCaseCompare>
+						            <typ1:item>
+							            <typ1:conjunction/>
+							            <typ1:upperCaseCompare>false</typ1:upperCaseCompare>
+							            <typ1:attribute>OrigSystemReference</typ1:attribute>
+							            <typ1:operator>=</typ1:operator>
+							            <typ1:value>{enterpriseId}</typ1:value>
+						            </typ1:item>
+					            </typ1:group>
+					            <typ1:nested/>
+				            </typ1:filter>
+			            </typ:findCriteria>
+			            <typ:findControl>
+				            <typ1:retrieveAllTranslations>false</typ1:retrieveAllTranslations>
+			            </typ:findControl>
+		            </typ:findCustomerAccount>
+	            </soapenv:Body>
+            </soapenv:Envelope>";
+        return findEnvelope;
+    }
+
+
     /// <summary>
     ///  A template for creating a Customer Account object in Oracle
     /// </summary>

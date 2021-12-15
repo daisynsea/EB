@@ -6,4 +6,5 @@ public class OracleOrganization
     public string PartyNumber { get; set; }
     public string OrganizationName { get; set; }
     public string Type { get; set; }
+    public string OrigSystemReference { get; set; }
 }
