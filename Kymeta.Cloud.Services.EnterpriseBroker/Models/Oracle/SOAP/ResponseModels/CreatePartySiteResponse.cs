@@ -109,7 +109,7 @@ public partial class PartySiteValue
     public string CreatedBy { get; set; }
 
     /// <remarks/>
-    public ulong OrigSystemReference { get; set; }
+    public string OrigSystemReference { get; set; }
 
     /// <remarks/>
     [XmlElement(IsNullable = true)]
@@ -347,7 +347,8 @@ public partial class PartySiteValue
     public object SourceSystemUpdateDate { get; set; }
 
     /// <remarks/>
-    public PartySiteValuePartySite PartySite { get; set; }
+    [XmlElement("PartySite")]
+    public PartySiteValuePartySite[] PartySite { get; set; }
 }
 
 /// <remarks/>
@@ -402,7 +403,7 @@ public partial class PartySiteValuePartySite
 
     /// <remarks/>
     [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/")]
-    public ulong OrigSystemReference { get; set; }
+    public string OrigSystemReference { get; set; }
 
     /// <remarks/>
     [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/", DataType = "date")]

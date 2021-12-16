@@ -150,6 +150,7 @@ public class AccountBrokerService : IAccountBrokerService
         #region Send to Oracle
         if (syncToOracle)
         {
+            #region Organization
             // We have to create 5 entities in Oracle: Organization, Location(s), PartySite, CustomerAccount, CustomerAccountProfile
             var organizationResult = await _oracleService.GetOrganizationBySalesforceAccountId(model.Name, model.ObjectId);
             if (!organizationResult.Item1)
@@ -188,32 +189,69 @@ public class AccountBrokerService : IAccountBrokerService
                 organization = updatedOrganization.Item1;
                 oracleOrganizationId = organizationResult.Item2.PartyNumber;
             }
+            #endregion
 
             #region Location & OrgPartySite
             // verify we have addresses
             if (model.Addresses != null && model.Addresses.Count > 0)
             {
+                List<Task<Tuple<OracleLocationModel, string>>> createLocationTasks = new();
                 // TODO: create a Location for each address
                 foreach (var address in model.Addresses)
                 {
-                    var orgPartySite = organizationResult.Item2.PartySites.FirstOrDefault(s => s.PartySiteId.ToString() == address.ObjectId);
+                    // check the Organization PartySites (Locations) with the address to see if it has been created already
+                    var orgPartySite = organizationResult.Item2?.PartySites?.FirstOrDefault(s => s.OrigSystemReference == address.ObjectId);
                     if (orgPartySite == null)
                     {
                         // create Location & OrgPartySite
-                        // TODO: create a list of tasks to run async
-                        var location = await _oracleService.CreateLocation(address);
-                        // TODO: wait for Location to be created, then create PartySite record
-                        // TODO: create Organization PartySite
-                        var orgPartySite = await _oracleService.CreateOrganizationPartySite(organization.PartyId, );
+                        // TODO: create a list of tasks to run async (outside of the loop)
+                        createLocationTasks.Add(_oracleService.CreateLocation(address));
                     } else
                     {
-                        // TODO: nothing?
+                        // TODO: update Location? do nothing?
                     }
+                }
+
+                // check to see if we are creating any Locations
+                if (createLocationTasks.Count > 0)
+                {
+                    var partySitesToCreate = new List<OraclePartySite>();
+                    // execute requests to create Locations in async fashion
+                    await Task.WhenAll(createLocationTasks);
+                    // get the response data
+                    var createLocationResults = createLocationTasks.Select(t => t.Result).ToList();
+                    // iterate through the results for the create Location requests
+                    for (int i = 0; i < createLocationResults.Count; i++)
+                    {
+                        var result = createLocationResults[i];
+                        // acquire the matching Location so we can set the SiteUseType below
+                        var address = model.Addresses.FirstOrDefault(a => a.ObjectId == result.Item1.OrigSystemReference);
+
+                        if (result.Item1 == null)
+                        {
+                            // create location failed for some reason
+                            Console.WriteLine("[DEBUG] Error: {result.Item2}");
+                        } else
+                        {
+                            // Location was created successfully... so add to the list so we can create a Party Site record for it
+                            partySitesToCreate.Add(new OraclePartySite
+                            {
+                                LocationId = result.Item1.LocationId,
+                                OrigSystemReference = result.Item1.OrigSystemReference,
+                                SiteUseType = address.Type
+                            });
+                        }
+                    }
+
+                    // TODO: for all newly created Locations, create a PartySite record. We need LocationId first before we can create PartySite records
+                    // create Organization PartySites for any new Location(s)
+                    var updatedOrganization = await _oracleService.CreateOrganizationPartySites(organization.PartyId, partySitesToCreate);
                 }
             }
             #endregion
 
 
+            #region Customer Account
             var existingCustomerAccount = await _oracleService.GetCustomerAccountBySalesforceAccountId(model.ObjectId);
             if (!existingCustomerAccount.Item1)
             {
@@ -233,7 +271,7 @@ public class AccountBrokerService : IAccountBrokerService
                 var updatedCustomerAccount = await _oracleService.UpdateCustomerAccount(model, salesforceTransaction);
                 oracleCustomerAccountId = existingCustomerAccount.Item2.PartyNumber;
             }
-
+            #endregion
 
 
 

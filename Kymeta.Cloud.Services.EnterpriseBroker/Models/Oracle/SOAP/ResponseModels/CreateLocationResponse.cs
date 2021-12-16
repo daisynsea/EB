@@ -11,13 +11,10 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.SOAP.ResponseMode
 [XmlRoot("Envelope", Namespace = "http://schemas.xmlsoap.org/soap/envelope/", IsNullable = false)]
 public class CreateLocationEnvelope
 {
-
     /// <remarks/>
-    [XmlElement("Header")]
     public CreateLocationEnvelopeHeader Header { get; set; }
 
     /// <remarks/>
-    [XmlElement("Body")]
     public CreateLocationEnvelopeBody Body { get; set; }
 }
 
@@ -28,11 +25,11 @@ public class CreateLocationEnvelope
 public class CreateLocationEnvelopeHeader
 {
     /// <remarks/>
-    [XmlElement("Action", Namespace = "http://www.w3.org/2005/08/addressing")]
+    [XmlElement(Namespace = "http://www.w3.org/2005/08/addressing")]
     public string Action { get; set; }
 
     /// <remarks/>
-    [XmlElement("MessageID", Namespace = "http://www.w3.org/2005/08/addressing")]
+    [XmlElement(Namespace = "http://www.w3.org/2005/08/addressing")]
     public string MessageID { get; set; }
 }
 
@@ -61,11 +58,11 @@ public class createLocationResponse
 /// <remarks/>
 [Serializable]
 [System.ComponentModel.DesignerCategory("code")]
-[XmlType(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/locationService/applicationModule/types/")]
+[XmlType(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/locationService/", TypeName = "LocationResult")]
 public class createLocationResponseResult
 {
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/locationService/")]
+    [XmlElement("Value", Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/locationService/")]
     public CreateLocationValue Value { get; set; }
 }
 
@@ -73,14 +70,14 @@ public class createLocationResponseResult
 [Serializable]
 [System.ComponentModel.DesignerCategory("code")]
 [XmlType(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/locationService/")]
-[XmlRoot("value", Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/locationService/", IsNullable = false)]
+[XmlRoot(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/locationService/", IsNullable = false)]
 public class CreateLocationValue
 {
     /// <remarks/>
     public ulong LocationId { get; set; }
 
     /// <remarks/>
-    public DateTime LastUpdateDate { get; set; }
+    public System.DateTime LastUpdateDate { get; set; }
 
     /// <remarks/>
     public string LastUpdatedBy { get; set; }
@@ -95,7 +92,7 @@ public class CreateLocationValue
     public string LastUpdateLogin { get; set; }
 
     /// <remarks/>
-    [XmlElementAttribute(IsNullable = true)]
+    [XmlElement(IsNullable = true)]
     public object RequestId { get; set; }
 
     /// <remarks/>
@@ -111,8 +108,7 @@ public class CreateLocationValue
     public string Address1 { get; set; }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
-    public object Address2 { get; set; }
+    public string Address2 { get; set; }
 
     /// <remarks/>
     [XmlElement(IsNullable = true)]
@@ -123,13 +119,15 @@ public class CreateLocationValue
     public object Address4 { get; set; }
 
     /// <remarks/>
-    public string City { get; set; }
+    [XmlElement(IsNullable = true)]
+    public object City { get; set; }
 
     /// <remarks/>
-    public uint PostalCode { get; set; }
+    [XmlElement(IsNullable = true)]
+    public object PostalCode { get; set; }
 
     /// <remarks/>
-    [XmlElementAttribute(IsNullable = true)]
+    [XmlElement(IsNullable = true)]
     public object State { get; set; }
 
     /// <remarks/>
@@ -281,4 +279,3 @@ public class CreateLocationValue
     [XmlElement(IsNullable = true)]
     public object Distance { get; set; }
 }
-

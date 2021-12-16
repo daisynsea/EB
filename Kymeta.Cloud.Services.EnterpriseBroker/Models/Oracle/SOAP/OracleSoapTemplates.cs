@@ -130,26 +130,34 @@ public static class OracleSoapTemplates
     ///  A template for creating an Organization Party Site object in Oracle.
     /// </summary>
     /// <returns>TBD</returns>
-    public static string CreateOrganizationPartySite(string organizationPartyId, string locationId, AddressType addressType)
+    public static string CreateOrganizationPartySites(long organizationPartyId, List<OraclePartySite> partySites)
     {
         var locationEnvelope =
-            $@"<soap:Envelope xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
-                <soap:Body>
-	                <ns1:mergeOrganization xmlns:ns1=""http://xmlns.oracle.com/apps/cdm/foundation/parties/organizationService/applicationModule/types/"">
-		                <ns1:organizationParty xmlns:ns2=""http://xmlns.oracle.com/apps/cdm/foundation/parties/organizationService/"">
-			                <ns2:PartyId>{organizationPartyId}</ns2:PartyId>
-			                <ns2:PartySite xmlns:ns3=""http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/"">
-				                <ns3:LocationId>{locationId}</ns3:LocationId>
-				                <ns3:CreatedByModule>HZ_WS</ns3:CreatedByModule>
-				                <ns3:PartySiteUse>
-					                <ns3:SiteUseType>{addressType}</ns3:SiteUseType>
-					                <ns3:CreatedByModule>HZ_WS</ns3:CreatedByModule>
-				                </ns3:PartySiteUse>
-			                </ns2:PartySite>
-		                </ns1:organizationParty>
-	                </ns1:mergeOrganization>
-                </soap:Body>
-                </soap:Envelope>";
+            $"<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">" +
+                "<soap:Body>" +
+                    "<ns1:mergeOrganization xmlns:ns1=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/organizationService/applicationModule/types/\">" +
+                        "<ns1:organizationParty xmlns:ns2=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/organizationService/\">" +
+                            $"<ns2:PartyId>{organizationPartyId}</ns2:PartyId>";
+        // include all the PartySite additions
+        foreach (var ps in partySites)
+        {
+            locationEnvelope +=
+                            "<ns2:PartySite xmlns:ns3=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/\">" +
+                                $"<ns3:LocationId>{ps.LocationId}</ns3:LocationId>" +
+                                $"<ns3:OrigSystemReference>{ps.OrigSystemReference}</ns3:OrigSystemReference>" +
+                                "<ns3:CreatedByModule>HZ_WS</ns3:CreatedByModule>" +
+                                "<ns3:PartySiteUse>" +
+                                    $"<ns3:SiteUseType>{ps.SiteUseType}</ns3:SiteUseType>" +
+                                    "<ns3:CreatedByModule>HZ_WS</ns3:CreatedByModule>" +
+                                "</ns3:PartySiteUse>" +
+                            "</ns2:PartySite>";
+        }
+
+        locationEnvelope +=
+                        "</ns1:organizationParty>" +
+	                "</ns1:mergeOrganization>" +
+                "</soap:Body>" +
+                "</soap:Envelope>";
         return locationEnvelope;
     }
     #endregion
@@ -288,6 +296,17 @@ public static class OracleSoapTemplates
             throw new ArgumentException($"'{nameof(organizationPartyId)}' cannot be null or empty.", nameof(organizationPartyId));
         }
 
+
+        //<cus:CustomerAccountSite>
+					   //     <cus:PartySiteId>{model.OrganizationPartySiteId}</cus:PartySiteId> <!-- Organization PartySiteId -->
+		     	//	        <cus:SetId>300000001127004</cus:SetId> <!-- Kymeta `address set` in Oracle -->
+						  //  <cus:CreatedByModule>HZ_WS</cus:CreatedByModule>
+					   //     <cus:CustomerAccountSiteUse>
+							 //   <cus:SiteUseCode>BILL_TO</cus:SiteUseCode>
+							 //   <cus:CreatedByModule>HZ_WS</cus:CreatedByModule>
+					 	 //   </cus:CustomerAccountSiteUse>
+					   // </cus:CustomerAccountSite>
+
         // create the SOAP envelope with a beefy string
         var customerAccountEnvelope =
             @$"<soap:Envelope xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"" xmlns:info=""http://xmlns.oracle.com/apps/cdm/foundation/parties/flex/custAccount/"">
@@ -309,15 +328,6 @@ public static class OracleSoapTemplates
                            <ns7:OwnerTableName>HZ_CUST_ACCOUNTS</ns7:OwnerTableName>
                            <ns7:CreatedByModule>HZ_WS</ns7:CreatedByModule>
                         </cus:OriginalSystemReference>
-                        <cus:CustomerAccountSite>
-					        <cus:PartySiteId>{model.OrganizationPartySiteId}</cus:PartySiteId> <!-- Organization PartySiteId -->
-		     		        <cus:SetId>300000001127004</cus:SetId> <!-- Kymeta `address set` in Oracle -->
-						    <cus:CreatedByModule>HZ_WS</cus:CreatedByModule>
-					        <cus:CustomerAccountSiteUse>
-							    <cus:SiteUseCode>BILL_TO</cus:SiteUseCode>
-							    <cus:CreatedByModule>HZ_WS</cus:CreatedByModule>
-					 	    </cus:CustomerAccountSiteUse>
-					    </cus:CustomerAccountSite>
                      </typ:customerAccount>
                   </typ:createCustomerAccount>
                </soap:Body>
