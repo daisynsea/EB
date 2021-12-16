@@ -9,7 +9,7 @@ public static class OracleSoapTemplates
     ///  A template for creating a Location object in Oracle
     /// </summary>
     /// <returns>TBD</returns>
-    public static string CreateLocation(OracleLocationModel model, string systemReference)
+    public static string CreateLocation(SalesforceAddressModel address)
     {
         var locationEnvelope =
             $@"<soap:Envelope xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
@@ -18,12 +18,12 @@ public static class OracleSoapTemplates
                         <typ:location xmlns:loc=""http://xmlns.oracle.com/apps/cdm/foundation/parties/locationService/"">
                             <loc:CreatedByModule>HZ_WS</loc:CreatedByModule>
                             <loc:OrigSystem>SFDC</loc:OrigSystem>
-                            <loc:OrigSystemReference>{systemReference}</loc:OrigSystemReference>
-                            <loc:Address1>{model.Address1}</loc:Address1>
-                            <loc:Address2>{model.Address2}</loc:Address2>
-                            <loc:City>{model.City}</loc:City>
-                            <loc:PostalCode>{model.PostalCode}</loc:PostalCode>
-                            <loc:Country>{model.Country}</loc:Country>
+                            <loc:OrigSystemReference>{address.ObjectId}</loc:OrigSystemReference>
+                            <loc:Address1>{address.Address1}</loc:Address1>
+                            <loc:Address2>{address.Address2}</loc:Address2>
+                            <loc:City>{address.City}</loc:City>
+                            <loc:PostalCode>{address.PostalCode}</loc:PostalCode>
+                            <loc:Country>{address.Country}</loc:Country>
                         </typ:location>
                     </typ:createLocation>
                 </soap:Body>
@@ -280,12 +280,12 @@ public static class OracleSoapTemplates
     ///  A template for creating a Customer Account object in Oracle
     /// </summary>
     /// <returns>SOAP Envelope (payload) for creating a Customer Account in Oracle</returns>
-    public static string CreateCustomerAccount(CreateOracleCustomerAccountViewModel model)
+    public static string CreateCustomerAccount(OracleCustomerAccount model, string organizationPartyId)
     {
         // validate the inputs
-        if (string.IsNullOrEmpty(model.OrganizationPartyId))
+        if (string.IsNullOrEmpty(organizationPartyId))
         {
-            throw new ArgumentException($"'{nameof(model.OrganizationPartyId)}' cannot be null or empty.", nameof(model.OrganizationPartyId));
+            throw new ArgumentException($"'{nameof(organizationPartyId)}' cannot be null or empty.", nameof(organizationPartyId));
         }
 
         // create the SOAP envelope with a beefy string
@@ -294,8 +294,8 @@ public static class OracleSoapTemplates
                 <soap:Body xmlns:typ=""http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/applicationModule/types/"">
                   <typ:createCustomerAccount>
                      <typ:customerAccount xmlns:cus=""http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/"">
-                        <cus:PartyId>{model.OrganizationPartyId}</cus:PartyId> <!-- acquired from the create Organization response (via REST) -->
-                        <cus:AccountName>{model.OrganizationName} Acc</cus:AccountName> <!-- description for the Customer Account -->
+                        <cus:PartyId>{organizationPartyId}</cus:PartyId> <!-- acquired from the create Organization response (via REST) -->
+                        <cus:AccountName>{model.AccountName} Acc</cus:AccountName> <!-- description for the Customer Account -->
                         <cus:CustomerType>{model.AccountType}</cus:CustomerType>
                         <cus:CustomerClassCode>{model.AccountSubType}</cus:CustomerClassCode>
                         <cus:CreatedByModule>HZ_WS</cus:CreatedByModule>

@@ -2,7 +2,7 @@
 
 public class CreateOracleAccountViewModel
 {
-    public string OrganizationName { get; set; }
+    public string AccountName { get; set; }
     public string TaxpayerIdentificationNumber { get; set; }
 }
 

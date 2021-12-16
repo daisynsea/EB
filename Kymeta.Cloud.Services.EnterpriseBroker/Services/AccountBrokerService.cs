@@ -150,26 +150,69 @@ public class AccountBrokerService : IAccountBrokerService
         #region Send to Oracle
         if (syncToOracle)
         {
-            // We have to create 3 entities in Oracle: Organization, CustomerAccount, CustomerAccountProfile
-            var existingOrganization = await _oracleService.GetOrganizationBySalesforceAccountId(model.Name, model.ObjectId);
-            if (!existingOrganization.Item1)
+            // We have to create 5 entities in Oracle: Organization, Location(s), PartySite, CustomerAccount, CustomerAccountProfile
+            var organizationResult = await _oracleService.GetOrganizationBySalesforceAccountId(model.Name, model.ObjectId);
+            if (!organizationResult.Item1)
             {
                 // TODO: fatal error occurred when sending request to oracle... return badRequest here?
                 response.OracleStatus = StatusType.Error;
-                response.OracleErrorMessage = existingOrganization.Item3;
+                response.OracleErrorMessage = organizationResult.Item3;
                 return response;
             }
+            var organization = new OracleOrganization();
             // If Organization does not exist, create it
-            if (existingOrganization.Item2 == null)
+            if (organizationResult.Item2 == null)
             {
                 var addedOrganization = await _oracleService.CreateOrganization(model, salesforceTransaction);
-                oracleOrganizationId = addedOrganization.Item1;
-            } else // Otherwise, update it
+                if (addedOrganization.Item1 == null)
+                {
+                    // fatal error occurred
+                    response.OracleStatus = StatusType.Error;
+                    response.OracleErrorMessage = addedOrganization.Item2;
+                    return response;
+                }
+                organization = addedOrganization.Item1;
+                oracleOrganizationId = addedOrganization.Item1.PartyNumber;
+            }
+            else // Otherwise, update it
             {
                 // TODO: Party Number here?
-                var updatedOrganization = await _oracleService.UpdateOrganization(existingOrganization.Item2.PartyNumber, model, salesforceTransaction);
-                oracleOrganizationId = existingOrganization.Item2.PartyNumber;
+                var updatedOrganization = await _oracleService.UpdateOrganization(organizationResult.Item2.PartyNumber, model, salesforceTransaction);
+                if (updatedOrganization.Item1 == null)
+                {
+                    // fatal error occurred
+                    response.OracleStatus = StatusType.Error;
+                    response.OracleErrorMessage = updatedOrganization.Item2;
+                    return response;
+                }
+                organization = updatedOrganization.Item1;
+                oracleOrganizationId = organizationResult.Item2.PartyNumber;
             }
+
+            #region Location & OrgPartySite
+            // verify we have addresses
+            if (model.Addresses != null && model.Addresses.Count > 0)
+            {
+                // TODO: create a Location for each address
+                foreach (var address in model.Addresses)
+                {
+                    var orgPartySite = organizationResult.Item2.PartySites.FirstOrDefault(s => s.PartySiteId.ToString() == address.ObjectId);
+                    if (orgPartySite == null)
+                    {
+                        // create Location & OrgPartySite
+                        // TODO: create a list of tasks to run async
+                        var location = await _oracleService.CreateLocation(address);
+                        // TODO: wait for Location to be created, then create PartySite record
+                        // TODO: create Organization PartySite
+                        var orgPartySite = await _oracleService.CreateOrganizationPartySite(organization.PartyId, );
+                    } else
+                    {
+                        // TODO: nothing?
+                    }
+                }
+            }
+            #endregion
+
 
             var existingCustomerAccount = await _oracleService.GetCustomerAccountBySalesforceAccountId(model.ObjectId);
             if (!existingCustomerAccount.Item1)
@@ -190,6 +233,9 @@ public class AccountBrokerService : IAccountBrokerService
                 var updatedCustomerAccount = await _oracleService.UpdateCustomerAccount(model, salesforceTransaction);
                 oracleCustomerAccountId = existingCustomerAccount.Item2.PartyNumber;
             }
+
+
+
 
             var existingCustomerAccountProfile = await _oracleService.GetCustomerAccountProfileBySalesforceAccountId(model.ObjectId);
             // If Customer Account does not exist, create it
