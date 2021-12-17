@@ -1,0 +1,45 @@
+﻿@page
+@model Kymeta.Cloud.Services.EnterpriseBroker.Pages.IndexModel
+@{
+}
+<div class="section">
+    <div class="container">
+        <h1 class="title">Action Log</h1>
+
+        <table class="table is-fullwidth is-striped">
+            <thead>
+                <tr>
+                    <th>Object</th>
+                    <th>Last Updated</th>
+                    <th>Salesforce ID</th>
+                    <th>OSS Status</th>
+                    <th>Oracle Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.ActionRecords?.Count() == 0) 
+                {
+                    <tr>
+                        <td colspan="5">
+                            <p class="pa-4">No records found.</p>
+                        </td>
+                    </tr>
+                }
+                @foreach (var log in Model.ActionRecords.OrderByDescending(ar => ar.LastUpdatedOn))
+                {
+                    <tr>
+                        <td>
+                            <a asp-page="Detail" asp-route-id="@log.Id" asp-route-objectType="@log.Object">
+                                @log.Object
+                            </a>
+                        </td>
+                        <td>@(log.LastUpdatedOn.HasValue ? @log.LastUpdatedOn.Value.ToString("G") : @log.CreatedOn.ToString("G"))</td>
+                        <td>@log.ObjectId</td>
+                        <td><span>@log.OssStatus</span></td>
+                        <td><span>@log.OracleStatus</span></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
