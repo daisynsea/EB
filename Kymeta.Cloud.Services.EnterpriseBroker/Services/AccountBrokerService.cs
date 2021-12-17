@@ -203,8 +203,7 @@ public class AccountBrokerService : IAccountBrokerService
                     var orgPartySite = organizationResult.Item2?.PartySites?.FirstOrDefault(s => s.OrigSystemReference == address.ObjectId);
                     if (orgPartySite == null)
                     {
-                        // create Location & OrgPartySite
-                        // TODO: create a list of tasks to run async (outside of the loop)
+                        // create Location & OrgPartySite as a list of tasks to run async (outside of the loop)
                         createLocationTasks.Add(_oracleService.CreateLocation(address));
                     } else
                     {
@@ -243,9 +242,8 @@ public class AccountBrokerService : IAccountBrokerService
                         }
                     }
 
-                    // TODO: for all newly created Locations, create a PartySite record. We need LocationId first before we can create PartySite records
-                    // create Organization PartySites for any new Location(s)
-                    var updatedOrganization = await _oracleService.CreateOrganizationPartySites(organization.PartyId, partySitesToCreate);
+                    // create Organization PartySite (batched into a single request for all Locations)
+                    var partySites = await _oracleService.CreateOrganizationPartySites(organization.PartyId, partySitesToCreate);
                 }
             }
             #endregion
