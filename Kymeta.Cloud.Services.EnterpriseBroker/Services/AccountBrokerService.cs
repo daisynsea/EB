@@ -164,7 +164,7 @@ public class AccountBrokerService : IAccountBrokerService
             // If Organization does not exist, create it
             if (organizationResult.Item2 == null)
             {
-                var addedOrganization = await _oracleService.CreateOrganization(model, salesforceTransaction);
+                var addedOrganization = await _oracleService.CreateOrganization(model);
                 if (addedOrganization.Item1 == null)
                 {
                     // fatal error occurred
@@ -178,7 +178,7 @@ public class AccountBrokerService : IAccountBrokerService
             else // Otherwise, update it
             {
                 // TODO: Party Number here?
-                var updatedOrganization = await _oracleService.UpdateOrganization(organizationResult.Item2.PartyNumber, model, salesforceTransaction);
+                var updatedOrganization = await _oracleService.UpdateOrganization(organizationResult.Item2.PartyNumber, model);
                 if (updatedOrganization.Item1 == null)
                 {
                     // fatal error occurred
@@ -192,6 +192,8 @@ public class AccountBrokerService : IAccountBrokerService
             #endregion
 
             #region Location & OrgPartySite
+            var partySites = new List<OraclePartySite>();
+
             // verify we have addresses
             if (model.Addresses != null && model.Addresses.Count > 0)
             {
@@ -229,7 +231,7 @@ public class AccountBrokerService : IAccountBrokerService
                         if (result.Item1 == null)
                         {
                             // create location failed for some reason
-                            Console.WriteLine("[DEBUG] Error: {result.Item2}");
+                            Console.WriteLine($"[DEBUG] Error: {result.Item2}");
                         } else
                         {
                             // Location was created successfully... so add to the list so we can create a Party Site record for it
@@ -243,13 +245,27 @@ public class AccountBrokerService : IAccountBrokerService
                     }
 
                     // create Organization PartySite (batched into a single request for all Locations)
-                    var partySites = await _oracleService.CreateOrganizationPartySites(organization.PartyId, partySitesToCreate);
+                    var createPartySitesResult = await _oracleService.CreateOrganizationPartySites(organization.PartyId, partySitesToCreate);
+                    if (createPartySitesResult.Item1 == null)
+                    {
+                        // create PartySites failed for some reason
+                        Console.WriteLine($"[DEBUG] Error: {createPartySitesResult.Item2}");
+                    } else
+                    {
+                        partySites.AddRange(createPartySitesResult.Item1);
+                    }
                 }
             }
             #endregion
 
+            #region Person
+            // TODO: NYI
+            // TODO: create persons
+            // TODO: update Create Customer Account request to include Customer Account Contact(s)
+            #endregion
 
             #region Customer Account
+            // search for existing Customer Account records based on Name and Salesforce Id
             var existingCustomerAccount = await _oracleService.GetCustomerAccountBySalesforceAccountId(model.ObjectId);
             if (!existingCustomerAccount.Item1)
             {
@@ -258,33 +274,44 @@ public class AccountBrokerService : IAccountBrokerService
                 response.OracleErrorMessage = existingCustomerAccount.Item3;
                 return response;
             }
+            
+            // init our simplified model
+            var customerAccount = new OracleCustomerAccount();
             // If Customer Account does not exist, create it
             if (existingCustomerAccount.Item2 == null)
             {
-                var addedCustomerAccount = await _oracleService.CreateCustomerAccount(oracleOrganizationId, model, salesforceTransaction);
-                oracleCustomerAccountId = addedCustomerAccount.Item1;
+                var addedCustomerAccount = await _oracleService.CreateCustomerAccount(organization.PartyId, model, partySites);
+                customerAccount = addedCustomerAccount.Item1;
+                oracleCustomerAccountId = addedCustomerAccount.Item1.CustomerAccountId;
             } else // Otherwise, update it
             {
                 // TODO: Need a corresponding Id here?
                 var updatedCustomerAccount = await _oracleService.UpdateCustomerAccount(model, salesforceTransaction);
-                oracleCustomerAccountId = existingCustomerAccount.Item2.PartyNumber;
+                oracleCustomerAccountId = existingCustomerAccount.Item2.CustomerAccountId;
             }
             #endregion
 
-
-
-            var existingCustomerAccountProfile = await _oracleService.GetCustomerAccountProfileBySalesforceAccountId(model.ObjectId);
-            // If Customer Account does not exist, create it
-            if (existingCustomerAccountProfile == null)
+            #region Customer Profile
+            // TODO: if no Customer Profile exists, this request will return a 500 result (Internal Server Error)... which is super lame.
+            var existingCustomerAccountProfile = await _oracleService.GetCustomerProfileByAccountNumber(customerAccount.AccountNumber?.ToString());
+            if (!existingCustomerAccountProfile.Item1)
             {
-                var addedCustomerAccountProfile = await _oracleService.CreateCustomerAccountProfile(oracleCustomerAccountId, model, salesforceTransaction);
-                oracleCustomerAccountProfileId = addedCustomerAccountProfile.Item1;
-            } else // Otherwise, update it
-            {
-                // TODO: Need a corresponding Id here?
-                var updatedCustomerAccountProfile = await _oracleService.UpdateCustomerAccountProfile(model, salesforceTransaction);
-                oracleCustomerAccountProfileId = existingCustomerAccountProfile.Item1.PartyNumber;
+                // TODO: fatal error occurred when sending request to oracle... return badRequest here?
+                response.OracleStatus = StatusType.Error;
+                response.OracleErrorMessage = existingCustomerAccountProfile.Item3;
+                return response;
             }
+            // If Customer Account does not exist, create it
+            if (existingCustomerAccountProfile.Item2 == null)
+            {
+                var addedCustomerAccountProfile = await _oracleService.CreateCustomerAccountProfile(customerAccount.PartyId, (uint)customerAccount.AccountNumber);
+                oracleCustomerAccountProfileId = addedCustomerAccountProfile.Item1?.PartyId?.ToString();
+            } else
+            {
+                // TODO: do nothing? Customer Profile already exists
+            }
+            #endregion
+
 
             response.OracleStatus = StatusType.Successful;
             response.OracleCustomerAccountId = oracleCustomerAccountId;

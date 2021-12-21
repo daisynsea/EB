@@ -2,6 +2,6 @@
 {
     public class OracleCustomerAccountProfile
     {
-        public string? PartyNumber { get; set; }
+        public ulong? PartyId { get; set; }
     }
 }

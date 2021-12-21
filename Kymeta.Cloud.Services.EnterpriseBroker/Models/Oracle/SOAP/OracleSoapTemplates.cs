@@ -169,7 +169,7 @@ public static class OracleSoapTemplates
     /// <returns>TBD</returns>
     public static string CreatePerson(OraclePersonObject person, string salesforceContactId)
     {
-        var currentDate = DateTime.UtcNow.Date;
+        var currentDate = $"{DateTime.UtcNow:yyyy-MM-dd}";
         var personEnvelope =
             $@"<soapenv:Envelope
                 xmlns:soapenv=""http://schemas.xmlsoap.org/soap/envelope/"" 
@@ -288,50 +288,64 @@ public static class OracleSoapTemplates
     ///  A template for creating a Customer Account object in Oracle
     /// </summary>
     /// <returns>SOAP Envelope (payload) for creating a Customer Account in Oracle</returns>
-    public static string CreateCustomerAccount(OracleCustomerAccount model, string organizationPartyId)
+    public static string CreateCustomerAccount(OracleCustomerAccount model, long organizationPartyId, List<OraclePartySite> partySites)
     {
-        // validate the inputs
-        if (string.IsNullOrEmpty(organizationPartyId))
-        {
-            throw new ArgumentException($"'{nameof(organizationPartyId)}' cannot be null or empty.", nameof(organizationPartyId));
-        }
-
-
-        //<cus:CustomerAccountSite>
-					   //     <cus:PartySiteId>{model.OrganizationPartySiteId}</cus:PartySiteId> <!-- Organization PartySiteId -->
-		     	//	        <cus:SetId>300000001127004</cus:SetId> <!-- Kymeta `address set` in Oracle -->
-						  //  <cus:CreatedByModule>HZ_WS</cus:CreatedByModule>
-					   //     <cus:CustomerAccountSiteUse>
-							 //   <cus:SiteUseCode>BILL_TO</cus:SiteUseCode>
-							 //   <cus:CreatedByModule>HZ_WS</cus:CreatedByModule>
-					 	 //   </cus:CustomerAccountSiteUse>
-					   // </cus:CustomerAccountSite>
-
         // create the SOAP envelope with a beefy string
         var customerAccountEnvelope =
-            @$"<soap:Envelope xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"" xmlns:info=""http://xmlns.oracle.com/apps/cdm/foundation/parties/flex/custAccount/"">
-                <soap:Body xmlns:typ=""http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/applicationModule/types/"">
-                  <typ:createCustomerAccount>
-                     <typ:customerAccount xmlns:cus=""http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/"">
-                        <cus:PartyId>{organizationPartyId}</cus:PartyId> <!-- acquired from the create Organization response (via REST) -->
-                        <cus:AccountName>{model.AccountName} Acc</cus:AccountName> <!-- description for the Customer Account -->
-                        <cus:CustomerType>{model.AccountType}</cus:CustomerType>
-                        <cus:CustomerClassCode>{model.AccountSubType}</cus:CustomerClassCode>
-                        <cus:CreatedByModule>HZ_WS</cus:CreatedByModule>
-                        <cus:CustAcctInformation>
-                            <info:salesforceId>{model.SalesforceId}</info:salesforceId>
-                            <info:ksnId>{model.OssId}</info:ksnId>
-                        </cus:CustAcctInformation>
-                        <cus:OriginalSystemReference xmlns:ns7=""http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/"">
-                           <ns7:OrigSystem>SFDC</ns7:OrigSystem>
-                           <ns7:OrigSystemReference>{model.SalesforceId}</ns7:OrigSystemReference>
-                           <ns7:OwnerTableName>HZ_CUST_ACCOUNTS</ns7:OwnerTableName>
-                           <ns7:CreatedByModule>HZ_WS</ns7:CreatedByModule>
-                        </cus:OriginalSystemReference>
-                     </typ:customerAccount>
-                  </typ:createCustomerAccount>
-               </soap:Body>
-            </soap:Envelope>";
+            $"<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
+                $"xmlns:info=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/flex/custAccount/\" " +
+                $"xmlns:par=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/\">" +
+                "<soap:Body xmlns:typ=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/applicationModule/types/\">" +
+                  "<typ:createCustomerAccount>" +
+                     "<typ:customerAccount xmlns:cus=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/\">" +
+                        $"<cus:PartyId>{organizationPartyId}</cus:PartyId>" + // acquired from the create Organization response (via REST)
+                        $"<cus:AccountName>{model.AccountName} Acc</cus:AccountName>" + // description for the Customer Account
+                        $"<cus:CustomerType>{model.AccountType}</cus:CustomerType>" +
+                        $"<cus:CustomerClassCode>{model.AccountSubType}</cus:CustomerClassCode>" +
+                        $"<cus:OrigSystemReference>{model.SalesforceId}</cus:OrigSystemReference>" +
+                        "<cus:CreatedByModule>HZ_WS</cus:CreatedByModule>" +
+                        "<cus:CustAcctInformation>" +
+                            $"<info:salesforceId>{model.SalesforceId}</info:salesforceId>" +
+                            $"<info:ksnId>{model.OssId}</info:ksnId>" +
+                        "</cus:CustAcctInformation>" +
+                        "<cus:OriginalSystemReference xmlns:ns7=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/\">" +
+                           "<ns7:OrigSystem>SFDC</ns7:OrigSystem>" +
+                           $"<ns7:OrigSystemReference>{model.SalesforceId}</ns7:OrigSystemReference>" +
+                           "<ns7:OwnerTableName>HZ_CUST_ACCOUNTS</ns7:OwnerTableName>" +
+                           "<ns7:CreatedByModule>HZ_WS</ns7:CreatedByModule>" +
+                        "</cus:OriginalSystemReference>";
+
+        // check for the existence of any Sites
+        if (partySites != null && partySites.Count > 0)
+        {
+            // include each Site
+            foreach (var site in partySites)
+            {
+                customerAccountEnvelope +=
+                        "<cus:CustomerAccountSite>" +
+                            $"<cus:PartySiteId>{site.PartySiteId}</cus:PartySiteId>" +
+                            "<cus:CreatedByModule>HZ_WS</cus:CreatedByModule>" +
+                            "<cus:SetId>300000001127004</cus:SetId>" +
+                            "<cus:CustomerAccountSiteUse>" +
+                                "<cus:SiteUseCode>BILL_TO</cus:SiteUseCode>" +
+                                "<cus:CreatedByModule>HZ_WS</cus:CreatedByModule>" +
+                                "<cus:OriginalSystemReference>" +
+                                    "<par:OrigSystem>SFDC</par:OrigSystem>" +
+                                    $"<par:OrigSystemReference>{site.OrigSystemReference}</par:OrigSystemReference>" +
+                                    "<par:OwnerTableName>HZ_CUST_SITE_USES_ALL</par:OwnerTableName>" +
+                                    "<par:CreatedByModule>HZ_WS</par:CreatedByModule>" +
+                                "</cus:OriginalSystemReference>" +
+                            "</cus:CustomerAccountSiteUse>" +
+                        "</cus:CustomerAccountSite>";
+            }
+        }
+
+        // close the envelope
+        customerAccountEnvelope +=
+                     "</typ:customerAccount>" +
+                  "</typ:createCustomerAccount>" +
+               "</soap:Body>" +
+            "</soap:Envelope>";
         return customerAccountEnvelope;
     }
 
@@ -404,7 +418,7 @@ public static class OracleSoapTemplates
     ///  A template for creating a Customer Account Profile object in Oracle
     /// </summary>
     /// <returns>TBD</returns>
-    public static string CreateCustomerProfile(string customerAccountPartyId, string customerAccountNumber)
+    public static string CreateCustomerProfile(string customerAccountPartyId, uint customerAccountNumber)
     {
         var locationEnvelope =
             $@"<soapenv:Envelope
@@ -421,12 +435,34 @@ public static class OracleSoapTemplates
 				            <cus:PartyId>{customerAccountPartyId}</cus:PartyId> <!-- You will get Customer PartyId in response of Customer creation -->
 				            <cus:AccountNumber>{customerAccountNumber}</cus:AccountNumber>
 				            <cus:ProfileClassName>DEFAULT</cus:ProfileClassName>
-				            <cus:EffectiveStartDate>{DateTime.UtcNow.Date}</cus:EffectiveStartDate>
+				            <cus:EffectiveStartDate>{DateTime.UtcNow:yyyy-MM-dd}</cus:EffectiveStartDate>
 			            </typ:customerProfile>
 		            </typ:createCustomerProfile>
 	            </soapenv:Body>
             </soapenv:Envelope>";
         return locationEnvelope;
+    }
+
+    public static string GetActiveCustomerProfile(string customerAccountNumber)
+    {
+        var customerProfileEnvelope =
+            $@"<soapenv:Envelope
+	            xmlns:soapenv=""http://schemas.xmlsoap.org/soap/envelope/""
+	            xmlns:typ=""http://xmlns.oracle.com/apps/financials/receivables/customers/customerProfileService/types/""
+	            xmlns:cus=""http://xmlns.oracle.com/apps/financials/receivables/customers/customerProfileService/""
+	            xmlns:cus1=""http://xmlns.oracle.com/apps/financials/receivables/customerSetup/customerProfiles/model/flex/CustomerProfileDff/""
+	            xmlns:cus2=""http://xmlns.oracle.com/apps/financials/receivables/customerSetup/customerProfiles/model/flex/CustomerProfileGdf/""
+	            xmlns:xsi=""xsi"">
+	            <soapenv:Header/>
+	            <soapenv:Body>
+		            <typ:getActiveCustomerProfile>
+			            <typ:customerProfile>
+				            <cus:AccountNumber>{customerAccountNumber}</cus:AccountNumber>
+			            </typ:customerProfile>
+		            </typ:getActiveCustomerProfile>
+	            </soapenv:Body>
+            </soapenv:Envelope>";
+        return customerProfileEnvelope;
     }
     #endregion
 

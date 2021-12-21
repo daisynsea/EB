@@ -104,7 +104,7 @@ public class CreateCustomerAccountValue
     public object OrigSystem { get; set; }
 
     /// <remarks/>
-    public ulong OrigSystemReference { get; set; }
+    public string OrigSystemReference { get; set; }
 
     /// <remarks/>
     public string Status { get; set; }
