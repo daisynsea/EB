@@ -164,7 +164,8 @@ public class AccountBrokerService : IAccountBrokerService
             // If Organization does not exist, create it
             if (organizationResult.Item2 == null)
             {
-                var addedOrganization = await _oracleService.CreateOrganization(model);
+                // TODO: include salesforceTransaction to log enterprise actions
+                var addedOrganization = await _oracleService.CreateOrganization(model, salesforceTransaction);
                 if (addedOrganization.Item1 == null)
                 {
                     // fatal error occurred
@@ -178,7 +179,7 @@ public class AccountBrokerService : IAccountBrokerService
             else // Otherwise, update it
             {
                 // TODO: Party Number here?
-                var updatedOrganization = await _oracleService.UpdateOrganization(organizationResult.Item2.PartyNumber, model);
+                var updatedOrganization = await _oracleService.UpdateOrganization(organizationResult.Item2.PartyNumber, model, salesforceTransaction); // TODO: change to PartyId
                 if (updatedOrganization.Item1 == null)
                 {
                     // fatal error occurred
@@ -202,11 +203,11 @@ public class AccountBrokerService : IAccountBrokerService
                 foreach (var address in model.Addresses)
                 {
                     // check the Organization PartySites (Locations) with the address to see if it has been created already
-                    var orgPartySite = organizationResult.Item2?.PartySites?.FirstOrDefault(s => s.OrigSystemReference == address.ObjectId);
+                    var orgPartySite = organization.PartySites?.FirstOrDefault(s => s.OrigSystemReference == address.ObjectId);
                     if (orgPartySite == null)
                     {
                         // create Location & OrgPartySite as a list of tasks to run async (outside of the loop)
-                        createLocationTasks.Add(_oracleService.CreateLocation(address));
+                        createLocationTasks.Add(_oracleService.CreateLocation(address, salesforceTransaction));
                     } else
                     {
                         // TODO: update Location? do nothing?
@@ -245,7 +246,7 @@ public class AccountBrokerService : IAccountBrokerService
                     }
 
                     // create Organization PartySite (batched into a single request for all Locations)
-                    var createPartySitesResult = await _oracleService.CreateOrganizationPartySites(organization.PartyId, partySitesToCreate);
+                    var createPartySitesResult = await _oracleService.CreateOrganizationPartySites(organization.PartyId, partySitesToCreate, salesforceTransaction);
                     if (createPartySitesResult.Item1 == null)
                     {
                         // create PartySites failed for some reason
@@ -259,8 +260,39 @@ public class AccountBrokerService : IAccountBrokerService
             #endregion
 
             #region Person
-            // TODO: NYI
-            // TODO: create persons
+            // create empty list of persons to track new additions
+            var persons = new List<OraclePersonObject>();
+
+            // verify we have contacts
+            if (model.Contacts != null && model.Contacts.Count > 0)
+            {
+                // create a Person for each contact
+                foreach (var contact in model.Contacts)
+                {
+                    // check the Organization Contacts with the contact to see if it has been created already
+                    var orgContact = organization.Contacts?.FirstOrDefault(s => s.OrigSystemReference == contact.ObjectId);
+                    if (orgContact == null)
+                    {
+                        // create Person requests as a list of tasks to run async (outside of the loop)
+                        // unable to use Task.WhenAll because Oracle is complaining... response from Oracle:
+                        // JBO-26092: Failed to lock the record in table HZ_ORGANIZATION_PROFILES with key oracle.jbo.Key[300000100251313 ], another user holds the lock.
+                        var addedPersonResult = await _oracleService.CreatePerson(contact, organization.PartyId.ToString(), salesforceTransaction);
+                        if (addedPersonResult.Item1 == null)
+                        {
+                            Console.WriteLine($"[DEBUG] Error: {addedPersonResult.Item2}");
+                        } else
+                        {
+                            // Person was created successfully... add it to the list so we can check it against the Customer Account Contacts
+                            persons.Add(addedPersonResult.Item1);
+                        }
+                    }
+                    else
+                    {
+                        // TODO: update Person? do nothing?
+                        // TODO: add to `persons` so we can check Customer Account?
+                    }
+                }
+            }
             // TODO: update Create Customer Account request to include Customer Account Contact(s)
             #endregion
 
@@ -280,11 +312,12 @@ public class AccountBrokerService : IAccountBrokerService
             // If Customer Account does not exist, create it
             if (existingCustomerAccount.Item2 == null)
             {
-                var addedCustomerAccount = await _oracleService.CreateCustomerAccount(organization.PartyId, model, partySites);
+                var addedCustomerAccount = await _oracleService.CreateCustomerAccount(organization.PartyId, model, partySites, persons, salesforceTransaction);
                 customerAccount = addedCustomerAccount.Item1;
                 oracleCustomerAccountId = addedCustomerAccount.Item1.CustomerAccountId;
             } else // Otherwise, update it
             {
+                // TODO: include Persons... check for existing Customer Account Contacts before updating Customer Account
                 // TODO: Need a corresponding Id here?
                 var updatedCustomerAccount = await _oracleService.UpdateCustomerAccount(model, salesforceTransaction);
                 oracleCustomerAccountId = existingCustomerAccount.Item2.CustomerAccountId;
@@ -304,7 +337,7 @@ public class AccountBrokerService : IAccountBrokerService
             // If Customer Account does not exist, create it
             if (existingCustomerAccountProfile.Item2 == null)
             {
-                var addedCustomerAccountProfile = await _oracleService.CreateCustomerAccountProfile(customerAccount.PartyId, (uint)customerAccount.AccountNumber);
+                var addedCustomerAccountProfile = await _oracleService.CreateCustomerAccountProfile(customerAccount.PartyId, (uint)customerAccount.AccountNumber, salesforceTransaction);
                 oracleCustomerAccountProfileId = addedCustomerAccountProfile.Item1?.PartyId?.ToString();
             } else
             {

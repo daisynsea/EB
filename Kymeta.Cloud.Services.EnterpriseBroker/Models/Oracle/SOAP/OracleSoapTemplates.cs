@@ -63,7 +63,7 @@ public static class OracleSoapTemplates
     /// <returns>TBD</returns>
     public static string FindOrganization(string organizationName, string originSystemReference)
     {
-        var locationEnvelope =
+        var locationEnvelope = 
             $@"<soap:Envelope xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
                 <soap:Body>
                 <typ:findOrganization xmlns:typ=""http://xmlns.oracle.com/apps/cdm/foundation/parties/organizationService/applicationModule/types/"">
@@ -88,6 +88,8 @@ public static class OracleSoapTemplates
                     <find:findAttribute>PartyName</find:findAttribute>
                     <find:findAttribute>PartyNumber</find:findAttribute>
                     <find:findAttribute>OriginalSystemReference</find:findAttribute>
+				    <find:findAttribute>PartySite</find:findAttribute>
+				    <find:findAttribute>Relationship</find:findAttribute>
                     <find:excludeAttribute>false</find:excludeAttribute>
                     <find:childFindCriteria>
                         <find:fetchStart>0</find:fetchStart>
@@ -98,24 +100,49 @@ public static class OracleSoapTemplates
                             <find:conjunction>And</find:conjunction>
                             <find:upperCaseCompare>false</find:upperCaseCompare>
                             <find:item>
-                            <find:conjunction>And</find:conjunction>
-                            <find:upperCaseCompare>false</find:upperCaseCompare>
-                            <find:attribute>OrigSystemReference</find:attribute>
-                            <find:operator>=</find:operator>
-                            <find:value>{originSystemReference}</find:value>
+                                <find:conjunction>And</find:conjunction>
+                                <find:upperCaseCompare>false</find:upperCaseCompare>
+                                <find:attribute>OrigSystemReference</find:attribute>
+                                <find:operator>=</find:operator>
+                                <find:value>{originSystemReference}</find:value>
                             </find:item>
                             <find:item>
-                            <find:conjunction>And</find:conjunction>
-                            <find:upperCaseCompare>false</find:upperCaseCompare>
-                            <find:attribute>OrigSystem</find:attribute>
-                            <find:operator>=</find:operator>
-                            <find:value>SFDC</find:value>
+                                <find:conjunction>And</find:conjunction>
+                                <find:upperCaseCompare>false</find:upperCaseCompare>
+                                <find:attribute>OrigSystem</find:attribute>
+                                <find:operator>=</find:operator>
+                                <find:value>SFDC</find:value>
                             </find:item>
                         </find:group>
                         </find:filter>
                         <find:excludeAttribute>false</find:excludeAttribute>
+					    <find:findAttribute>OrigSystemReference</find:findAttribute>					
                         <find:childAttrName>OriginalSystemReference</find:childAttrName>
                     </find:childFindCriteria>
+				    <find:childFindCriteria>
+                        <find:fetchStart>0</find:fetchStart>
+                        <find:fetchSize>-1</find:fetchSize>
+                        <find:childAttrName>PartySite</find:childAttrName>
+					    <find:findAttribute>PartySiteId</find:findAttribute>
+					    <find:findAttribute>OrigSystemReference</find:findAttribute>
+					    <find:findAttribute>LocationId</find:findAttribute>
+                    </find:childFindCriteria>				
+				     <find:childFindCriteria>
+                        <find:fetchStart>0</find:fetchStart>
+                        <find:fetchSize>-1</find:fetchSize>
+                        <find:childAttrName>Relationship</find:childAttrName>					
+					    <find:findAttribute>OrganizationContact</find:findAttribute>
+					    <find:childFindCriteria>
+						    <find:fetchStart>0</find:fetchStart>
+						    <find:fetchSize>-1</find:fetchSize>
+						    <find:childAttrName>OrganizationContact</find:childAttrName>
+						    <find:findAttribute>ContactPartyId</find:findAttribute>
+						    <find:findAttribute>PersonFirstName</find:findAttribute>
+						    <find:findAttribute>PersonLastName</find:findAttribute>
+						    <find:findAttribute>OrigSystemReference</find:findAttribute>	
+					    </find:childFindCriteria>
+                    </find:childFindCriteria>
+				
                     </typ:findCriteria>
                     <typ:findControl xmlns:find=""http://xmlns.oracle.com/adf/svc/types/"">
                     <find:retrieveAllTranslations>false</find:retrieveAllTranslations>
@@ -167,7 +194,7 @@ public static class OracleSoapTemplates
     ///  A template for creating a Person object in Oracle
     /// </summary>
     /// <returns>TBD</returns>
-    public static string CreatePerson(OraclePersonObject person, string salesforceContactId)
+    public static string CreatePerson(OraclePersonObject person, string organizationPartyId)
     {
         var currentDate = $"{DateTime.UtcNow:yyyy-MM-dd}";
         var personEnvelope =
@@ -190,16 +217,17 @@ public static class OracleSoapTemplates
                         <typ:personParty>
                             <per:CreatedByModule>HZ_WS</per:CreatedByModule>
                             <per:SourceSystem>SFDC</per:SourceSystem>
-                            <per:SourceSystemReferenceValue>{salesforceContactId}</per:SourceSystemReferenceValue>
+                            <per:SourceSystemReferenceValue>{person.OrigSystemReference}</per:SourceSystemReferenceValue>
                             <per:PersonProfile>
                                 <per:PersonFirstName>{person.FirstName}</per:PersonFirstName>
                                 <per:PersonLastName>{person.LastName}</per:PersonLastName>
                                 <per:CreatedByModule>HZ_WS</per:CreatedByModule>
+                                <per:OrigSystemReference>{person.OrigSystemReference}</per:OrigSystemReference>
                             </per:PersonProfile>
                             <per:Relationship>
                                 <rel:SubjectType>PERSON</rel:SubjectType>
                                 <rel:SubjectTableName>HZ_PARTIES</rel:SubjectTableName>
-                                <rel:ObjectId>{person.OrganizationPartyId}</rel:ObjectId>
+                                <rel:ObjectId>{organizationPartyId}</rel:ObjectId>
                                 <rel:ObjectType>ORGANIZATION</rel:ObjectType>
                                 <rel:ObjectTableName>HZ_PARTIES</rel:ObjectTableName>
                                 <rel:RelationshipCode>CONTACT_OF</rel:RelationshipCode>
@@ -288,7 +316,7 @@ public static class OracleSoapTemplates
     ///  A template for creating a Customer Account object in Oracle
     /// </summary>
     /// <returns>SOAP Envelope (payload) for creating a Customer Account in Oracle</returns>
-    public static string CreateCustomerAccount(OracleCustomerAccount model, long organizationPartyId, List<OraclePartySite> partySites)
+    public static string CreateCustomerAccount(OracleCustomerAccount model, long organizationPartyId, List<OraclePartySite> partySites, List<OraclePersonObject> persons)
     {
         // create the SOAP envelope with a beefy string
         var customerAccountEnvelope =
@@ -337,6 +365,28 @@ public static class OracleSoapTemplates
                                 "</cus:OriginalSystemReference>" +
                             "</cus:CustomerAccountSiteUse>" +
                         "</cus:CustomerAccountSite>";
+            }
+        }
+
+        // check for the existence of any Persons
+        if (persons != null && persons.Count > 0)
+        {
+            // include each Person
+            foreach (var person in persons)
+            {
+                customerAccountEnvelope +=
+                        "<cus:CustomerAccountContact>" +
+                            "<cus:RoleType>CONTACT</cus:RoleType>" +
+                            "<cus:CreatedByModule>HZ_WS</cus:CreatedByModule>" +
+                            $"<cus:RelationshipId>{person.RelationshipId}</cus:RelationshipId>" +
+                            $"<cus:OrigSystemReference>{person.OrigSystemReference}</cus:OrigSystemReference>" +
+                            "<cus:OriginalSystemReference>" +
+                                "<par:OrigSystem>SFDC</par:OrigSystem>" +
+                                $"<par:OrigSystemReference>{person.OrigSystemReference}</par:OrigSystemReference>" +
+                                "<par:OwnerTableName>HZ_CUST_ACCOUNT_ROLES</par:OwnerTableName>" +
+                                "<par:CreatedByModule>HZ_WS</par:CreatedByModule>" +
+                            "</cus:OriginalSystemReference>" +
+                        "</cus:CustomerAccountContact>";
             }
         }
 

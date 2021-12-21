@@ -1,7 +1,9 @@
 ﻿namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle;
 public class OraclePersonObject
 {
-    public string OrganizationPartyId { get; set; }
+    public ulong? PartyId { get; set; }
+    public ulong? RelationshipId { get; set; }
+    public string OrigSystemReference { get; set; }
     public string FirstName { get; set; }
     public string LastName { get; set; }
     public string PhoneCountryCode { get; set; }

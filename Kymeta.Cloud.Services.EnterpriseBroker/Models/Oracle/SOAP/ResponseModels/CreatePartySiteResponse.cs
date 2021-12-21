@@ -9,7 +9,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.SOAP.ResponseMode
 [System.ComponentModel.DesignerCategory("code")]
 [XmlType(AnonymousType = true, Namespace = "http://schemas.xmlsoap.org/soap/envelope/")]
 [XmlRoot("Envelope", Namespace = "http://schemas.xmlsoap.org/soap/envelope/", IsNullable = false)]
-public partial class PartySiteEnvelope
+public class PartySiteEnvelope
 {
     /// <remarks/>
     public PartySiteEnvelopeHeader Header { get; set; }
@@ -22,7 +22,7 @@ public partial class PartySiteEnvelope
 [Serializable]
 [System.ComponentModel.DesignerCategory("code")]
 [XmlType(AnonymousType = true, Namespace = "http://schemas.xmlsoap.org/soap/envelope/")]
-public partial class PartySiteEnvelopeHeader
+public class PartySiteEnvelopeHeader
 {
     /// <remarks/>
     [XmlElement(Namespace = "http://www.w3.org/2005/08/addressing")]
@@ -37,7 +37,7 @@ public partial class PartySiteEnvelopeHeader
 [Serializable]
 [System.ComponentModel.DesignerCategory("code")]
 [XmlType("mergeOrganizationResponse", AnonymousType = true, Namespace = "http://schemas.xmlsoap.org/soap/envelope/")]
-public partial class PartySiteEnvelopeBody
+public class PartySiteEnvelopeBody
 {
     /// <remarks/>
     [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/organizationService/applicationModule/types/")]
@@ -49,7 +49,7 @@ public partial class PartySiteEnvelopeBody
 [System.ComponentModel.DesignerCategory("code")]
 [XmlType(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/organizationService/applicationModule/types/")]
 [XmlRoot("result", Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/organizationService/applicationModule/types/", IsNullable = false)]
-public partial class mergeOrganizationResponse
+public class mergeOrganizationResponse
 {
     /// <remarks/>
     public mergeOrganizationResponseResult result { get; set; }
@@ -59,7 +59,7 @@ public partial class mergeOrganizationResponse
 [Serializable]
 [System.ComponentModel.DesignerCategory("code")]
 [XmlType(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/organizationService/", TypeName = "OrganizationPartyResult")]
-public partial class mergeOrganizationResponseResult
+public class mergeOrganizationResponseResult
 {
     /// <remarks/>
     [XmlElement("Value", Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/organizationService/")]
@@ -71,7 +71,7 @@ public partial class mergeOrganizationResponseResult
 [System.ComponentModel.DesignerCategory("code")]
 [XmlType(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/organizationService/")]
 [XmlRoot(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/organizationService/", IsNullable = false)]
-public partial class PartySiteValue
+public class PartySiteValue
 {
     /// <remarks/>
     public uint PartyNumber { get; set; }
@@ -355,7 +355,7 @@ public partial class PartySiteValue
 [Serializable]
 [System.ComponentModel.DesignerCategory("code")]
 [XmlType(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/organizationService/")]
-public partial class PartySiteValuePartySite
+public class PartySiteValuePartySite
 {
     /// <remarks/>
     [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/")]
@@ -635,7 +635,7 @@ public partial class PartySiteValuePartySite
 [System.ComponentModel.DesignerCategory("code")]
 [XmlType(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/")]
 [XmlRoot(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/", IsNullable = false)]
-public partial class PartySitePartySiteUse
+public class PartySitePartySiteUse
 {
     /// <remarks/>
     public ulong PartySiteUseId { get; set; }

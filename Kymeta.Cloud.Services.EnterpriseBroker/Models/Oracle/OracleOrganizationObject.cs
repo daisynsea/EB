@@ -9,6 +9,7 @@ public class OracleOrganization
     public string OrigSystemReference { get; set; }
     public string TaxpayerIdentificationNumber { get; set; }
     public List<OraclePartySite> PartySites { get; set; }
+    public List<OracleOrganizationContact> Contacts { get; set; }
 }
 
 public class OraclePartySite
@@ -17,4 +18,12 @@ public class OraclePartySite
     public ulong? PartySiteId { get; set; }
     public string OrigSystemReference { get; set; }
     public string SiteUseType { get; set; }
+}
+
+public class OracleOrganizationContact
+{
+    public string OrigSystemReference { get; set; }
+    public ulong ContactPartyId { get; set; }
+    public string PersonFirstName { get; set; }
+    public string PersonLastName { get; set; }
 }

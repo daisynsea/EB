@@ -7,20 +7,20 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Services;
 public interface IOracleService
 {
     // Account Endpoints
-    Task<Tuple<OracleOrganization, string>> CreateOrganization(SalesforceAccountModel model);
-    Task<Tuple<OracleOrganization, string>> UpdateOrganization(string organizationId, SalesforceAccountModel model);
-    Task<Tuple<List<OraclePartySite>, string>> CreateOrganizationPartySites(long organizationPartyId, List<OraclePartySite> partySites);
-    Task<Tuple<OracleCustomerAccount, string>> CreateCustomerAccount(long organizationPartyId, SalesforceAccountModel model, List<OraclePartySite> partySites);
-    Task<Tuple<OracleCustomerAccountProfile, string>> CreateCustomerAccountProfile(string customerAccountId, uint customerAccountNumber);
+    Task<Tuple<OracleOrganization, string>> CreateOrganization(SalesforceAccountModel model, SalesforceActionTransaction transaction);
+    Task<Tuple<OracleOrganization, string>> UpdateOrganization(string organizationId, SalesforceAccountModel model, SalesforceActionTransaction transaction);
+    Task<Tuple<List<OraclePartySite>, string>> CreateOrganizationPartySites(long organizationPartyId, List<OraclePartySite> partySites, SalesforceActionTransaction transaction);
+    Task<Tuple<OracleCustomerAccount, string>> CreateCustomerAccount(long organizationPartyId, SalesforceAccountModel model, List<OraclePartySite> partySites, List<OraclePersonObject> persons, SalesforceActionTransaction transaction);
+    Task<Tuple<OracleCustomerAccountProfile, string>> CreateCustomerAccountProfile(string customerAccountId, uint customerAccountNumber, SalesforceActionTransaction transaction);
     Task<Tuple<string, string>> UpdateCustomerAccount(SalesforceAccountModel model, SalesforceActionTransaction transaction); // TODO: Not sure what's necessary in this signature
     Task<Tuple<bool, OracleOrganization, string>> GetOrganizationBySalesforceAccountId(string organizationName, string salesforceAccountId);
     Task<Tuple<bool, OracleCustomerAccount, string>> GetCustomerAccountBySalesforceAccountId(string salesforceAccountId);
     Task<Tuple<bool, OracleCustomerAccountProfile, string>> GetCustomerProfileByAccountNumber(string customerAccountNumber);
     // Address Endpoints
-    Task<Tuple<OracleLocationModel, string>> CreateLocation(SalesforceAddressModel address);
+    Task<Tuple<OracleLocationModel, string>> CreateLocation(SalesforceAddressModel address, SalesforceActionTransaction transaction);
     Task<Tuple<string, string>> UpdateLocation(SalesforceContactModel model, SalesforceActionTransaction transaction);
     // Contact Endpoints
-    Task<Tuple<string, string>> CreatePerson(SalesforceContactModel model, SalesforceActionTransaction transaction);
+    Task<Tuple<OraclePersonObject, string>> CreatePerson(SalesforceContactModel model, string organizationPartyId, SalesforceActionTransaction transaction);
     Task<Tuple<string, string>> UpdatePerson(SalesforceContactModel model, SalesforceContactModel transaction);
 }
 
@@ -36,42 +36,14 @@ public class OracleService : IOracleService
     }
 
     #region Account / Organization / Customer Account / Customer Profile
-    public async Task<Tuple<OracleOrganization, string>> CreateOrganization(SalesforceAccountModel model)
+    public async Task<Tuple<OracleOrganization, string>> CreateOrganization(SalesforceAccountModel model, SalesforceActionTransaction transaction)
     {
         var organization = await _oracleClient.CreateOrganization(model);
         if (!string.IsNullOrEmpty(organization.Item2)) return new Tuple<OracleOrganization, string>(null, $"There was an error adding the account to Oracle: {organization.Item2}");
         return new Tuple<OracleOrganization, string>(organization.Item1, String.Empty);
     }
 
-    public async Task<Tuple<OracleLocationModel, string>> CreateLocation(SalesforceAddressModel address)
-    {
-        // populate the template
-        var createLocationEnvelope = OracleSoapTemplates.CreateLocation(address);
-        // create the Location via SOAP service
-        var locationServiceUrl = $"{_config["Oracle:Endpoint"]}/{_config["Oracle:Services:Location"]}";
-        var locationResponse = await _oracleClient.SendSoapRequest(createLocationEnvelope, locationServiceUrl);
-        if (!string.IsNullOrEmpty(locationResponse.Item2)) return new Tuple<OracleLocationModel, string>(null, $"There was an error creating the Location in Oracle: {locationResponse.Item2}.");
-        // deserialize the xml response envelope
-        XmlSerializer serializer = new(typeof(CreateLocationEnvelope));
-        var oracleLocation = (CreateLocationEnvelope)serializer.Deserialize(locationResponse.Item1.CreateReader());
-
-        var location = new OracleLocationModel
-        {
-            LocationId = oracleLocation?.Body?.createLocationResponse?.result?.Value?.LocationId,
-            OrigSystemReference = oracleLocation?.Body?.createLocationResponse?.result?.Value?.OrigSystemReference?.ToString(),
-            Address1 = oracleLocation?.Body?.createLocationResponse?.result?.Value?.Address1?.ToString(),
-            Address2 = oracleLocation?.Body?.createLocationResponse?.result?.Value?.Address2.ToString(),
-            City = oracleLocation?.Body?.createLocationResponse?.result?.Value?.City?.ToString(),
-            State = oracleLocation?.Body?.createLocationResponse?.result?.Value?.State?.ToString(),
-            PostalCode = oracleLocation?.Body?.createLocationResponse?.result?.Value?.PostalCode?.ToString(),
-            Country = oracleLocation?.Body?.createLocationResponse?.result?.Value?.Country?.ToString()
-        };
-
-        // TODO: Which Id are we returning to store in SF?
-        return new Tuple<OracleLocationModel, string>(location, string.Empty);
-    }
-
-    public async Task<Tuple<List<OraclePartySite>, string>> CreateOrganizationPartySites(long organizationPartyId, List<OraclePartySite> partySites)
+    public async Task<Tuple<List<OraclePartySite>, string>> CreateOrganizationPartySites(long organizationPartyId, List<OraclePartySite> partySites, SalesforceActionTransaction transaction)
     {
         // populate the template
         var orgPartySiteEnvelope = OracleSoapTemplates.CreateOrganizationPartySites(organizationPartyId, partySites);
@@ -93,12 +65,12 @@ public class OracleService : IOracleService
         // TODO: Which Id are we returning to store in SF?
         return new Tuple<List<OraclePartySite>, string>(partySitesResults, string.Empty);
     }
-    public async Task<Tuple<OracleCustomerAccount, string>> CreateCustomerAccount(long organizationPartyId, SalesforceAccountModel model, List<OraclePartySite> partySites) 
+    public async Task<Tuple<OracleCustomerAccount, string>> CreateCustomerAccount(long organizationPartyId, SalesforceAccountModel model, List<OraclePartySite> partySites, List<OraclePersonObject> persons, SalesforceActionTransaction transaction) 
     {
         // map the model values to the expected Customer Account payload
         var customerAccount = RemapOrganizationToOracleCustomerAccount(model);
         // populate the template
-        var customerAccountEnvelope = OracleSoapTemplates.CreateCustomerAccount(customerAccount, organizationPartyId, partySites);
+        var customerAccountEnvelope = OracleSoapTemplates.CreateCustomerAccount(customerAccount, organizationPartyId, partySites, persons);
         // create the Customer Account via SOAP service
         var customerAccountResponse = await _oracleClient.SendSoapRequest(customerAccountEnvelope, $"{_config["Oracle:Endpoint"]}/{_config["Oracle:Services:CustomerAccount"]}");
         if (!string.IsNullOrEmpty(customerAccountResponse.Item2)) return new Tuple<OracleCustomerAccount, string>(null, $"There was an error creating the Customer Account in Oracle: {customerAccountResponse.Item2}.");
@@ -121,7 +93,7 @@ public class OracleService : IOracleService
         // TODO: Which Id are we returning to store in SF?
         return new Tuple<OracleCustomerAccount, string>(customerAccountResult, string.Empty);
     }
-    public async Task<Tuple<OracleCustomerAccountProfile, string>> CreateCustomerAccountProfile(string customerAccountId, uint customerAccountNumber)
+    public async Task<Tuple<OracleCustomerAccountProfile, string>> CreateCustomerAccountProfile(string customerAccountId, uint customerAccountNumber, SalesforceActionTransaction transaction)
     {
         // populate the template
         var accountProfileEnvelope = OracleSoapTemplates.CreateCustomerProfile(customerAccountId, customerAccountNumber);
@@ -141,7 +113,7 @@ public class OracleService : IOracleService
         // TODO: Which Id are we returning to store in SF?
         return new Tuple<OracleCustomerAccountProfile, string>(customerProfileResult, string.Empty);
     }
-    public async Task<Tuple<OracleOrganization, string>> UpdateOrganization(string organizationId, SalesforceAccountModel model)
+    public async Task<Tuple<OracleOrganization, string>> UpdateOrganization(string organizationId, SalesforceAccountModel model, SalesforceActionTransaction transaction)
     {
         var organization = RemapSalesforceAccountToOracleOrganization(model.Name, model.TaxId);
         if (string.IsNullOrEmpty(organizationId)) return new Tuple<OracleOrganization, string>(null, $"oracleCustomerAccountId must be present to update the Oracle Account record.");
@@ -153,6 +125,8 @@ public class OracleService : IOracleService
     {
         throw new NotImplementedException();
     }
+
+
     public async Task<Tuple<bool, OracleOrganization, string>> GetOrganizationBySalesforceAccountId(string organizationName, string salesforceAccountId)
     {
         // populate the template
@@ -173,11 +147,19 @@ public class OracleService : IOracleService
             OrigSystemReference = oracleCustomerAccount.Body.findOrganizationResponse.result.Value.OriginalSystemReference?.OrigSystemReference,
             // map the response object to our C# model for party sites
             PartySites = oracleCustomerAccount.Body.findOrganizationResponse.result.Value.PartySite
-                .Select(ps => new OraclePartySite { 
-                    PartySiteId = ps.PartySiteId, 
-                    OrigSystemReference = ps.OrigSystemReference, 
-                    LocationId = ps.LocationId })
-                .ToList()
+                .Select(ps => new OraclePartySite {
+                    PartySiteId = ps.PartySiteId,
+                    OrigSystemReference = ps.OrigSystemReference,
+                    LocationId = ps.LocationId
+                }).ToList(),
+            Contacts = oracleCustomerAccount.Body.findOrganizationResponse.result.Value.Relationship
+                .Select(r => new OracleOrganizationContact
+                {
+                    ContactPartyId = r.OrganizationContact.ContactPartyId,
+                    OrigSystemReference = r.OrganizationContact.OrigSystemReference,
+                    PersonFirstName = r.OrganizationContact.PersonFirstName,
+                    PersonLastName = r.OrganizationContact.PersonLastName
+                }).ToList()
         };
         if (string.IsNullOrEmpty(organization.OrigSystemReference)) return new Tuple<bool, OracleOrganization, string>(true, null, $"Organization not found.");
         return new Tuple<bool, OracleOrganization, string>(true, organization, null);
@@ -202,6 +184,8 @@ public class OracleService : IOracleService
         if (string.IsNullOrEmpty(account.OrigSystemReference)) return new Tuple<bool, OracleCustomerAccount, string>(true, null, $"Customer Account not found.");
         return new Tuple<bool, OracleCustomerAccount, string>(true, account, null);
     }
+
+
     public async Task<Tuple<bool, OracleCustomerAccountProfile, string>> GetCustomerProfileByAccountNumber(string customerAccountNumber)
     {
         // populate the template
@@ -231,11 +215,34 @@ public class OracleService : IOracleService
     #endregion
 
     #region Address/Location
-    public async Task<Tuple<string, string>> CreateLocation(SalesforceAddressModel model, SalesforceActionTransaction transaction)
+    public async Task<Tuple<OracleLocationModel, string>> CreateLocation(SalesforceAddressModel address, SalesforceActionTransaction transaction)
     {
-        throw new NotImplementedException();
-    }
+        // populate the template
+        var createLocationEnvelope = OracleSoapTemplates.CreateLocation(address);
+        // create the Location via SOAP service
+        var locationServiceUrl = $"{_config["Oracle:Endpoint"]}/{_config["Oracle:Services:Location"]}";
+        var locationResponse = await _oracleClient.SendSoapRequest(createLocationEnvelope, locationServiceUrl);
+        if (!string.IsNullOrEmpty(locationResponse.Item2)) return new Tuple<OracleLocationModel, string>(null, $"There was an error creating the Location in Oracle: {locationResponse.Item2}.");
+        // deserialize the xml response envelope
+        XmlSerializer serializer = new(typeof(CreateLocationEnvelope));
+        var oracleLocation = (CreateLocationEnvelope)serializer.Deserialize(locationResponse.Item1.CreateReader());
 
+        // map response model to simplified object
+        var location = new OracleLocationModel
+        {
+            LocationId = oracleLocation?.Body?.createLocationResponse?.result?.Value?.LocationId,
+            OrigSystemReference = oracleLocation?.Body?.createLocationResponse?.result?.Value?.OrigSystemReference?.ToString(),
+            Address1 = oracleLocation?.Body?.createLocationResponse?.result?.Value?.Address1?.ToString(),
+            Address2 = oracleLocation?.Body?.createLocationResponse?.result?.Value?.Address2.ToString(),
+            City = oracleLocation?.Body?.createLocationResponse?.result?.Value?.City?.ToString(),
+            State = oracleLocation?.Body?.createLocationResponse?.result?.Value?.State?.ToString(),
+            PostalCode = oracleLocation?.Body?.createLocationResponse?.result?.Value?.PostalCode?.ToString(),
+            Country = oracleLocation?.Body?.createLocationResponse?.result?.Value?.Country?.ToString()
+        };
+
+        // return the simplified Location object
+        return new Tuple<OracleLocationModel, string>(location, string.Empty);
+    }
     public Task<Tuple<string, string>> UpdateLocation(SalesforceContactModel model, SalesforceActionTransaction transaction)
     {
         throw new NotImplementedException();
@@ -243,9 +250,35 @@ public class OracleService : IOracleService
     #endregion
 
     #region Contact/Person
-    public async Task<Tuple<string, string>> CreatePerson(SalesforceContactModel model, SalesforceActionTransaction transaction)
+    public async Task<Tuple<OraclePersonObject, string>> CreatePerson(SalesforceContactModel model, string organizationPartyId, SalesforceActionTransaction transaction)
     {
-        throw new NotImplementedException();
+        // map SF model to Oracle Person
+        var person = RemapSalesforceContactToOraclePerson(model);
+        // populate the template
+        var createPersonEnvelope = OracleSoapTemplates.CreatePerson(person, organizationPartyId);
+        // create the Person via SOAP service
+        var createPersonResponse = await _oracleClient.SendSoapRequest(createPersonEnvelope, $"{_config["Oracle:Endpoint"]}/{_config["Oracle:Services:Person"]}");
+        if (!string.IsNullOrEmpty(createPersonResponse.Item2)) return new Tuple<OraclePersonObject, string>(null, $"There was an error creating the Person in Oracle: {createPersonResponse.Item2}.");
+        // deserialize the xml response envelope
+        XmlSerializer serializer = new(typeof(CreatePersonEnvelope));
+        var res = (CreatePersonEnvelope)serializer.Deserialize(createPersonResponse.Item1.CreateReader());
+
+        // map response model to a simplified object
+        var oraclePerson = new OraclePersonObject
+        {
+            PartyId = res?.Body?.createPersonResponse?.result?.Value?.PartyId,
+            OrigSystemReference = res?.Body?.createPersonResponse?.result?.Value?.OrigSystemReference,
+            RelationshipId = res?.Body?.createPersonResponse?.result?.Value?.Relationship.RelationshipId,
+            EmailAddress = res?.Body?.createPersonResponse?.result?.Value?.EmailAddress,
+            FirstName = res?.Body?.createPersonResponse?.result?.Value?.PersonFirstName,
+            LastName = res?.Body?.createPersonResponse?.result?.Value?.PersonLastName,
+            // TODO: validate the format of this data
+            //PhoneAreaCode = res?.Body?.createPersonResponse?.result?.Value?.Phone.PhoneAreaCode,
+            //PhoneNumber = res?.Body?.createPersonResponse?.result?.Value?.Phone.PhoneNumber,
+        };
+
+        // return the simplified Person object
+        return new Tuple<OraclePersonObject, string>(oraclePerson, string.Empty);
     }
 
     public Task<Tuple<string, string>> UpdatePerson(SalesforceContactModel model, SalesforceContactModel transaction)
@@ -279,5 +312,24 @@ public class OracleService : IOracleService
         var accountSubType = model.SubType;
         if (!string.IsNullOrEmpty(accountSubType)) account.AccountSubType = OracleSoapTemplates.CustomerClassMap.GetValue(accountSubType);
         return account;
+    }
+
+    private OraclePersonObject RemapSalesforceContactToOraclePerson(SalesforceContactModel model)
+    {
+        // TODO: separate the phone number into segments
+        var phoneSegements = model.PhoneNumber.Split('-');
+
+        // map the model
+        var person = new OraclePersonObject
+        {
+            OrigSystemReference = model.ObjectId,
+            EmailAddress = model.Email,
+            FirstName = model.FirstName,
+            LastName = model.LastName,
+            PhoneCountryCode = "1", // TODO: extract from Salesforce provided values when present
+            PhoneAreaCode = phoneSegements[0],
+            PhoneNumber = $"{phoneSegements[1]}-{phoneSegements[2]}"
+        };
+        return person;
     }
 }
