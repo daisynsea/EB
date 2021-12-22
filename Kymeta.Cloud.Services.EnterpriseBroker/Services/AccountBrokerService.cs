@@ -351,6 +351,12 @@ public class AccountBrokerService : IAccountBrokerService
             response.OracleCustomerAccountId = oracleCustomerAccountId;
             response.OracleOrganizationId = oracleOrganizationId;
             response.OracleCustomerProfileId = oracleCustomerAccountProfileId;
+
+            // Update OSS with Oracle Id if need be
+            if (syncToOss && !string.IsNullOrEmpty(oracleCustomerAccountId)) // TODO: Is the customer account Id actually what we want?
+            {
+                await _ossService.UpdateAccountOracleId(model, oracleCustomerAccountId, salesforceTransaction);
+            }
         }
         #endregion
         #endregion
