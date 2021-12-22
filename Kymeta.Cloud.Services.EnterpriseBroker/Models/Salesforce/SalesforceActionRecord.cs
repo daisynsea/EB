@@ -76,6 +76,7 @@ public class SalesforceActionRecord
     public SalesforceTransactionAction Action { get; set; }
     [JsonConverter(typeof(StringEnumConverter))]
     public StatusType Status { get; set; }
+    public ActionObjectType ObjectType { get; set; }
     public DateTime? Timestamp { get; set; }
     public string? ErrorMessage { get; set; }
     public string? EntityId { get; set; }
@@ -90,6 +91,7 @@ public enum SalesforceTransactionAction
     CreateCustomerProfileInOracle,
     // Create Address
     CreateLocationInOracle,
+    CreatePartySiteInOracle,
     CreateCustomerAccountSiteInOracle,
     // Update Account
     UpdateAccountInOss,
@@ -102,10 +104,10 @@ public enum SalesforceTransactionAction
     UpdateCustomerAccountSiteInOracle,
     // Create Contact
     CreatePersonInOracle,
-    CreateCustomerProfileContactInOracle,
+    CreateCustomerAccountContactInOracle,
     // Update Contact
     UpdatePersonInOracle,
-    UpdateCustomerProfileContactInOracle
+    UpdateCustomerContactContactInOracle
 }
 
 public enum ActionObjectType

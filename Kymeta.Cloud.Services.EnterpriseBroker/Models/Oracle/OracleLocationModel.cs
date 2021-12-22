@@ -2,7 +2,8 @@
 
 public class OracleLocationModel
 {
-    public string LocationId { get; set; }
+    public ulong? LocationId { get; set; }
+    public string OrigSystemReference { get; set; }
     public string Address1 { get; set; }
     public string Address2 { get; set; }
     public string City { get; set; }

@@ -27,6 +27,7 @@ public class ActionsRepository : IActionsRepository
 
     public async Task<SalesforceActionTransaction> GetActionRecord(Guid id, string partitionKey)
     {
+        
         var response = await Container.ReadItemAsync<SalesforceActionTransaction>(id.ToString(), ResolvePartitionKey(partitionKey));
         return response.Resource;
     }

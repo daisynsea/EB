@@ -1,7 +1,6 @@
-﻿using System;
-using System.Xml.Serialization;
+﻿using System.Xml.Serialization;
 
-namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle;
+namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.SOAP.ResponseModels;
 
 // NOTE: This code was generated from XML (Oracle Response payload)
 
@@ -105,7 +104,7 @@ public class CreateCustomerAccountValue
     public object OrigSystem { get; set; }
 
     /// <remarks/>
-    public ulong OrigSystemReference { get; set; }
+    public string OrigSystemReference { get; set; }
 
     /// <remarks/>
     public string Status { get; set; }
