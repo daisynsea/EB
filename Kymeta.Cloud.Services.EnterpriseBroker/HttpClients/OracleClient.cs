@@ -111,7 +111,7 @@ public class OracleClient : IOracleClient
 
         if (!response.IsSuccessStatusCode)
         {
-            _logger.LogCritical($"Failed CreateOrganization Oracle HTTP call: {(int)response.StatusCode} | {data} | Model sent: {JsonSerializer.Serialize(organization)}");
+            _logger.LogCritical($"Failed CreateOrganization Oracle HTTP call: {(int)response.StatusCode} | {data} | Model sent: {JsonSerializer.Serialize(model)}");
             return new Tuple<OracleOrganization, string>(null, data);
         }
 
