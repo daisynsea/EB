@@ -11,7 +11,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.HttpClients;
 
 public interface IOracleClient
 {
-    Task<Tuple<OracleOrganization, string>> CreateOrganization(SalesforceAccountModel model);
+    Task<Tuple<OracleOrganization, string>> CreateOrganization(OracleOrganization model);
     Task<Tuple<OracleOrganization, string>> UpdateOrganization(OracleOrganization model, string partyNumber);
     Task<Tuple<OracleAddressObject, string>> CreateAddress(string accountNumber, CreateOracleAddressViewModel model);
     Task<Tuple<OracleAddressObject, string>> UpdateAddress(string accountNumber, CreateOracleAddressViewModel model, string partyNumber);
@@ -104,18 +104,9 @@ public class OracleClient : IOracleClient
         }
     }
 
-    public async Task<Tuple<OracleOrganization, string>> CreateOrganization(SalesforceAccountModel model)
+    public async Task<Tuple<OracleOrganization, string>> CreateOrganization(OracleOrganization model)
     {
-        // map model to simplified object
-        var organization = new
-        {
-            OrganizationName = model.Name,
-            TaxpayerIdentificationNumber = model.TaxId,
-            SourceSystem = "SFDC",
-            SourceSystemReferenceValue = model.ObjectId
-        };
-        // create the Organization
-        var response = await _client.PostAsJsonAsync($"crmRestApi/resources/latest/accounts", organization, new JsonSerializerOptions { PropertyNameCaseInsensitive = false });
+        var response = await _client.PostAsJsonAsync($"crmRestApi/resources/latest/accounts", model, new JsonSerializerOptions { PropertyNameCaseInsensitive = false });
         string data = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode)
