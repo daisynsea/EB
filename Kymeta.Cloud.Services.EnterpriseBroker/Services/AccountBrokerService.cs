@@ -164,7 +164,6 @@ public class AccountBrokerService : IAccountBrokerService
             // If Organization does not exist, create it
             if (organizationResult.Item2 == null)
             {
-                // TODO: include salesforceTransaction to log enterprise actions
                 var addedOrganization = await _oracleService.CreateOrganization(model, salesforceTransaction);
                 if (addedOrganization.Item1 == null)
                 {
@@ -179,7 +178,7 @@ public class AccountBrokerService : IAccountBrokerService
             else // Otherwise, update it
             {
                 // TODO: Party Number here?
-                var updatedOrganization = await _oracleService.UpdateOrganization(organizationResult.Item2.PartyNumber, model, salesforceTransaction); // TODO: change to PartyId
+                var updatedOrganization = await _oracleService.UpdateOrganization(organizationResult.Item2.PartyNumber, model, salesforceTransaction);
                 if (updatedOrganization.Item1 == null)
                 {
                     // fatal error occurred
@@ -199,7 +198,7 @@ public class AccountBrokerService : IAccountBrokerService
             if (model.Addresses != null && model.Addresses.Count > 0)
             {
                 List<Task<Tuple<OracleLocationModel, string>>> createLocationTasks = new();
-                // TODO: create a Location for each address
+                // create a Location for each address
                 foreach (var address in model.Addresses)
                 {
                     // check the Organization PartySites (Locations) with the address to see if it has been created already
@@ -231,6 +230,7 @@ public class AccountBrokerService : IAccountBrokerService
 
                         if (result.Item1 == null)
                         {
+                            // TODO: what action should we take here? Alert of some sort?
                             // create location failed for some reason
                             Console.WriteLine($"[DEBUG] Error: {result.Item2}");
                         } else
@@ -279,6 +279,7 @@ public class AccountBrokerService : IAccountBrokerService
                         var addedPersonResult = await _oracleService.CreatePerson(contact, organization.PartyId.ToString(), salesforceTransaction);
                         if (addedPersonResult.Item1 == null)
                         {
+                            // TODO: what action should we take here? Alert of some sort?
                             Console.WriteLine($"[DEBUG] Error: {addedPersonResult.Item2}");
                         } else
                         {
@@ -293,7 +294,6 @@ public class AccountBrokerService : IAccountBrokerService
                     }
                 }
             }
-            // TODO: update Create Customer Account request to include Customer Account Contact(s)
             #endregion
 
             #region Customer Account
@@ -325,7 +325,9 @@ public class AccountBrokerService : IAccountBrokerService
             #endregion
 
             #region Customer Profile
-            // TODO: if no Customer Profile exists, this request will return a 500 result (Internal Server Error)... which is super lame.
+            // if no Customer Profile exists, this request will return a 500 result (Internal Server Error)... which is super lame.
+            // we are accounting for it in the WebException that is thrown within OracleService to determine if the record does not exist
+            // so we are handling it (somewhat) gracefully
             var existingCustomerAccountProfile = await _oracleService.GetCustomerProfileByAccountNumber(customerAccount.AccountNumber?.ToString());
             if (!existingCustomerAccountProfile.Item1)
             {
@@ -345,13 +347,10 @@ public class AccountBrokerService : IAccountBrokerService
             }
             #endregion
 
-
             response.OracleStatus = StatusType.Successful;
             response.OracleCustomerAccountId = oracleCustomerAccountId;
             response.OracleOrganizationId = oracleOrganizationId;
             response.OracleCustomerProfileId = oracleCustomerAccountProfileId;
-
-            // TODO: Need to create the contacts and addresses, but how will we return the Ids from these child entities back to Salesforce??
         }
         #endregion
         #endregion
