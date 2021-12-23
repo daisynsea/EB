@@ -12,6 +12,6 @@ public class OracleCustomerAccount
     public string? TaxId { get; set; }
     public string? AccountType { get; set; }
     public string? AccountSubType { get; set; }
-    public List<OracleCustomerAccountContact> Persons { get; set; }
-    public List<OracleCustomerAccountSite> Locations { get; set; }
+    public List<OracleCustomerAccountContact>? Contacts { get; set; }
+    public List<OracleCustomerAccountSite>? Sites { get; set; }
 }

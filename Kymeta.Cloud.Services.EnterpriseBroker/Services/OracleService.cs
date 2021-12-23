@@ -8,7 +8,7 @@ public interface IOracleService
 {
     // Account Endpoints
     Task<Tuple<OracleOrganization, string>> CreateOrganization(SalesforceAccountModel model, SalesforceActionTransaction transaction);
-    Task<Tuple<OracleOrganization, string>> UpdateOrganization(string organizationId, SalesforceAccountModel model, SalesforceActionTransaction transaction);
+    Task<Tuple<OracleOrganization, string>> UpdateOrganization(OracleOrganization existingOracleOrganization, SalesforceAccountModel model, SalesforceActionTransaction transaction);
     Task<Tuple<List<OraclePartySite>, string>> CreateOrganizationPartySites(long organizationPartyId, List<OraclePartySite> partySites, SalesforceActionTransaction transaction);
     Task<Tuple<OracleCustomerAccount, string>> CreateCustomerAccount(long organizationPartyId, SalesforceAccountModel model, List<OraclePartySite> partySites, List<OraclePersonObject> persons, SalesforceActionTransaction transaction);
     Task<Tuple<OracleCustomerAccountProfile, string>> CreateCustomerAccountProfile(string customerAccountId, uint customerAccountNumber, SalesforceActionTransaction transaction);
@@ -88,7 +88,7 @@ public class OracleService : IOracleService
         await LogAction(transaction, SalesforceTransactionAction.CreateOrganizationInOracle, ActionObjectType.Account, StatusType.Started);
 
         // map model to simplified object
-        var orgToCreate = RemapSalesforceAccountToOracleOrganization(model);
+        var orgToCreate = RemapSalesforceAccountToCreateOracleOrganization(model);
         
         // create the organization in Oracle
         var organization = await _oracleClient.CreateOrganization(orgToCreate);
@@ -100,19 +100,39 @@ public class OracleService : IOracleService
             return new Tuple<OracleOrganization, string>(null, $"There was an error adding the account to Oracle: {organization.Item2}");
         }
 
+        // TODO: map the response object to our simplified model
+
         await LogAction(transaction, SalesforceTransactionAction.CreateOrganizationInOracle, ActionObjectType.Account, StatusType.Successful, organization.Item1.PartyId.ToString());
 
         // return the Oracle Organization
         return new Tuple<OracleOrganization, string>(organization.Item1, String.Empty);
     }
 
-    public async Task<Tuple<OracleOrganization, string>> UpdateOrganization(string organizationPartyNumber, SalesforceAccountModel model, SalesforceActionTransaction transaction)
+    public async Task<Tuple<OracleOrganization, string>> UpdateOrganization(OracleOrganization existingOracleOrganization, SalesforceAccountModel model, SalesforceActionTransaction transaction)
     {
-        var organization = RemapSalesforceAccountToOracleOrganization(model);
-        if (string.IsNullOrEmpty(organizationPartyNumber)) return new Tuple<OracleOrganization, string>(null, $"oracleCustomerAccountId must be present to update the Oracle Account record.");
-        var added = await _oracleClient.UpdateOrganization(organization, organizationPartyNumber);
-        if (!string.IsNullOrEmpty(added.Item2)) return new Tuple<OracleOrganization, string>(null, $"There was an error updating the account in Oracle: {added.Item2}");
-        return new Tuple<OracleOrganization, string>(added.Item1, string.Empty);
+        var organization = RemapSalesforceAccountToUpdateOracleOrganization(model, existingOracleOrganization);
+        if (string.IsNullOrEmpty(existingOracleOrganization.PartyNumber)) return new Tuple<OracleOrganization, string>(null, $"oracleCustomerAccountId must be present to update the Oracle Account record.");
+        var updated = await _oracleClient.UpdateOrganization(organization, existingOracleOrganization.PartyNumber);
+        if (!string.IsNullOrEmpty(updated.Item2)) return new Tuple<OracleOrganization, string>(null, $"There was an error updating the account in Oracle: {updated.Item2}");
+
+        // map response model to our simplified OracleOrganization
+        var updatedOrganization = new OracleOrganization
+        {
+            OrganizationName = updated.Item1.OrganizationName,
+            PartyId = updated.Item1.PartyId,
+            PartyNumber = updated.Item1.PartyNumber,
+            TaxpayerIdentificationNumber = updated.Item1.TaxpayerIdentificationNumber,
+            OrigSystemReference = updated.Item1.SourceSystemReferenceValue,
+            Type = updated.Item1.Type,
+            SourceSystem = updated.Item1.SourceSystem,
+            SourceSystemReferenceValue = updated.Item1.SourceSystemReferenceValue,
+
+            // retain existing PartySites and Contacts
+            PartySites = existingOracleOrganization.PartySites,
+            Contacts = existingOracleOrganization.Contacts,
+        };
+
+        return new Tuple<OracleOrganization, string>(updatedOrganization, string.Empty);
     }
     #endregion
 
@@ -134,8 +154,17 @@ public class OracleService : IOracleService
         var account = new OracleCustomerAccount
         {
             PartyId = oracleCustomerAccount.Body?.findCustomerAccountResponse?.result?.Value?.PartyId.ToString(),
+            AccountName = oracleCustomerAccount.Body?.findCustomerAccountResponse?.result?.Value?.AccountName.ToString(),
             AccountNumber = oracleCustomerAccount.Body?.findCustomerAccountResponse?.result?.Value?.AccountNumber,
-            OrigSystemReference = oracleCustomerAccount.Body?.findCustomerAccountResponse?.result?.Value?.OrigSystemReference.ToString()
+            OrigSystemReference = oracleCustomerAccount.Body?.findCustomerAccountResponse?.result?.Value?.OrigSystemReference.ToString(),
+            Contacts = oracleCustomerAccount.Body?.findCustomerAccountResponse?.result?.Value?.CustomerAccountContacts
+                .Select(cac => new OracleCustomerAccountContact
+                {
+                    ContactPersonId = cac.ContactPersonId,
+                    OrigSystemReference = cac.OrigSystemReference,
+                    IsPrimary = cac.PrimaryFlag,
+                    RelationshipId = cac.RelationshipId.ToString()
+                }).ToList()
         };
 
         // return the Customer Account that was found
@@ -380,15 +409,55 @@ public class OracleService : IOracleService
     #endregion
 
     #region Helpers
-    private OracleOrganization RemapSalesforceAccountToOracleOrganization(SalesforceAccountModel model)
+
+    private CreateOracleOrganizationModel RemapSalesforceAccountToCreateOracleOrganization(SalesforceAccountModel model)
+    {
+        var organization = new CreateOracleOrganizationModel
+        {
+            OrganizationName = model.Name,
+            TaxpayerIdentificationNumber = model.TaxId,
+            SourceSystemReferenceValue = model.ObjectId
+        };
+
+        return organization;
+    }
+
+    private UpdateOracleOrganizationModel RemapSalesforceAccountToUpdateOracleOrganization(SalesforceAccountModel model, OracleOrganization? existingOrganization = null)
+    {
+        var organization = new UpdateOracleOrganizationModel
+        {
+            OrganizationName = model.Name,
+            TaxpayerIdentificationNumber = model.TaxId,
+            SourceSystemReferenceValue = model.ObjectId
+        };
+
+        // populate the 
+        if (existingOrganization != null)
+        {
+            organization.PartyId = existingOrganization.PartyId;
+            organization.PartyNumber = existingOrganization.PartyNumber;
+        }
+
+        return organization;
+    }
+    private OracleOrganization RemapSalesforceAccountToOracleOrganization(SalesforceAccountModel model, OracleOrganization? existingOrganization = null)
     {
         var organization = new OracleOrganization
         {
             OrganizationName = model.Name,
+            OrigSystemReference = model.ObjectId,
             TaxpayerIdentificationNumber = model.TaxId,
             SourceSystem = "SFDC",
             SourceSystemReferenceValue = model.ObjectId
         };
+
+        // populate the 
+        if (existingOrganization != null)
+        {
+            organization.PartyId = existingOrganization.PartyId;
+            organization.PartyNumber = existingOrganization.PartyNumber;
+        }
+
         return organization;
     }
 
