@@ -178,7 +178,7 @@ public class AccountBrokerService : IAccountBrokerService
             else // Otherwise, update it
             {
                 // TODO: Party Number here?
-                var updatedOrganization = await _oracleService.UpdateOrganization(organizationResult.Item2.PartyNumber, model, salesforceTransaction);
+                var updatedOrganization = await _oracleService.UpdateOrganization(organizationResult.Item2, model, salesforceTransaction);
                 if (updatedOrganization.Item1 == null)
                 {
                     // fatal error occurred

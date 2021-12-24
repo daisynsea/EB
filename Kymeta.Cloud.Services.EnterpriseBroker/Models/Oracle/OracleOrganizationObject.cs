@@ -10,8 +10,8 @@ public class OracleOrganization
     public string SourceSystemReferenceValue { get; set; }
     public string OrigSystemReference { get; set; }
     public string TaxpayerIdentificationNumber { get; set; }
-    public List<OraclePartySite> PartySites { get; set; }
-    public List<OracleOrganizationContact> Contacts { get; set; }
+    public List<OraclePartySite>? PartySites { get; set; }
+    public List<OracleOrganizationContact>? Contacts { get; set; }
 }
 
 public class OraclePartySite

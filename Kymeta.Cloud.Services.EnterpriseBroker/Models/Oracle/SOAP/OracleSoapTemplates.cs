@@ -275,40 +275,86 @@ public static class OracleSoapTemplates
     /// <returns>A SOAP envelope XML payload to send as a request body.</returns>
     public static string FindCustomerAccount(string enterpriseId)
     {
-        var findEnvelope =
+        var findCustomerAccountEnvelope =
             $@"<soapenv:Envelope
 	            xmlns:soapenv=""http://schemas.xmlsoap.org/soap/envelope/""
 	            xmlns:typ=""http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/applicationModule/types/""
-	            xmlns:typ1=""http://xmlns.oracle.com/adf/svc/types/"">
+	            xmlns:find=""http://xmlns.oracle.com/adf/svc/types/"">
 	            <soapenv:Header/>
 	            <soapenv:Body>
 		            <typ:findCustomerAccount>
 			            <typ:findCriteria>
-				            <typ1:fetchStart>0</typ1:fetchStart>
-				            <typ1:fetchSize>1</typ1:fetchSize>
-				            <typ1:filter>
-					            <typ1:conjunction/>
-					            <typ1:group>
-						            <typ1:conjunction/>
-						            <typ1:upperCaseCompare>false</typ1:upperCaseCompare>
-						            <typ1:item>
-							            <typ1:conjunction/>
-							            <typ1:upperCaseCompare>false</typ1:upperCaseCompare>
-							            <typ1:attribute>OrigSystemReference</typ1:attribute>
-							            <typ1:operator>=</typ1:operator>
-							            <typ1:value>{enterpriseId}</typ1:value>
-						            </typ1:item>
-					            </typ1:group>
-					            <typ1:nested/>
-				            </typ1:filter>
+				            <find:fetchStart>0</find:fetchStart>
+				            <find:fetchSize>1</find:fetchSize>
+				            <find:filter>
+					            <find:conjunction/>
+					            <find:group>
+						            <find:conjunction/>
+						            <find:upperCaseCompare>false</find:upperCaseCompare>
+						            <find:item>
+							            <find:conjunction/>
+							            <find:upperCaseCompare>false</find:upperCaseCompare>
+							            <find:attribute>OrigSystemReference</find:attribute>
+							            <find:operator>=</find:operator>
+							            <find:value>{enterpriseId}</find:value>
+						            </find:item>
+					            </find:group>
+					            <find:nested/>
+				            </find:filter>
+				            <find:findAttribute>PartyId</find:findAttribute>
+				            <find:findAttribute>CustomerAccountId</find:findAttribute>
+				            <find:findAttribute>AccountNumber</find:findAttribute>
+				            <find:findAttribute>AccountName</find:findAttribute>
+				            <find:findAttribute>OrigSystemReference</find:findAttribute>
+				            <find:findAttribute>CustomerType</find:findAttribute>
+				            <find:findAttribute>CustomerClassCode</find:findAttribute>
+				            <find:findAttribute>CustomerAccountSite</find:findAttribute>
+				            <find:findAttribute>CustomerAccountContact</find:findAttribute>
+				            <find:excludeAttribute>false</find:excludeAttribute>
+				            <!-- Customer Account Sites -->
+				            <find:childFindCriteria>
+					            <find:fetchStart>0</find:fetchStart>
+					            <find:fetchSize>-1</find:fetchSize>
+					            <find:childAttrName>CustomerAccountSite</find:childAttrName>
+					            <find:findAttribute>OrigSystemReference</find:findAttribute>
+					            <find:findAttribute>CustomerAccountSiteId</find:findAttribute>
+					            <find:findAttribute>CustomerAccountId</find:findAttribute>
+					            <find:findAttribute>PartySiteId</find:findAttribute>
+					            <find:findAttribute>CustomerAccountSiteUse</find:findAttribute>
+                                <!-- Original System Reference -->
+					            <find:childFindCriteria>
+						            <find:fetchStart>0</find:fetchStart>
+						            <find:fetchSize>-1</find:fetchSize>
+						            <find:childAttrName>CustomerAccountSiteUse</find:childAttrName>
+						            <find:findAttribute>OriginalSystemReference</find:findAttribute>						
+						            <find:childFindCriteria>
+							            <find:fetchStart>0</find:fetchStart>
+							            <find:fetchSize>-1</find:fetchSize>
+							            <find:childAttrName>OriginalSystemReference</find:childAttrName>
+							            <find:findAttribute>OrigSystemReference</find:findAttribute>
+						            </find:childFindCriteria>
+					            </find:childFindCriteria>
+				            </find:childFindCriteria>
+				            <!-- Customer Account Contacts -->
+				            <find:childFindCriteria>
+					            <find:fetchStart>0</find:fetchStart>
+					            <find:fetchSize>-1</find:fetchSize>
+					            <find:childAttrName>CustomerAccountContact</find:childAttrName>
+					            <find:findAttribute>OrigSystemReference</find:findAttribute>
+					            <find:findAttribute>CustomerAccountId</find:findAttribute>
+					            <find:findAttribute>PrimaryFlag</find:findAttribute>
+					            <find:findAttribute>RelationshipId</find:findAttribute>
+					            <find:findAttribute>ContactPersonId</find:findAttribute>
+				            </find:childFindCriteria>
 			            </typ:findCriteria>
 			            <typ:findControl>
-				            <typ1:retrieveAllTranslations>false</typ1:retrieveAllTranslations>
+				            <find:retrieveAllTranslations>false</find:retrieveAllTranslations>
 			            </typ:findControl>
 		            </typ:findCustomerAccount>
 	            </soapenv:Body>
-            </soapenv:Envelope>";
-        return findEnvelope;
+            </soapenv:Envelope>
+            ";
+        return findCustomerAccountEnvelope;
     }
 
 
