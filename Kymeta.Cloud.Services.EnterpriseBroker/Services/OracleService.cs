@@ -412,7 +412,7 @@ public class OracleService : IOracleService
     private OraclePersonObject RemapSalesforceContactToOraclePerson(SalesforceContactModel model)
     {
         // TODO: separate the phone number into segments
-        var phoneSegements = model.PhoneNumber.Split('-');
+        var phoneSegements = model.Phone.Split('-');
 
         // map the model
         var person = new OraclePersonObject
