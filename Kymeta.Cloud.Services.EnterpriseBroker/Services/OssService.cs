@@ -257,7 +257,7 @@ public class OssService : IOssService
         if (!string.IsNullOrEmpty(salesforceParentId))
         {
             var parentAccount = await _accountsClient.GetAccountBySalesforceId(salesforceParentId);
-            account.ParentId = parentAccount?.Id;
+            if (parentAccount != null) account.ParentId = parentAccount.Id;
         }
 
         return account;
