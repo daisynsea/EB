@@ -157,6 +157,11 @@ public class OracleService : IOracleService
             AccountName = oracleCustomerAccount.Body?.findCustomerAccountResponse?.result?.Value?.AccountName.ToString(),
             AccountNumber = oracleCustomerAccount.Body?.findCustomerAccountResponse?.result?.Value?.AccountNumber,
             OrigSystemReference = oracleCustomerAccount.Body?.findCustomerAccountResponse?.result?.Value?.OrigSystemReference.ToString(),
+            AccountType = oracleCustomerAccount.Body?.findCustomerAccountResponse?.result?.Value?.CustomerType.ToString(),
+            AccountSubType = oracleCustomerAccount.Body?.findCustomerAccountResponse?.result?.Value?.CustomerClassCode.ToString(),
+            CustomerAccountId = oracleCustomerAccount.Body?.findCustomerAccountResponse?.result?.Value?.CustomerAccountId,
+            SalesforceId = oracleCustomerAccount.Body?.findCustomerAccountResponse?.result?.Value?.CustAcctInformation?.salesforceId,
+            OssId = oracleCustomerAccount.Body?.findCustomerAccountResponse?.result?.Value?.CustAcctInformation?.ksnId,
             Contacts = oracleCustomerAccount.Body?.findCustomerAccountResponse?.result?.Value?.CustomerAccountContacts
                 .Select(cac => new OracleCustomerAccountContact
                 {
@@ -164,7 +169,13 @@ public class OracleService : IOracleService
                     OrigSystemReference = cac.OrigSystemReference,
                     IsPrimary = cac.PrimaryFlag,
                     RelationshipId = cac.RelationshipId.ToString()
-                }).ToList()
+                }).ToList(),
+            Sites = oracleCustomerAccount.Body?.findCustomerAccountResponse?.result?.Value?.CustomerAccountSites
+                .Select(cas => new OracleCustomerAccountSite
+                {
+                    PartySiteId = cas.PartySiteId,
+                    OrigSystemReference = cas.OrigSystemReference
+                }).ToList(),
         };
 
         // return the Customer Account that was found
@@ -197,7 +208,7 @@ public class OracleService : IOracleService
         var customerAccountResult = new OracleCustomerAccount
         {
             PartyId = oracleCustomerAccount?.Body?.createCustomerAccountResponse?.result?.Value?.PartyId.ToString(),
-            CustomerAccountId = oracleCustomerAccount?.Body?.createCustomerAccountResponse?.result?.Value?.CustomerAccountId.ToString(),
+            CustomerAccountId = oracleCustomerAccount?.Body?.createCustomerAccountResponse?.result?.Value?.CustomerAccountId,
             AccountNumber = oracleCustomerAccount?.Body?.createCustomerAccountResponse?.result?.Value?.AccountNumber,
             AccountName = oracleCustomerAccount?.Body?.createCustomerAccountResponse?.result?.Value?.AccountName?.ToString(),
             AccountType = oracleCustomerAccount?.Body?.createCustomerAccountResponse?.result?.Value?.CustomerType?.ToString(),
@@ -416,6 +427,7 @@ public class OracleService : IOracleService
         {
             OrganizationName = model.Name,
             TaxpayerIdentificationNumber = model.TaxId,
+            SourceSystem = "SFDC",
             SourceSystemReferenceValue = model.ObjectId
         };
 
@@ -431,7 +443,7 @@ public class OracleService : IOracleService
             SourceSystemReferenceValue = model.ObjectId
         };
 
-        // populate the 
+        // populate the party metadata
         if (existingOrganization != null)
         {
             organization.PartyId = existingOrganization.PartyId;
@@ -467,7 +479,6 @@ public class OracleService : IOracleService
         {
             SalesforceId = model.ObjectId,
             AccountName = model.Name,
-            TaxId = model.TaxId
         };
         // check for accountType
         var accountType = model.AccountType;

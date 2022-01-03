@@ -95,6 +95,9 @@ public class FindCustomerAccountValue
     /// <remarks/>
     public string AccountName { get; set; }
 
+    [XmlElement("CustAcctInformation")]
+    public FindCustomerAccountValueCustAcctInformation CustAcctInformation { get; set; }
+
     /// <remarks/>
     [XmlElement("CustomerAccountContact")]
     public FindCustomerAccountValueCustomerAccountContact[] CustomerAccountContacts { get; set; }
@@ -142,7 +145,7 @@ public class FindCustomerAccountValueCustomerAccountSite
     public ulong PartySiteId { get; set; }
 
     /// <remarks/>
-    public ulong OrigSystemReference { get; set; }
+    public string OrigSystemReference { get; set; }
 
     /// <remarks/>
     public FindCustomerAccountValueCustomerAccountSiteCustomerAccountSiteUse CustomerAccountSiteUse { get; set; }
@@ -169,3 +172,21 @@ public class FindCustomerAccountValueCustomerAccountSiteCustomerAccountSiteUseOr
     public string OrigSystemReference { get; set; }
 }
 
+/// <remarks/>
+[Serializable]
+[DesignerCategory("code")]
+[XmlType(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/")]
+public partial class FindCustomerAccountValueCustAcctInformation
+{
+    /// <remarks/>
+    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/flex/custAccount/")]
+    public ulong CustAccountId { get; set; }
+
+    /// <remarks/>
+    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/flex/custAccount/")]
+    public string salesforceId { get; set; }
+
+    /// <remarks/>
+    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/flex/custAccount/")]
+    public string ksnId { get; set; }
+}

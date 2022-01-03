@@ -314,13 +314,13 @@ public class AccountBrokerService : IAccountBrokerService
             {
                 var addedCustomerAccount = await _oracleService.CreateCustomerAccount(organization.PartyId, model, partySites, persons, salesforceTransaction);
                 customerAccount = addedCustomerAccount.Item1;
-                oracleCustomerAccountId = addedCustomerAccount.Item1.CustomerAccountId;
+                oracleCustomerAccountId = addedCustomerAccount.Item1.CustomerAccountId.ToString();
             } else // Otherwise, update it
             {
                 // TODO: include Persons... check for existing Customer Account Contacts before updating Customer Account
                 // TODO: Need a corresponding Id here?
                 var updatedCustomerAccount = await _oracleService.UpdateCustomerAccount(model, salesforceTransaction);
-                oracleCustomerAccountId = existingCustomerAccount.Item2.CustomerAccountId;
+                oracleCustomerAccountId = existingCustomerAccount.Item2.CustomerAccountId.ToString();
             }
             #endregion
 
