@@ -150,151 +150,158 @@ public class AccountBrokerService : IAccountBrokerService
         #region Send to Oracle
         if (syncToOracle)
         {
-            #region Organization
-            // We have to create 5 entities in Oracle: Organization, Location(s), PartySite, CustomerAccount, CustomerAccountProfile
-            var organizationResult = await _oracleService.GetOrganizationBySalesforceAccountId(model.Name, model.ObjectId);
-            if (!organizationResult.Item1)
+            // There is a plethora of possible exceptions in this flow, so we're going to catch any of them and ensure the logs are written
+            try
             {
-                // TODO: fatal error occurred when sending request to oracle... return badRequest here?
-                response.OracleStatus = StatusType.Error;
-                response.OracleErrorMessage = organizationResult.Item3;
-                return response;
-            }
-            var organization = new OracleOrganization();
-            // If Organization does not exist, create it
-            if (organizationResult.Item2 == null)
-            {
-                var addedOrganization = await _oracleService.CreateOrganization(model, salesforceTransaction);
-                if (addedOrganization.Item1 == null)
+                #region Organization
+                // We have to create 5 entities in Oracle: Organization, Location(s), PartySite, CustomerAccount, CustomerAccountProfile
+                var organizationResult = await _oracleService.GetOrganizationBySalesforceAccountId(model.Name, model.ObjectId, salesforceTransaction);
+                if (!organizationResult.Item1)
                 {
-                    // fatal error occurred
+                    // TODO: fatal error occurred when sending request to oracle... return badRequest here?
                     response.OracleStatus = StatusType.Error;
-                    response.OracleErrorMessage = addedOrganization.Item2;
+                    response.OracleErrorMessage = organizationResult.Item3;
                     return response;
                 }
-                organization = addedOrganization.Item1;
-                oracleOrganizationId = addedOrganization.Item1.PartyNumber;
-            }
-            else // Otherwise, update it
-            {
-                // TODO: Party Number here?
-                var updatedOrganization = await _oracleService.UpdateOrganization(organizationResult.Item2, model, salesforceTransaction);
-                if (updatedOrganization.Item1 == null)
+                var organization = new OracleOrganization();
+                // If Organization does not exist, create it
+                if (organizationResult.Item2 == null)
                 {
-                    // fatal error occurred
-                    response.OracleStatus = StatusType.Error;
-                    response.OracleErrorMessage = updatedOrganization.Item2;
-                    return response;
-                }
-                organization = updatedOrganization.Item1;
-                oracleOrganizationId = organizationResult.Item2.PartyNumber;
-            }
-            #endregion
-
-            #region Location & OrgPartySite
-            var partySites = new List<OraclePartySite>();
-
-            // verify we have addresses
-            if (model.Addresses != null && model.Addresses.Count > 0)
-            {
-                List<Task<Tuple<OracleLocationModel, string>>> createLocationTasks = new();
-                // create a Location for each address
-                foreach (var address in model.Addresses)
-                {
-                    // check the Organization PartySites (Locations) with the address to see if it has been created already
-                    var orgPartySite = organization.PartySites?.FirstOrDefault(s => s.OrigSystemReference == address.ObjectId);
-                    if (orgPartySite == null)
+                    var addedOrganization = await _oracleService.CreateOrganization(model, salesforceTransaction);
+                    if (addedOrganization.Item1 == null)
                     {
-                        // create Location & OrgPartySite as a list of tasks to run async (outside of the loop)
-                        createLocationTasks.Add(_oracleService.CreateLocation(address, salesforceTransaction));
-                    } else
-                    {
-                        // TODO: update Location? do nothing?
+                        // fatal error occurred
+                        response.OracleStatus = StatusType.Error;
+                        response.OracleErrorMessage = addedOrganization.Item2;
+                        return response;
                     }
+                    organization = addedOrganization.Item1;
+                    oracleOrganizationId = addedOrganization.Item1.PartyNumber;
                 }
-
-                // check to see if we are creating any Locations
-                if (createLocationTasks.Count > 0)
+                else // Otherwise, update it
                 {
-                    var partySitesToCreate = new List<OraclePartySite>();
-                    // execute requests to create Locations in async fashion
-                    await Task.WhenAll(createLocationTasks);
-                    // get the response data
-                    var createLocationResults = createLocationTasks.Select(t => t.Result).ToList();
-                    // iterate through the results for the create Location requests
-                    for (int i = 0; i < createLocationResults.Count; i++)
+                    // TODO: Party Number here?
+                    var updatedOrganization = await _oracleService.UpdateOrganization(organizationResult.Item2, model, salesforceTransaction);
+                    if (updatedOrganization.Item1 == null)
                     {
-                        var result = createLocationResults[i];
-                        // acquire the matching Location so we can set the SiteUseType below
-                        var address = model.Addresses.FirstOrDefault(a => a.ObjectId == result.Item1.OrigSystemReference);
+                        // fatal error occurred
+                        response.OracleStatus = StatusType.Error;
+                        response.OracleErrorMessage = updatedOrganization.Item2;
+                        return response;
+                    }
+                    organization = updatedOrganization.Item1;
+                    oracleOrganizationId = organizationResult.Item2.PartyNumber;
+                }
+                #endregion
 
-                        if (result.Item1 == null)
+                #region Location & OrgPartySite
+                var partySites = new List<OraclePartySite>();
+
+                // verify we have addresses
+                if (model.Addresses != null && model.Addresses.Count > 0)
+                {
+                    List<Task<Tuple<OracleLocationModel, string>>> createLocationTasks = new();
+                    // create a Location for each address
+                    foreach (var address in model.Addresses)
+                    {
+                        // check the Organization PartySites (Locations) with the address to see if it has been created already
+                        var orgPartySite = organization.PartySites?.FirstOrDefault(s => s.OrigSystemReference == address.ObjectId);
+                        if (orgPartySite == null)
                         {
-                            // TODO: what action should we take here? Alert of some sort?
-                            // create location failed for some reason
-                            Console.WriteLine($"[DEBUG] Error: {result.Item2}");
-                        } else
+                            // create Location & OrgPartySite as a list of tasks to run async (outside of the loop)
+                            createLocationTasks.Add(_oracleService.CreateLocation(address, salesforceTransaction));
+                        }
+                        else
                         {
-                            // Location was created successfully... so add to the list so we can create a Party Site record for it
-                            partySitesToCreate.Add(new OraclePartySite
+                            // TODO: update Location? do nothing?
+                        }
+                    }
+
+                    // check to see if we are creating any Locations
+                    if (createLocationTasks.Count > 0)
+                    {
+                        var partySitesToCreate = new List<OraclePartySite>();
+                        // execute requests to create Locations in async fashion
+                        await Task.WhenAll(createLocationTasks);
+                        // get the response data
+                        var createLocationResults = createLocationTasks.Select(t => t.Result).ToList();
+                        // iterate through the results for the create Location requests
+                        for (int i = 0; i < createLocationResults.Count; i++)
+                        {
+                            var result = createLocationResults[i];
+                            // acquire the matching Location so we can set the SiteUseType below
+                            var address = model.Addresses.FirstOrDefault(a => a.ObjectId == result.Item1.OrigSystemReference);
+
+                            if (result.Item1 == null)
                             {
-                                LocationId = result.Item1.LocationId,
-                                OrigSystemReference = result.Item1.OrigSystemReference,
-                                SiteUseType = address.Type
-                            });
+                                // TODO: what action should we take here? Alert of some sort?
+                                // create location failed for some reason
+                                Console.WriteLine($"[DEBUG] Error: {result.Item2}");
+                            }
+                            else
+                            {
+                                // Location was created successfully... so add to the list so we can create a Party Site record for it
+                                partySitesToCreate.Add(new OraclePartySite
+                                {
+                                    LocationId = result.Item1.LocationId,
+                                    OrigSystemReference = result.Item1.OrigSystemReference,
+                                    SiteUseType = address.Type
+                                });
+                            }
+                        }
+
+                        // create Organization PartySite (batched into a single request for all Locations)
+                        var createPartySitesResult = await _oracleService.CreateOrganizationPartySites(organization.PartyId, partySitesToCreate, salesforceTransaction);
+                        if (createPartySitesResult.Item1 == null)
+                        {
+                            // create PartySites failed for some reason
+                            Console.WriteLine($"[DEBUG] Error: {createPartySitesResult.Item2}");
+                        }
+                        else
+                        {
+                            partySites.AddRange(createPartySitesResult.Item1);
                         }
                     }
-
-                    // create Organization PartySite (batched into a single request for all Locations)
-                    var createPartySitesResult = await _oracleService.CreateOrganizationPartySites(organization.PartyId, partySitesToCreate, salesforceTransaction);
-                    if (createPartySitesResult.Item1 == null)
-                    {
-                        // create PartySites failed for some reason
-                        Console.WriteLine($"[DEBUG] Error: {createPartySitesResult.Item2}");
-                    } else
-                    {
-                        partySites.AddRange(createPartySitesResult.Item1);
-                    }
                 }
-            }
-            #endregion
+                #endregion
 
-            #region Person
-            // create empty list of persons to track new additions
-            var persons = new List<OraclePersonObject>();
+                #region Person
+                // create empty list of persons to track new additions
+                var persons = new List<OraclePersonObject>();
 
-            // verify we have contacts
-            if (model.Contacts != null && model.Contacts.Count > 0)
-            {
-                // create a Person for each contact
-                foreach (var contact in model.Contacts)
+                // verify we have contacts
+                if (model.Contacts != null && model.Contacts.Count > 0)
                 {
-                    // check the Organization Contacts with the contact to see if it has been created already
-                    var orgContact = organization.Contacts?.FirstOrDefault(s => s.OrigSystemReference == contact.ObjectId);
-                    if (orgContact == null)
+                    // create a Person for each contact
+                    foreach (var contact in model.Contacts)
                     {
-                        // create Person requests as a list of tasks to run async (outside of the loop)
-                        // unable to use Task.WhenAll because Oracle is complaining... response from Oracle:
-                        // JBO-26092: Failed to lock the record in table HZ_ORGANIZATION_PROFILES with key oracle.jbo.Key[300000100251313 ], another user holds the lock.
-                        var addedPersonResult = await _oracleService.CreatePerson(contact, organization.PartyId.ToString(), salesforceTransaction);
-                        if (addedPersonResult.Item1 == null)
+                        // check the Organization Contacts with the contact to see if it has been created already
+                        var orgContact = organization.Contacts?.FirstOrDefault(s => s.OrigSystemReference == contact.ObjectId);
+                        if (orgContact == null)
                         {
-                            // TODO: what action should we take here? Alert of some sort?
-                            Console.WriteLine($"[DEBUG] Error: {addedPersonResult.Item2}");
-                        } else
+                            // create Person requests as a list of tasks to run async (outside of the loop)
+                            // unable to use Task.WhenAll because Oracle is complaining... response from Oracle:
+                            // JBO-26092: Failed to lock the record in table HZ_ORGANIZATION_PROFILES with key oracle.jbo.Key[300000100251313 ], another user holds the lock.
+                            var addedPersonResult = await _oracleService.CreatePerson(contact, organization.PartyId.ToString(), salesforceTransaction);
+                            if (addedPersonResult.Item1 == null)
+                            {
+                                // TODO: what action should we take here? Alert of some sort?
+                                Console.WriteLine($"[DEBUG] Error: {addedPersonResult.Item2}");
+                            }
+                            else
+                            {
+                                // Person was created successfully... add it to the list so we can check it against the Customer Account Contacts
+                                persons.Add(addedPersonResult.Item1);
+                            }
+                        }
+                        else
                         {
-                            // Person was created successfully... add it to the list so we can check it against the Customer Account Contacts
-                            persons.Add(addedPersonResult.Item1);
+                            // TODO: update Person? do nothing?
+                            // TODO: add to `persons` so we can check Customer Account?
                         }
                     }
-                    else
-                    {
-                        // TODO: update Person? do nothing?
-                        // TODO: add to `persons` so we can check Customer Account?
-                    }
                 }
-            }
-            #endregion
+                #endregion
 
             #region Customer Account
             // search for existing Customer Account records based on Name and Salesforce Id
@@ -324,38 +331,58 @@ public class AccountBrokerService : IAccountBrokerService
             }
             #endregion
 
-            #region Customer Profile
-            // if no Customer Profile exists, this request will return a 500 result (Internal Server Error)... which is super lame.
-            // we are accounting for it in the WebException that is thrown within OracleService to determine if the record does not exist
-            // so we are handling it (somewhat) gracefully
-            var existingCustomerAccountProfile = await _oracleService.GetCustomerProfileByAccountNumber(customerAccount.AccountNumber?.ToString());
-            if (!existingCustomerAccountProfile.Item1)
+                #region Customer Profile
+                // if no Customer Profile exists, this request will return a 500 result (Internal Server Error)... which is super lame.
+                // we are accounting for it in the WebException that is thrown within OracleService to determine if the record does not exist
+                // so we are handling it (somewhat) gracefully
+                var existingCustomerAccountProfile = await _oracleService.GetCustomerProfileByAccountNumber(customerAccount.AccountNumber?.ToString(), salesforceTransaction);
+                if (!existingCustomerAccountProfile.Item1)
+                {
+                    // TODO: fatal error occurred when sending request to oracle... return badRequest here?
+                    response.OracleStatus = StatusType.Error;
+                    response.OracleErrorMessage = existingCustomerAccountProfile.Item3;
+                    return response;
+                }
+                // If Customer Account does not exist, create it
+                if (existingCustomerAccountProfile.Item2 == null)
+                {
+                    var addedCustomerAccountProfile = await _oracleService.CreateCustomerAccountProfile(customerAccount.PartyId, (uint)customerAccount.AccountNumber, salesforceTransaction);
+                    oracleCustomerAccountProfileId = addedCustomerAccountProfile.Item1?.PartyId?.ToString();
+                }
+                else
+                {
+                    // TODO: do nothing? Customer Profile already exists
+                }
+                #endregion
+
+                response.OracleStatus = StatusType.Successful;
+                response.OracleCustomerAccountId = oracleCustomerAccountId;
+                response.OracleOrganizationId = oracleOrganizationId;
+                response.OracleCustomerProfileId = oracleCustomerAccountProfileId;
+
+                // Update OSS with Oracle Id if need be
+                if (syncToOss && !string.IsNullOrEmpty(oracleCustomerAccountId)) // TODO: Is the customer account Id actually what we want?
+                {
+                    await _ossService.UpdateAccountOracleId(model, oracleCustomerAccountId, salesforceTransaction);
+                }
+            } catch (Exception ex)
             {
-                // TODO: fatal error occurred when sending request to oracle... return badRequest here?
                 response.OracleStatus = StatusType.Error;
-                response.OracleErrorMessage = existingCustomerAccountProfile.Item3;
-                return response;
-            }
-            // If Customer Account does not exist, create it
-            if (existingCustomerAccountProfile.Item2 == null)
-            {
-                var addedCustomerAccountProfile = await _oracleService.CreateCustomerAccountProfile(customerAccount.PartyId, (uint)customerAccount.AccountNumber, salesforceTransaction);
-                oracleCustomerAccountProfileId = addedCustomerAccountProfile.Item1?.PartyId?.ToString();
-            } else
-            {
-                // TODO: do nothing? Customer Profile already exists
-            }
-            #endregion
+                response.OracleErrorMessage = $"Error syncing to Oracle due to an exception: {ex.Message}";
 
-            response.OracleStatus = StatusType.Successful;
-            response.OracleCustomerAccountId = oracleCustomerAccountId;
-            response.OracleOrganizationId = oracleOrganizationId;
-            response.OracleCustomerProfileId = oracleCustomerAccountProfileId;
-
-            // Update OSS with Oracle Id if need be
-            if (syncToOss && !string.IsNullOrEmpty(oracleCustomerAccountId)) // TODO: Is the customer account Id actually what we want?
-            {
-                await _ossService.UpdateAccountOracleId(model, oracleCustomerAccountId, salesforceTransaction);
+                if (salesforceTransaction.TransactionLog == null) salesforceTransaction.TransactionLog = new List<SalesforceActionRecord>();
+                // Add the salesforce transaction record
+                var actionRecord = new SalesforceActionRecord
+                {
+                    ObjectType = ActionObjectType.Account,
+                    Action = salesforceTransaction.TransactionLog.OrderByDescending(s => s.Timestamp).FirstOrDefault()?.Action ?? SalesforceTransactionAction.Default,
+                    Status = StatusType.Error,
+                    Timestamp = DateTime.UtcNow,
+                    ErrorMessage = $"Error syncing to Oracle due to an exception: {ex.Message}",
+                    EntityId = model.ObjectId
+                };
+                salesforceTransaction.TransactionLog?.Add(actionRecord);
+                await _actionsRepository.AddTransactionRecord(salesforceTransaction.Id, salesforceTransaction.Object.ToString() ?? "Unknown", actionRecord);
             }
         }
         #endregion

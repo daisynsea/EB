@@ -13,9 +13,9 @@ public interface IOracleService
     Task<Tuple<OracleCustomerAccount, string>> CreateCustomerAccount(long organizationPartyId, SalesforceAccountModel model, List<OraclePartySite> partySites, List<OraclePersonObject> persons, SalesforceActionTransaction transaction);
     Task<Tuple<OracleCustomerAccountProfile, string>> CreateCustomerAccountProfile(string customerAccountId, uint customerAccountNumber, SalesforceActionTransaction transaction);
     Task<Tuple<string, string>> UpdateCustomerAccount(SalesforceAccountModel model, SalesforceActionTransaction transaction); // TODO: Not sure what's necessary in this signature
-    Task<Tuple<bool, OracleOrganization, string>> GetOrganizationBySalesforceAccountId(string organizationName, string salesforceAccountId);
-    Task<Tuple<bool, OracleCustomerAccount, string>> GetCustomerAccountBySalesforceAccountId(string salesforceAccountId);
-    Task<Tuple<bool, OracleCustomerAccountProfile, string>> GetCustomerProfileByAccountNumber(string customerAccountNumber);
+    Task<Tuple<bool, OracleOrganization, string>> GetOrganizationBySalesforceAccountId(string organizationName, string salesforceAccountId, SalesforceActionTransaction transaction);
+    Task<Tuple<bool, OracleCustomerAccount, string>> GetCustomerAccountBySalesforceAccountId(string salesforceAccountId, SalesforceActionTransaction transaction);
+    Task<Tuple<bool, OracleCustomerAccountProfile, string>> GetCustomerProfileByAccountNumber(string customerAccountNumber, SalesforceActionTransaction transaction);
     // Address Endpoints
     Task<Tuple<OracleLocationModel, string>> CreateLocation(SalesforceAddressModel address, SalesforceActionTransaction transaction);
     Task<Tuple<string, string>> UpdateLocation(SalesforceContactModel model, SalesforceActionTransaction transaction);
@@ -39,14 +39,20 @@ public class OracleService : IOracleService
 
     #region Account / Organization / Customer Account / Customer Profile
     #region Organization
-    public async Task<Tuple<bool, OracleOrganization, string>> GetOrganizationBySalesforceAccountId(string organizationName, string salesforceAccountId)
+    public async Task<Tuple<bool, OracleOrganization, string>> GetOrganizationBySalesforceAccountId(string organizationName, string salesforceAccountId, SalesforceActionTransaction transaction)
     {
+        await LogAction(transaction, SalesforceTransactionAction.GetOrganizationInOracleBySFID, ActionObjectType.Account, StatusType.Started);
+
         // populate the template
         var findOrganizationEnvelope = OracleSoapTemplates.FindOrganization(organizationName, salesforceAccountId);
 
         // Find the Organization via SOAP service
         var findOrgResponse = await _oracleClient.SendSoapRequest(findOrganizationEnvelope, $"{_config["Oracle:Endpoint"]}/{_config["Oracle:Services:Organization"]}");
-        if (!string.IsNullOrEmpty(findOrgResponse.Item2)) return new Tuple<bool, OracleOrganization, string>(false, null, $"There was an error finding the Organization in Oracle: {findOrgResponse.Item2}.");
+        if (!string.IsNullOrEmpty(findOrgResponse.Item2))
+        {
+            await LogAction(transaction, SalesforceTransactionAction.GetOrganizationInOracleBySFID, ActionObjectType.Account, StatusType.Error, salesforceAccountId, findOrgResponse.Item2);
+            return new Tuple<bool, OracleOrganization, string>(false, null, $"There was an error finding the Organization in Oracle: {findOrgResponse.Item2}.");
+        }
 
         // deserialize the xml response envelope
         XmlSerializer serializer = new(typeof(FindOrganizationEnvelope));
@@ -137,7 +143,7 @@ public class OracleService : IOracleService
     #endregion
 
     #region Customer Account
-    public async Task<Tuple<bool, OracleCustomerAccount, string>> GetCustomerAccountBySalesforceAccountId(string salesforceAccountId)
+    public async Task<Tuple<bool, OracleCustomerAccount, string>> GetCustomerAccountBySalesforceAccountId(string salesforceAccountId, SalesforceActionTransaction transaction)
     {
         var findAccountEnvelope = OracleSoapTemplates.FindCustomerAccount(salesforceAccountId);
         // Find the Organization via SOAP service
@@ -229,7 +235,7 @@ public class OracleService : IOracleService
     #endregion
 
     #region Customer Account Profile
-    public async Task<Tuple<bool, OracleCustomerAccountProfile, string>> GetCustomerProfileByAccountNumber(string customerAccountNumber)
+    public async Task<Tuple<bool, OracleCustomerAccountProfile, string>> GetCustomerProfileByAccountNumber(string customerAccountNumber, SalesforceActionTransaction transaction)
     {
         // populate the template
         var findCustomerProfileEnvelope = OracleSoapTemplates.GetActiveCustomerProfile(customerAccountNumber);
@@ -492,7 +498,7 @@ public class OracleService : IOracleService
     private OraclePersonObject RemapSalesforceContactToOraclePerson(SalesforceContactModel model)
     {
         // TODO: separate the phone number into segments
-        var phoneSegements = model.PhoneNumber.Split('-');
+        var phoneSegements = model.Phone.Split('-');
 
         // map the model
         var person = new OraclePersonObject

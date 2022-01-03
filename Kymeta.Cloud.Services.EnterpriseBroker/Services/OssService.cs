@@ -81,7 +81,7 @@ public class OssService : IOssService
         if (existingUser == null) existingUser = _systemUser;
 
         var billingAddress = model.Addresses?.FirstOrDefault(a => a.Type == "Billing & Shipping"); // This string is a picklist value in SF
-        var account = RemapSalesforceAccountToOssAccount(model.Name, model.ObjectId, existingUser.Id, null, model.ParentId, billingAddress);
+        var account = await RemapSalesforceAccountToOssAccount(model.Name, model.ObjectId, existingUser.Id, null, model.ParentId, billingAddress);
         try
         {
             var added = await _accountsClient.AddAccount(account);
@@ -121,7 +121,7 @@ public class OssService : IOssService
         }
         if (existingUser == null) existingUser = _systemUser;
 
-        var account = RemapSalesforceAccountToOssAccount(model.Name, model.ObjectId, existingUser.Id, null, model.ParentId);
+        var account = await RemapSalesforceAccountToOssAccount(model.Name, model.ObjectId, existingUser.Id, null, model.ParentId);
         try
         {
             var updated = await _accountsClient.UpdateAccount(existingAccount.Id.GetValueOrDefault(), account);
@@ -228,7 +228,7 @@ public class OssService : IOssService
         return await _accountsClient.GetAccountBySalesforceId(salesforceId);
     }
 
-    private Account RemapSalesforceAccountToOssAccount(
+    private async Task<Account> RemapSalesforceAccountToOssAccount(
         string name,
         string salesforceId,
         Guid userId,
@@ -256,7 +256,8 @@ public class OssService : IOssService
         // Overwrite the default Kymeta ID if the parent Id is present
         if (!string.IsNullOrEmpty(salesforceParentId))
         {
-            account.ParentId = Guid.Parse(salesforceParentId);
+            var parentAccount = await _accountsClient.GetAccountBySalesforceId(salesforceParentId);
+            if (parentAccount != null) account.ParentId = parentAccount.Id;
         }
 
         return account;

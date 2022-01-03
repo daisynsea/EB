@@ -84,6 +84,12 @@ public class SalesforceActionRecord
 
 public enum SalesforceTransactionAction
 {
+    // Default
+    Default,
+    // Gets
+    GetOrganizationInOracleBySFID,
+    GetCustomerAccountBySFID,
+    GetCustomerProfileBySFID,
     // Create Account
     CreateAccountInOss,
     CreateOrganizationInOracle,
