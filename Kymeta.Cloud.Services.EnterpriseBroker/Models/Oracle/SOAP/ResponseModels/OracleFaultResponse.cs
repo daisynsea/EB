@@ -55,7 +55,7 @@ public class FaultEnvelopeBodyFault
 public class detail
 {
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/adf/svc/errors/")]
+    [XmlElement("ServiceErrorMessage", Namespace = "http://xmlns.oracle.com/adf/svc/errors/")]
     public FaultServiceErrorMessage ServiceErrorMessage { get; set; }
 }
 

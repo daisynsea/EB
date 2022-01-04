@@ -200,27 +200,49 @@ public class AccountBrokerService : IAccountBrokerService
                 // verify we have addresses
                 if (model.Addresses != null && model.Addresses.Count > 0)
                 {
+                    // TODO: find locations by SF Id
+                    var addressIds = model.Addresses.Select(a => a.ObjectId);
+                    var locationsResult = await _oracleService.GetLocationBySalesforceAddressId(addressIds.ToList());
+                    if (!locationsResult.Item1)
+                    {
+                        // TODO: fatal error occurred when sending request to oracle... return badRequest here?
+                        response.OracleStatus = StatusType.Error;
+                        response.OracleErrorMessage = locationsResult.Item3;
+                        return response;
+                    }
+
+                    var partySitesToCreate = new List<OraclePartySite>();
                     List<Task<Tuple<OracleLocationModel, string>>> createLocationTasks = new();
                     // create a Location for each address
                     foreach (var address in model.Addresses)
                     {
-                        // check the Organization PartySites (Locations) with the address to see if it has been created already
-                        var orgPartySite = organization.PartySites?.FirstOrDefault(s => s.OrigSystemReference == address.ObjectId);
-                        if (orgPartySite == null)
+                        // check the found Locations with the address to see if it has been created already
+                        var existingLocation = locationsResult.Item2?.FirstOrDefault(l => l.OrigSystemReference == address.ObjectId);
+                        if (existingLocation == null)
                         {
                             // create Location & OrgPartySite as a list of tasks to run async (outside of the loop)
                             createLocationTasks.Add(_oracleService.CreateLocation(address, salesforceTransaction));
                         }
                         else
                         {
-                            // TODO: update Location? do nothing?
+                            // check the Organization PartySites with the address to see if the PartySite has been created already
+                            // if not, add it to the list to create along with any other new Locations
+                            var orgPartySite = organization.PartySites?.FirstOrDefault(s => s.OrigSystemReference == address.ObjectId);
+                            if (orgPartySite == null)
+                            {
+                                partySitesToCreate.Add(new OraclePartySite
+                                {
+                                    LocationId = existingLocation.LocationId,
+                                    OrigSystemReference = existingLocation.OrigSystemReference,
+                                    SiteUseType = address.Type
+                                });
+                            }
                         }
                     }
 
                     // check to see if we are creating any Locations
                     if (createLocationTasks.Count > 0)
                     {
-                        var partySitesToCreate = new List<OraclePartySite>();
                         // execute requests to create Locations in async fashion
                         await Task.WhenAll(createLocationTasks);
                         // get the response data

@@ -6,10 +6,64 @@ public static class OracleSoapTemplates
 {
     #region Location
     /// <summary>
+    ///  A template for finding Locations in Oracle based on Enterprise Id.
+    /// </summary>
+    /// <returns>TBD</returns>
+    public static string FindLocations(List<string> addressIds)
+    {
+        if (addressIds == null || addressIds.Count == 0) return null;
+
+        var findLocationsEnvelope =
+            $@"<soap:Envelope
+	            xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/""
+	            xmlns:find=""http://xmlns.oracle.com/adf/svc/types/""
+	            xmlns:typ=""http://xmlns.oracle.com/apps/cdm/foundation/parties/locationService/applicationModule/types/"">
+	            <soap:Body>
+		            <typ:getLocationByOriginalSystemReference>
+			            <typ:findCriteria>
+				            <find:fetchStart>0</find:fetchStart>
+				            <find:fetchSize>-1</find:fetchSize>
+				            <find:filter>
+					            <find:conjunction/>
+					            <find:group>
+						            <find:conjunction/>
+						            <find:upperCaseCompare>false</find:upperCaseCompare>";
+        foreach (var addressId in addressIds)
+        {
+            findLocationsEnvelope +=
+                                    @$"<find:item>
+							            <find:conjunction>Or</find:conjunction>
+							            <find:upperCaseCompare>false</find:upperCaseCompare>
+							            <find:attribute>OrigSystemReference</find:attribute>
+							            <find:operator>=</find:operator>
+							            <find:value>{addressId}</find:value>
+						            </find:item>";
+        }
+
+        findLocationsEnvelope +=
+					            @$"</find:group>
+				            </find:filter>
+				            <find:findAttribute>LocationId</find:findAttribute>
+				            <find:findAttribute>OrigSystemReference</find:findAttribute>
+				            <find:findAttribute>Address1</find:findAttribute>
+				            <find:findAttribute>Address2</find:findAttribute>
+				            <find:findAttribute>City</find:findAttribute>
+				            <find:findAttribute>State</find:findAttribute>
+				            <find:findAttribute>PostalCode</find:findAttribute>
+				            <find:findAttribute>Country</find:findAttribute>
+				            <find:excludeAttribute>false</find:excludeAttribute>
+			            </typ:findCriteria>
+		            </typ:getLocationByOriginalSystemReference>
+	            </soap:Body>
+            </soap:Envelope>";
+        return findLocationsEnvelope;
+    }
+
+    /// <summary>
     ///  A template for creating a Location object in Oracle
     /// </summary>
     /// <returns>TBD</returns>
-    public static string CreateLocation(SalesforceAddressModel address)
+    public static string CreateLocation(OracleLocationModel location)
     {
         var locationEnvelope =
             $@"<soap:Envelope xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
@@ -18,12 +72,12 @@ public static class OracleSoapTemplates
                         <typ:location xmlns:loc=""http://xmlns.oracle.com/apps/cdm/foundation/parties/locationService/"">
                             <loc:CreatedByModule>HZ_WS</loc:CreatedByModule>
                             <loc:OrigSystem>SFDC</loc:OrigSystem>
-                            <loc:OrigSystemReference>{address.ObjectId}</loc:OrigSystemReference>
-                            <loc:Address1>{address.Address1}</loc:Address1>
-                            <loc:Address2>{address.Address2}</loc:Address2>
-                            <loc:City>{address.City}</loc:City>
-                            <loc:PostalCode>{address.PostalCode}</loc:PostalCode>
-                            <loc:Country>{address.Country}</loc:Country>
+                            <loc:OrigSystemReference>{location.OrigSystemReference}</loc:OrigSystemReference>
+                            <loc:Address1>{location.Address1}</loc:Address1>
+                            <loc:Address2>{location.Address2}</loc:Address2>
+                            <loc:City>{location.City}</loc:City>
+                            <loc:PostalCode>{location.PostalCode}</loc:PostalCode>
+                            <loc:Country>{location.Country}</loc:Country>
                         </typ:location>
                     </typ:createLocation>
                 </soap:Body>
@@ -581,6 +635,12 @@ public static class OracleSoapTemplates
     {
         { "kymeta", "300000001127004" },
         { "kgs", "300000001127004" }
+    };
+
+    // TODO: must create a full dictionary to match values from Salesforce
+    public static readonly Dictionary<string, string> CountryShortcodes = new()
+    {
+        { "United States", "US" }
     };
 
     public static readonly Dictionary<string, string> CustomerTypeMap = new()

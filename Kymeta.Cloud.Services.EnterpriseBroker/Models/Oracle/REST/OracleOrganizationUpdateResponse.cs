@@ -16,14 +16,14 @@ public class OracleOrganizationUpdateResponse
     public object OwnerPartyNumber { get; set; }
     public object OwnerEmailAddress { get; set; }
     public object OwnerName { get; set; }
-    public long PrimaryContactPartyId { get; set; }
-    public string PrimaryContactPartyNumber { get; set; }
-    public string PrimaryContactSourceSystem { get; set; }
-    public string PrimaryContactSourceSystemReferenceValue { get; set; }
-    public string PrimaryContactName { get; set; }
+    public object PrimaryContactPartyId { get; set; }
+    public object PrimaryContactPartyNumber { get; set; }
+    public object PrimaryContactSourceSystem { get; set; }
+    public object PrimaryContactSourceSystemReferenceValue { get; set; }
+    public object PrimaryContactName { get; set; }
     public object PrimaryContactJobTitle { get; set; }
-    public string PrimaryContactEmail { get; set; }
-    public string PrimaryContactPhone { get; set; }
+    public object PrimaryContactEmail { get; set; }
+    public object PrimaryContactPhone { get; set; }
     public bool ExistingCustomerFlag { get; set; }
     public object ExistingCustomerFlagLastUpdateDate { get; set; }
     public bool NamedFlag { get; set; }
@@ -131,7 +131,7 @@ public class OracleOrganizationUpdateResponse
     public object EmailAddress { get; set; }
     public object WebContactPointType { get; set; }
     public object URL { get; set; }
-    public long PrimaryAddressId { get; set; }
+    public object PrimaryAddressId { get; set; }
     public string PartyNumberKey { get; set; }
     public object RecordSet { get; set; }
     public string SourceObjectType { get; set; }
@@ -139,29 +139,29 @@ public class OracleOrganizationUpdateResponse
     public bool UpdateFlag { get; set; }
     public bool DeleteFlag { get; set; }
     public object OrganizationTypeCode { get; set; }
-    public string AddressNumber { get; set; }
+    public object AddressNumber { get; set; }
     public object AddressElementAttribute1 { get; set; }
     public object AddressElementAttribute2 { get; set; }
     public object AddressElementAttribute3 { get; set; }
     public object AddressElementAttribute4 { get; set; }
     public object AddressElementAttribute5 { get; set; }
-    public string AddressLine1 { get; set; }
-    public string AddressLine2 { get; set; }
+    public object AddressLine1 { get; set; }
+    public object AddressLine2 { get; set; }
     public object AddressLine3 { get; set; }
     public object AddressLine4 { get; set; }
     public object Building { get; set; }
-    public string City { get; set; }
-    public string Country { get; set; }
+    public object City { get; set; }
+    public object Country { get; set; }
     public object County { get; set; }
     public object FloorNumber { get; set; }
-    public string PostalCode { get; set; }
+    public object PostalCode { get; set; }
     public object PostalPlus4Code { get; set; }
     public object Province { get; set; }
     public object State { get; set; }
     public object Mailstop { get; set; }
     public object AddressLinesPhonetic { get; set; }
-    public string AddressType { get; set; }
-    public string FormattedAddress { get; set; }
+    public object AddressType { get; set; }
+    public object FormattedAddress { get; set; }
     public object AccountScore { get; set; }
     public object AccountScoringTier { get; set; }
     public object Description { get; set; }
@@ -188,4 +188,19 @@ public class OracleOrganizationUpdateResponse
     public object ParentAccountList { get; set; }
     public bool PrimaryContactDoEmailFlag { get; set; }
     public bool PrimaryContactDoCallFlag { get; set; }
+    public OracleOrganizationUpdateResponseLink[] links { get; set; }
+}
+
+public class OracleOrganizationUpdateResponseLink
+{
+    public string rel { get; set; }
+    public string href { get; set; }
+    public string name { get; set; }
+    public string kind { get; set; }
+    public OracleOrganizationUpdateResponseProperties properties { get; set; }
+}
+
+public class OracleOrganizationUpdateResponseProperties
+{
+    public string changeIndicator { get; set; }
 }

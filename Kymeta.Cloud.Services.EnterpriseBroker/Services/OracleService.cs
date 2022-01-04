@@ -17,6 +17,7 @@ public interface IOracleService
     Task<Tuple<bool, OracleCustomerAccount, string>> GetCustomerAccountBySalesforceAccountId(string salesforceAccountId);
     Task<Tuple<bool, OracleCustomerAccountProfile, string>> GetCustomerProfileByAccountNumber(string customerAccountNumber, SalesforceActionTransaction transaction);
     // Address Endpoints
+    Task<Tuple<bool, IEnumerable<OracleLocationModel>, string>> GetLocationBySalesforceAddressId(List<string> addressIds);
     Task<Tuple<OracleLocationModel, string>> CreateLocation(SalesforceAddressModel address, SalesforceActionTransaction transaction);
     Task<Tuple<string, string>> UpdateLocation(SalesforceContactModel model, SalesforceActionTransaction transaction);
     // Contact Endpoints
@@ -335,12 +336,50 @@ public class OracleService : IOracleService
     #endregion
 
     #region Address/Location
+    public async Task<Tuple<bool, IEnumerable<OracleLocationModel>, string>> GetLocationBySalesforceAddressId(List<string> addressIds)
+    {
+        var findLocationsEnvelope = OracleSoapTemplates.FindLocations(addressIds);
+        // Find the Organization via SOAP service
+        var findLocationsResponse = await _oracleClient.SendSoapRequest(findLocationsEnvelope, $"{_config["Oracle:Endpoint"]}/{_config["Oracle:Services:LocationFoundation"]}");
+        if (!string.IsNullOrEmpty(findLocationsResponse.Item2)) return new Tuple<bool, IEnumerable<OracleLocationModel>, string>(false, null, $"There was an error finding the Locations in Oracle: {findLocationsResponse.Item2}.");
+
+        // deserialize the xml response envelope
+        XmlSerializer serializer = new(typeof(FindLocationsEnvelope)); 
+        var oracleLocationsResult = (FindLocationsEnvelope)serializer.Deserialize(findLocationsResponse.Item1.CreateReader());
+
+        var result = oracleLocationsResult.Body?.getLocationByOriginalSystemReferenceResponse?.result;
+        if (result == null || result.Count() == 0) return new Tuple<bool, IEnumerable<OracleLocationModel>, string>(true, null, $"Locations not found.");
+
+        // TODO: extract the list of Locations
+        // map the response model into our simplified C# List
+        var oracleLocations = new List<OracleLocationModel>();
+        foreach (var location in result)
+        {
+            oracleLocations.Add(new OracleLocationModel
+            {
+                OrigSystemReference = location.OrigSystemReference,
+                LocationId = location.LocationId,
+                Address1 = location.Address1,
+                Address2 = location.Address2,
+                City = location.City,
+                Country = location.Country,
+                PostalCode = location.PostalCode,
+                State = location.State
+            });
+        }
+
+        // return the Locations that were found
+        return new Tuple<bool, IEnumerable<OracleLocationModel>, string>(true, oracleLocations, null);
+    }
+
     public async Task<Tuple<OracleLocationModel, string>> CreateLocation(SalesforceAddressModel address, SalesforceActionTransaction transaction)
     {
         await LogAction(transaction, SalesforceTransactionAction.CreateLocationInOracle, ActionObjectType.Address, StatusType.Started, address.ObjectId);
 
+        var location = RemapSalesforceAddressToOracleLocation(address);
+
         // populate the template
-        var createLocationEnvelope = OracleSoapTemplates.CreateLocation(address);
+        var createLocationEnvelope = OracleSoapTemplates.CreateLocation(location);
         
         // create the Location via SOAP service
         var locationServiceUrl = $"{_config["Oracle:Endpoint"]}/{_config["Oracle:Services:Location"]}";
@@ -356,7 +395,7 @@ public class OracleService : IOracleService
         var oracleLocation = (CreateLocationEnvelope)serializer.Deserialize(locationResponse.Item1.CreateReader());
 
         // map response model to simplified object
-        var location = new OracleLocationModel
+        var locationResult = new OracleLocationModel
         {
             LocationId = oracleLocation?.Body?.createLocationResponse?.result?.Value?.LocationId,
             OrigSystemReference = oracleLocation?.Body?.createLocationResponse?.result?.Value?.OrigSystemReference?.ToString(),
@@ -368,10 +407,10 @@ public class OracleService : IOracleService
             Country = oracleLocation?.Body?.createLocationResponse?.result?.Value?.Country?.ToString()
         };
 
-        await LogAction(transaction, SalesforceTransactionAction.CreateLocationInOracle, ActionObjectType.Address, StatusType.Started, location.LocationId.ToString());
+        await LogAction(transaction, SalesforceTransactionAction.CreateLocationInOracle, ActionObjectType.Address, StatusType.Started, locationResult.LocationId.ToString());
 
         // return the simplified Location object
-        return new Tuple<OracleLocationModel, string>(location, string.Empty);
+        return new Tuple<OracleLocationModel, string>(locationResult, string.Empty);
     }
 
     public Task<Tuple<string, string>> UpdateLocation(SalesforceContactModel model, SalesforceActionTransaction transaction)
@@ -559,6 +598,23 @@ public class OracleService : IOracleService
         }
 
         return customerAccount;
+    }
+
+    private OracleLocationModel RemapSalesforceAddressToOracleLocation(SalesforceAddressModel address)
+    {
+        var location = new OracleLocationModel
+        {
+            Address1 = address.Address1,
+            Address2 = address.Address2,
+            City = address.City,
+            OrigSystemReference = address.ObjectId,
+            State = address.StateProvince,
+            PostalCode = address.PostalCode
+        };
+
+        if (!string.IsNullOrEmpty(address.Country)) location.Country = OracleSoapTemplates.CountryShortcodes.GetValue(address.Country);
+
+        return location;
     }
 
     private OraclePersonObject RemapSalesforceContactToOraclePerson(SalesforceContactModel model)
