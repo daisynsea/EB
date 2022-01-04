@@ -5,7 +5,7 @@ public class OracleCustomerAccount
     public string? AccountName { get; set; }
     public uint? AccountNumber { get; set; }
     public ulong? CustomerAccountId { get; set; }
-    public string? PartyId { get; set; }
+    public ulong? PartyId { get; set; }
     public string? OrigSystemReference { get; set; }
     public string? SalesforceId { get; set; }
     public string? OssId { get; set; }

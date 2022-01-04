@@ -303,33 +303,49 @@ public class AccountBrokerService : IAccountBrokerService
                 }
                 #endregion
 
-            #region Customer Account
-            // search for existing Customer Account records based on Name and Salesforce Id
-            var existingCustomerAccount = await _oracleService.GetCustomerAccountBySalesforceAccountId(model.ObjectId);
-            if (!existingCustomerAccount.Item1)
-            {
-                // TODO: fatal error occurred when sending request to oracle... return badRequest here?
-                response.OracleStatus = StatusType.Error;
-                response.OracleErrorMessage = existingCustomerAccount.Item3;
-                return response;
-            }
+                #region Customer Account
+                // search for existing Customer Account records based on Name and Salesforce Id
+                var existingCustomerAccount = await _oracleService.GetCustomerAccountBySalesforceAccountId(model.ObjectId);
+                if (!existingCustomerAccount.Item1)
+                {
+                    // TODO: fatal error occurred when sending request to oracle... return badRequest here?
+                    response.OracleStatus = StatusType.Error;
+                    response.OracleErrorMessage = existingCustomerAccount.Item3;
+                    return response;
+                }
             
-            // init our simplified model
-            var customerAccount = new OracleCustomerAccount();
-            // If Customer Account does not exist, create it
-            if (existingCustomerAccount.Item2 == null)
-            {
-                var addedCustomerAccount = await _oracleService.CreateCustomerAccount(organization.PartyId, model, partySites, persons, salesforceTransaction);
-                customerAccount = addedCustomerAccount.Item1;
-                oracleCustomerAccountId = addedCustomerAccount.Item1.CustomerAccountId.ToString();
-            } else // Otherwise, update it
-            {
-                // TODO: include Persons... check for existing Customer Account Contacts before updating Customer Account
-                // TODO: Need a corresponding Id here?
-                var updatedCustomerAccount = await _oracleService.UpdateCustomerAccount(model, salesforceTransaction);
-                oracleCustomerAccountId = existingCustomerAccount.Item2.CustomerAccountId.ToString();
-            }
-            #endregion
+                // init our simplified model
+                var customerAccount = new OracleCustomerAccount();
+                // If Customer Account does not exist, create it
+                if (existingCustomerAccount.Item2 == null)
+                {
+                    var addedCustomerAccount = await _oracleService.CreateCustomerAccount(organization.PartyId, model, partySites, persons, salesforceTransaction);
+                    customerAccount = addedCustomerAccount.Item1;
+                    oracleCustomerAccountId = addedCustomerAccount.Item1.CustomerAccountId.ToString();
+                } else // Otherwise, update it
+                {
+                    var existingAccount = existingCustomerAccount.Item2;
+                    // review the list of Persons
+                    // check for existing Customer Account Contacts to avoid trying to establish a new relationship with an existing Contact
+                    if (existingAccount.Contacts != null && existingAccount.Contacts.Count > 0)
+                    {
+                        foreach (var contact in existingAccount.Contacts)
+                        {
+                            // check to see if a matching person (contact) is found
+                            if (persons.Exists(p => p.OrigSystemReference == contact.OrigSystemReference))
+                            {
+                                // remove the person from the list because they already exist as a contact on the Customer Account
+                                persons.RemoveAll(p => p.OrigSystemReference == contact.OrigSystemReference);
+                            }
+                        }
+                    }
+                    
+                    // update the Customer Account
+                    var updatedCustomerAccount = await _oracleService.UpdateCustomerAccount(existingAccount, model, partySites, persons, salesforceTransaction);
+                    customerAccount = updatedCustomerAccount.Item1;
+                    oracleCustomerAccountId = updatedCustomerAccount.Item1.CustomerAccountId.ToString();
+                }
+                #endregion
 
                 #region Customer Profile
                 // if no Customer Profile exists, this request will return a 500 result (Internal Server Error)... which is super lame.

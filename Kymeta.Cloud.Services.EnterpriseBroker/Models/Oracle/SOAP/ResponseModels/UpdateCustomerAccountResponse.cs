@@ -1,75 +1,77 @@
-﻿using System.Xml.Serialization;
+﻿using System.ComponentModel;
+using System.Xml.Serialization;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.SOAP.ResponseModels;
 
-// NOTE: This code was generated from XML (Oracle Response payload)
-
+// NOTE: Generated code may require at least .NET Framework 4.5 or .NET Core/Standard 2.0.
 /// <remarks/>
 [Serializable]
-[System.ComponentModel.DesignerCategory("code")]
+[DesignerCategory("code")]
 [XmlType(AnonymousType = true, Namespace = "http://schemas.xmlsoap.org/soap/envelope/")]
 [XmlRoot("Envelope", Namespace = "http://schemas.xmlsoap.org/soap/envelope/", IsNullable = false)]
-public class CreateCustomerAccountResponseEnvelope
+public class UpdateCustomerAccountEnvelope
 {
+    /// <remarks/>
+    public UpdateCustomerAccountEnvelopeHeader Header { get; set; }
 
-    [XmlElement("Header")]
-    public CreateCustomerAccountResponseEnvelopeHeader Header { get; set; }
-
-    [XmlElement("Body")]
-    public CreateCustomerAccountResponseEnvelopeBody Body { get; set; }
+    /// <remarks/>
+    public UpdateCustomerAccountEnvelopeBody Body { get; set; }
 }
 
 /// <remarks/>
 [Serializable]
-[System.ComponentModel.DesignerCategory("code")]
+[DesignerCategory("code")]
 [XmlType(AnonymousType = true, Namespace = "http://schemas.xmlsoap.org/soap/envelope/")]
-public class CreateCustomerAccountResponseEnvelopeHeader
+public class UpdateCustomerAccountEnvelopeHeader
 {
-    [XmlElement("Action", Namespace = "http://www.w3.org/2005/08/addressing")]
+    /// <remarks/>
+    [XmlElement(Namespace = "http://www.w3.org/2005/08/addressing")]
     public string Action { get; set; }
 
-    [XmlElement("MessageID", Namespace = "http://www.w3.org/2005/08/addressing")]
+    /// <remarks/>
+    [XmlElement(Namespace = "http://www.w3.org/2005/08/addressing")]
     public string MessageID { get; set; }
 }
 
 /// <remarks/>
 [Serializable]
-[System.ComponentModel.DesignerCategory("code")]
+[DesignerCategory("code")]
 [XmlType(AnonymousType = true, Namespace = "http://schemas.xmlsoap.org/soap/envelope/")]
-public class CreateCustomerAccountResponseEnvelopeBody
-{
-    [XmlElement("createCustomerAccountResponse", Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/applicationModule/types/")]
-    public CreateCustomerAccountResponse createCustomerAccountResponse { get; set; }
-}
-
-/// <remarks/>
-[Serializable]
-[System.ComponentModel.DesignerCategory("code")]
-[XmlType(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/applicationModule/types/")]
-[XmlRoot("result", Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/applicationModule/types/", IsNullable = false)]
-public class CreateCustomerAccountResponse
+public class UpdateCustomerAccountEnvelopeBody
 {
     /// <remarks/>
-    public createCustomerAccountResponseResult result { get; set; }
+    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/applicationModule/types/")]
+    public mergeCustomerAccountResponse mergeCustomerAccountResponse { get; set; }
 }
 
 /// <remarks/>
 [Serializable]
-[System.ComponentModel.DesignerCategory("code")]
+[DesignerCategory("code")]
+[XmlType(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/applicationModule/types/")]
+[XmlRoot("result", Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/applicationModule/types/", IsNullable = false)]
+public class mergeCustomerAccountResponse
+{
+    /// <remarks/>
+    public mergeCustomerAccountResponseResult result { get; set; }
+}
+
+/// <remarks/>
+[Serializable]
+[DesignerCategory("code")]
 [XmlType(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/", TypeName = "CustomerAccountResult")]
-public class createCustomerAccountResponseResult
+public class mergeCustomerAccountResponseResult
 {
     /// <remarks/>
     [XmlElement("Value", Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/")]
-    public CreateCustomerAccountValue Value { get; set; }
+    public UpdateCustomerAccountValue Value { get; set; }
 }
 
 /// <remarks/>
 [Serializable]
-[System.ComponentModel.DesignerCategory("code")]
+[DesignerCategory("code")]
 [XmlType(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/")]
 [XmlRoot(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/", IsNullable = false)]
-public class CreateCustomerAccountValue
+public class UpdateCustomerAccountValue
 {
     /// <remarks/>
     public ulong CustomerAccountId { get; set; }
@@ -110,12 +112,10 @@ public class CreateCustomerAccountValue
     public string Status { get; set; }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
-    public object CustomerType { get; set; }
+    public string CustomerType { get; set; }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
-    public object CustomerClassCode { get; set; }
+    public string CustomerClassCode { get; set; }
 
     /// <remarks/>
     [XmlElement(IsNullable = true)]
@@ -135,11 +135,11 @@ public class CreateCustomerAccountValue
 
     /// <remarks/>
     [XmlElement(DataType = "date")]
-    public DateTime AccountEstablishedDate { get; set; }
+    public System.DateTime AccountEstablishedDate { get; set; }
 
     /// <remarks/>
     [XmlElement(DataType = "date")]
-    public DateTime AccountTerminationDate { get; set; }
+    public System.DateTime AccountTerminationDate { get; set; }
 
     /// <remarks/>
     [XmlElement(IsNullable = true)]
@@ -198,14 +198,14 @@ public class CreateCustomerAccountValue
     public UpdateCustomerAccountValueCustAcctInformation CustAcctInformation { get; set; }
 
     /// <remarks/>
-    public CreateCustomerAccountValueOriginalSystemReference OriginalSystemReference { get; set; }
+    public UpdateCustomerAccountValueCustomerAccountContact[] CustomerAccountContact { get; set; }
 }
 
 /// <remarks/>
 [Serializable]
-[System.ComponentModel.DesignerCategory("code")]
+[DesignerCategory("code")]
 [XmlType(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/")]
-public class ValueCustAcctInformation
+public class UpdateCustomerAccountValueCustAcctInformation
 {
     /// <remarks/>
     [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/flex/custAccount/")]
@@ -222,11 +222,74 @@ public class ValueCustAcctInformation
 
 /// <remarks/>
 [Serializable]
-[System.ComponentModel.DesignerCategory("code")]
+[DesignerCategory("code")]
 [XmlType(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/")]
-public class CreateCustomerAccountValueOriginalSystemReference
+public class UpdateCustomerAccountValueCustomerAccountContact
 {
+    /// <remarks/>
+    public ulong CustomerAccountRoleId { get; set; }
 
+    /// <remarks/>
+    public ulong CustomerAccountId { get; set; }
+
+    /// <remarks/>
+    [XmlElement(IsNullable = true)]
+    public object CustomerAccountSiteId { get; set; }
+
+    /// <remarks/>
+    public bool PrimaryFlag { get; set; }
+
+    /// <remarks/>
+    public string RoleType { get; set; }
+
+    /// <remarks/>
+    public System.DateTime LastUpdateDate { get; set; }
+
+    /// <remarks/>
+    [XmlElement(IsNullable = true)]
+    public object SourceCode { get; set; }
+
+    /// <remarks/>
+    public string LastUpdatedBy { get; set; }
+
+    /// <remarks/>
+    public System.DateTime CreationDate { get; set; }
+
+    /// <remarks/>
+    public string CreatedBy { get; set; }
+
+    /// <remarks/>
+    public string LastUpdateLogin { get; set; }
+
+    /// <remarks/>
+    [XmlElement(IsNullable = true)]
+    public object RequestId { get; set; }
+
+    /// <remarks/>
+    public ulong OrigSystemReference { get; set; }
+
+    /// <remarks/>
+    public string Status { get; set; }
+
+    /// <remarks/>
+    public string CreatedByModule { get; set; }
+
+    /// <remarks/>
+    public ulong RelationshipId { get; set; }
+
+    /// <remarks/>
+    public ulong ContactPersonId { get; set; }
+
+    /// <remarks/>
+    public UpdateCustomerAccountValueCustomerAccountContactOriginalSystemReference OriginalSystemReference { get; set; }
+}
+
+/// <remarks/>
+[Serializable]
+[DesignerCategory("code")]
+[XmlType(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/")]
+public class UpdateCustomerAccountValueCustomerAccountContactOriginalSystemReference
+{
     /// <remarks/>
     [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/")]
     public ulong OrigSystemReferenceId { get; set; }

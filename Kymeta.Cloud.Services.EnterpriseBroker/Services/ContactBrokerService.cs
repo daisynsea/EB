@@ -62,7 +62,7 @@ public class ContactBrokerService : IContactBrokerService
         if (syncToOracle)
         {
             // Get customer account by Salesforce Account Id
-            var customerAccount = await _oracleService.GetCustomerAccountBySalesforceAccountId(model.ParentAccountId, salesforceTransaction);
+            var customerAccount = await _oracleService.GetCustomerAccountBySalesforceAccountId(model.ParentAccountId);
             if (customerAccount == null)
             {
                 response.OracleStatus = StatusType.Error;

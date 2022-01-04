@@ -449,57 +449,64 @@ public static class OracleSoapTemplates
     ///  A template for adding a Contact to a Customer Account in Oracle
     /// </summary>
     /// <returns>SOAP Envelope (payload) for creating updating a Customer Account in Oracle with a new Contact</returns>
-    public static string UpsertCustomerAccount(UpdateOracleCustomerAccountViewModel account, OracleCustomerAccountContact contact)
+    public static string UpsertCustomerAccount(OracleCustomerAccount account, List<OraclePartySite> sites, List<OraclePersonObject> persons)
     {
         // validate the inputs
-        if (string.IsNullOrEmpty(account.CustomerAccountId))
+        if (account.CustomerAccountId == null)
         {
-            throw new ArgumentException($"'{nameof(account.CustomerAccountId)}' cannot be null or empty.", nameof(account.CustomerAccountId));
+            throw new ArgumentException($"'{nameof(account.CustomerAccountId)}' cannot be null.", nameof(account.CustomerAccountId));
         }
-        if (string.IsNullOrEmpty(account.CustomerAccountPartyId))
+        if (account.PartyId == null)
         {
-            throw new ArgumentException($"'{nameof(account.CustomerAccountPartyId)}' cannot be null or empty.", nameof(account.CustomerAccountPartyId));
+            throw new ArgumentException($"'{nameof(account.PartyId)}' cannot be null.", nameof(account.PartyId));
         }
 
         // create the SOAP envelope with a beefy string
         var customerAccountEnvelope =
-            $"<soapenv:Envelope" +
-                "xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"" +
-                "xmlns:cus=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/\"" +
-                "xmlns:cus1=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/flex/custAccountContactRole/\"" +
-                "xmlns:cus2=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/flex/custAccountContact/\"" +
-                "xmlns:cus3=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/flex/custAccountRel/\"" +
-                "xmlns:cus4=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/flex/custAccountSiteUse/\"" +
-                "xmlns:cus5=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/flex/custAccountSite/\"" +
-                "xmlns:cus6=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/flex/custAccount/\"" +
-                "xmlns:par=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/\"" +
-                "xmlns:sour=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/flex/sourceSystemRef/\"" +
+            $"<soapenv:Envelope " +
+                "xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
+                "xmlns:cus=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/\" " +
+                "xmlns:cus1=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/flex/custAccountContactRole/\" " +
+                "xmlns:cus2=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/flex/custAccountContact/\" " +
+                "xmlns:cus3=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/flex/custAccountRel/\" " +
+                "xmlns:cus4=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/flex/custAccountSiteUse/\" " +
+                "xmlns:cus5=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/flex/custAccountSite/\" " +
+                "xmlns:cus6=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/flex/custAccount/\" " +
+                "xmlns:par=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/\" " +
+                "xmlns:sour=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/flex/sourceSystemRef/\" " +
                 "xmlns:typ=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/applicationModule/types/\">" +
                 "<soapenv:Header />" +
                 "<soapenv:Body>" +
                     "<typ:mergeCustomerAccount>" +
                         "<typ:customerAccount>" +
-                            "<cus:OrigSystem>SFDC</cus:OrigSystem>" +
                             $"<cus:CustomerAccountId>{account.CustomerAccountId}</cus:CustomerAccountId>" +
-                            $"<cus:PartyId>{account.CustomerAccountPartyId}</cus:PartyId>" +
-                            "<cus:CreatedByModule>HZ_WS</cus:CreatedByModule>";
-        if (contact != null)
-        {
-            if (!string.IsNullOrEmpty(contact.RelationshipId))
-            {
-                customerAccountEnvelope +=
-                            "<cus:CustomerAccountContact>" +
-                                $"<cus:PrimaryFlag>{contact.IsPrimary}</cus:PrimaryFlag>" +
-                                "<cus:CreatedByModule>HZ_WS</cus:CreatedByModule>" +
-                                $"<cus:RelationshipId>{contact.RelationshipId}</cus:RelationshipId>" + // RelationshipId from the Person response
-                                "<cus:RoleType>CONTACT</cus:RoleType>" +
-                                "<cus:CustomerAccountContactRole>" +
-                                    $"<cus:ResponsibilityType>{contact.ResponsibilityType}</cus:ResponsibilityType>" +
-                                    $"<cus:PrimaryFlag>{contact.IsPrimary}</cus:PrimaryFlag>" +
-                                "</cus:CustomerAccountContactRole>" +
-                            "</cus:CustomerAccountContact>";
-            }
-        }
+                            $"<cus:PartyId>{account.PartyId}</cus:PartyId>" +
+                            $"<cus:CustomerType>{account.AccountType}</cus:CustomerType>" +
+                            $"<cus:CustomerClassCode>{account.AccountSubType}</cus:CustomerClassCode>" +
+                            "<cus:CustAcctInformation>" +
+                                $"<cus6:salesforceId>{account.SalesforceId}</cus6:salesforceId>" +
+                                $"<cus6:ksnId>{account.OssId}</cus6:ksnId>" +
+                            "</cus:CustAcctInformation>";
+        //if (persons != null && persons.Count > 0)
+        //{
+        //    foreach (var contact in persons)
+        //    {
+        //        if (contact.RelationshipId != null)
+        //        {
+        //            customerAccountEnvelope +=
+        //                "<cus:CustomerAccountContact>" +
+        //                    $"<cus:PrimaryFlag>{contact.IsPrimary}</cus:PrimaryFlag>" +
+        //                    "<cus:CreatedByModule>HZ_WS</cus:CreatedByModule>" +
+        //                    $"<cus:RelationshipId>{contact.RelationshipId}</cus:RelationshipId>" + // RelationshipId from the Person response
+        //                    "<cus:RoleType>CONTACT</cus:RoleType>" +
+        //                    "<cus:CustomerAccountContactRole>" +
+        //                        //$"<cus:ResponsibilityType>{contact.ResponsibilityType}</cus:ResponsibilityType>" +
+        //                        $"<cus:PrimaryFlag>{contact.IsPrimary}</cus:PrimaryFlag>" +
+        //                    "</cus:CustomerAccountContactRole>" +
+        //                "</cus:CustomerAccountContact>";
+        //        }
+        //    }
+        //}
         customerAccountEnvelope +=
                         "</typ:customerAccount>" +
                     "</typ:mergeCustomerAccount>" +
@@ -514,7 +521,7 @@ public static class OracleSoapTemplates
     ///  A template for creating a Customer Account Profile object in Oracle
     /// </summary>
     /// <returns>TBD</returns>
-    public static string CreateCustomerProfile(string customerAccountPartyId, uint customerAccountNumber)
+    public static string CreateCustomerProfile(ulong? customerAccountPartyId, uint customerAccountNumber)
     {
         var locationEnvelope =
             $@"<soapenv:Envelope
