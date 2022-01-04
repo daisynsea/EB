@@ -200,7 +200,7 @@ public class AccountBrokerService : IAccountBrokerService
                 // verify we have addresses
                 if (model.Addresses != null && model.Addresses.Count > 0)
                 {
-                    // TODO: find locations by SF Id
+                    // find locations by Enterprise Id
                     var addressIds = model.Addresses.Select(a => a.ObjectId);
                     var locationsResult = await _oracleService.GetLocationBySalesforceAddressId(addressIds.ToList());
                     if (!locationsResult.Item1)
@@ -271,7 +271,11 @@ public class AccountBrokerService : IAccountBrokerService
                                 });
                             }
                         }
+                    }
 
+                    // check to see if we need to create any PartySites for the Organization & Locations
+                    if (partySitesToCreate.Count > 0) 
+                    {
                         // create Organization PartySite (batched into a single request for all Locations)
                         var createPartySitesResult = await _oracleService.CreateOrganizationPartySites(organization.PartyId, partySitesToCreate, salesforceTransaction);
                         if (createPartySitesResult.Item1 == null)

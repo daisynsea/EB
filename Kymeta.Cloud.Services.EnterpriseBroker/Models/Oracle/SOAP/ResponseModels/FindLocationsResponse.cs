@@ -73,9 +73,6 @@ public class FindLocationsValue
 [XmlType(AnonymousType = true, Namespace = "http://schemas.xmlsoap.org/soap/envelope/")]
 public class FindLocationsEnvelopeBody
 {
-
-    private getLocationByOriginalSystemReferenceResponse getLocationByOriginalSystemReferenceResponseField;
-
     /// <remarks/>
     [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/locationService/applicationModule/types/")]
     public getLocationByOriginalSystemReferenceResponse getLocationByOriginalSystemReferenceResponse { get; set; }
