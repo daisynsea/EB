@@ -205,7 +205,15 @@ public class OssService : IOssService
 
         try
         {
-            var updated = await _accountsClient.UpdateAccount(existingAccount.Id.GetValueOrDefault(), new Account { OracleAccountId = oracleId });
+            // construct the payload for the Account update
+            var accountChanges = new Account
+            {
+                ModifiedById = existingUser.Id,
+                ModifiedOn = DateTime.UtcNow,
+                OracleAccountId = oracleId
+            };
+
+            var updated = await _accountsClient.UpdateAccount(existingAccount.Id.GetValueOrDefault(), accountChanges);
             if (!string.IsNullOrEmpty(updated.Item2))
             {
                 error = $"There was an error updating the account oracle Id in OSS: {updated.Item2}";

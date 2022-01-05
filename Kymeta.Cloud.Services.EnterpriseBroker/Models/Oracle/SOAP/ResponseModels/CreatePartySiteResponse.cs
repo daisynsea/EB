@@ -626,8 +626,8 @@ public class PartySiteValuePartySite
     public object Longitude { get; set; }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/")]
-    public PartySitePartySiteUse PartySiteUse { get; set; }
+    [XmlArrayItem("PartySiteUse", Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/")]
+    public PartySitePartySiteUse[] PartySiteUse { get; set; }
 }
 
 /// <remarks/>
@@ -645,10 +645,6 @@ public class PartySitePartySiteUse
     public System.DateTime BeginDate { get; set; }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
-    public object Comments { get; set; }
-
-    /// <remarks/>
     [XmlElement(DataType = "date")]
     public System.DateTime EndDate { get; set; }
 
@@ -657,25 +653,6 @@ public class PartySitePartySiteUse
 
     /// <remarks/>
     public System.DateTime LastUpdateDate { get; set; }
-
-    /// <remarks/>
-    [XmlElement(IsNullable = true)]
-    public object RequestId { get; set; }
-
-    /// <remarks/>
-    public string LastUpdatedBy { get; set; }
-
-    /// <remarks/>
-    public System.DateTime CreationDate { get; set; }
-
-    /// <remarks/>
-    public string CreatedBy { get; set; }
-
-    /// <remarks/>
-    public string LastUpdateLogin { get; set; }
-
-    /// <remarks/>
-    public string IntegrationKey { get; set; }
 
     /// <remarks/>
     public string SiteUseType { get; set; }

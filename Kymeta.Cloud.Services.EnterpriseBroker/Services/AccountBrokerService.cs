@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.SOAP;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.Services;
@@ -225,17 +226,24 @@ public class AccountBrokerService : IAccountBrokerService
                         }
                         else
                         {
-                            // check the Organization PartySites with the address to see if the PartySite has been created already
+                            // check the Organization PartySites with the address to see if the PartySite has been created
                             // if not, add it to the list to create along with any other new Locations
                             var orgPartySite = organization.PartySites?.FirstOrDefault(s => s.OrigSystemReference == address.ObjectId);
                             if (orgPartySite == null)
                             {
+                                // re-map Salesforce values to Oracle models
+                                var siteUseTypes = RemapAddressTypeToOracleSiteUse(address);
+                                // add to the list of Party Sites to create for the current address since it does not have an existing PartySite
                                 partySitesToCreate.Add(new OraclePartySite
                                 {
                                     LocationId = existingLocation.LocationId,
                                     OrigSystemReference = existingLocation.OrigSystemReference,
-                                    SiteUseType = address.Type
+                                    SiteUses = siteUseTypes
                                 });
+                            }
+                            else
+                            {
+                                partySites.Add(orgPartySite);
                             }
                         }
                     }
@@ -262,12 +270,15 @@ public class AccountBrokerService : IAccountBrokerService
                             }
                             else
                             {
+                                // re-map Salesforce values to Oracle models
+                                var siteUseTypes = RemapAddressTypeToOracleSiteUse(address);
+
                                 // Location was created successfully... so add to the list so we can create a Party Site record for it
                                 partySitesToCreate.Add(new OraclePartySite
                                 {
                                     LocationId = result.Item1.LocationId,
                                     OrigSystemReference = result.Item1.OrigSystemReference,
-                                    SiteUseType = address.Type
+                                    SiteUses = siteUseTypes
                                 });
                             }
                         }
@@ -295,19 +306,32 @@ public class AccountBrokerService : IAccountBrokerService
                 // create empty list of persons to track new additions
                 var persons = new List<OraclePersonObject>();
 
+                // TODO: getPersonByOriginalSystemReference
+
                 // verify we have contacts
                 if (model.Contacts != null && model.Contacts.Count > 0)
                 {
+                    // find Persons by Enterprise Id
+                    var contactIds = model.Contacts?.Select(a => a.ObjectId);
+                    var personsResult = await _oracleService.GetPersonsBySalesforceContactId(contactIds.ToList());
+                    if (!personsResult.Item1)
+                    {
+                        // TODO: fatal error occurred when sending request to oracle... return badRequest here?
+                        response.OracleStatus = StatusType.Error;
+                        response.OracleErrorMessage = personsResult.Item3;
+                        return response;
+                    }
+
                     // create a Person for each contact
                     foreach (var contact in model.Contacts)
                     {
-                        // check the Organization Contacts with the contact to see if it has been created already
-                        var orgContact = organization.Contacts?.FirstOrDefault(s => s.OrigSystemReference == contact.ObjectId);
-                        if (orgContact == null)
+                        // check the found Persons with the contact to see if they have been created already
+                        var existingContact = personsResult.Item2?.FirstOrDefault(l => l.OrigSystemReference == contact.ObjectId);
+                        if (existingContact == null)
                         {
                             // create Person requests as a list of tasks to run async (outside of the loop)
                             // unable to use Task.WhenAll because Oracle is complaining... response from Oracle:
-                            // JBO-26092: Failed to lock the record in table HZ_ORGANIZATION_PROFILES with key oracle.jbo.Key[300000100251313 ], another user holds the lock.
+                            // JBO-26092: Failed to lock the record in table HZ_ORGANIZATION_PROFILES with key oracle.jbo.Key[300000100251313], another user holds the lock.
                             var addedPersonResult = await _oracleService.CreatePerson(contact, organization.PartyId.ToString(), salesforceTransaction);
                             if (addedPersonResult.Item1 == null)
                             {
@@ -323,7 +347,8 @@ public class AccountBrokerService : IAccountBrokerService
                         else
                         {
                             // TODO: update Person? do nothing?
-                            // TODO: add to `persons` so we can check Customer Account?
+                            // add to `persons` list so we can check Customer Account to ensure the Customer Account Contact exists (or create it)
+                            persons.Add(existingContact);
                         }
                     }
                 }
@@ -346,9 +371,17 @@ public class AccountBrokerService : IAccountBrokerService
                 if (existingCustomerAccount.Item2 == null)
                 {
                     var addedCustomerAccount = await _oracleService.CreateCustomerAccount(organization.PartyId, model, partySites, persons, salesforceTransaction);
+                    if (addedCustomerAccount.Item1 == null)
+                    {
+                        // error creating the Customer Account.... indicate failure
+                        response.OracleStatus = StatusType.Error;
+                        response.OracleErrorMessage = addedCustomerAccount.Item2;
+                        return response;
+                    }
                     customerAccount = addedCustomerAccount.Item1;
                     oracleCustomerAccountId = addedCustomerAccount.Item1.CustomerAccountId.ToString();
-                } else // Otherwise, update it
+                } 
+                else // Otherwise, update it
                 {
                     var existingAccount = existingCustomerAccount.Item2;
                     // review the list of Persons
@@ -365,7 +398,21 @@ public class AccountBrokerService : IAccountBrokerService
                             }
                         }
                     }
-                    
+
+                    // review list of PartySites/Locations to see if we need to create Customer Account Site records
+                    if (existingAccount.Sites != null && existingAccount.Sites.Count > 0)
+                    {
+                        foreach (var site in existingAccount.Sites)
+                        {
+                            // check to see if the this site already has been established as a Customer Account Site
+                            if (partySites.Exists(ps => ps.OrigSystemReference == site.OrigSystemReference))
+                            {
+                                // remove the partySite from the list because it already exists and doesn't need to be added again
+                                partySites.RemoveAll(ps => ps.OrigSystemReference == site.OrigSystemReference);
+                            }
+                        }
+                    }
+
                     // update the Customer Account
                     var updatedCustomerAccount = await _oracleService.UpdateCustomerAccount(existingAccount, model, partySites, persons, salesforceTransaction);
                     customerAccount = updatedCustomerAccount.Item1;
@@ -437,5 +484,28 @@ public class AccountBrokerService : IAccountBrokerService
         await _actionsRepository.UpdateActionRecord(salesforceTransaction);
 
         return response;
+    }
+
+    private List<OraclePartySiteUse> RemapAddressTypeToOracleSiteUse(SalesforceAddressModel address)
+    {
+        // if no Address, then return empty list
+        if (address == null) return new List<OraclePartySiteUse>();
+
+        // calculate SiteUseTypes (there can be multiple purposes (billing & shipping)
+        var decodedType = OracleSoapTemplates.DecodeEncodedNonAsciiCharacters(address.Type);
+        var siteUseTypes = new List<OraclePartySiteUse>();
+        switch (decodedType.ToLower())
+        {
+            case "billing & shipping":
+                siteUseTypes.Add(new OraclePartySiteUse { SiteUseType = OracleSoapTemplates.AddressType.BILL_TO.ToString() });
+                siteUseTypes.Add(new OraclePartySiteUse { SiteUseType = OracleSoapTemplates.AddressType.SHIP_TO.ToString() });
+                break;
+            case "shipping":
+                siteUseTypes.Add(new OraclePartySiteUse { SiteUseType = OracleSoapTemplates.AddressType.SHIP_TO.ToString() });
+                break;
+            default:
+                break;
+        }
+        return siteUseTypes;
     }
 }

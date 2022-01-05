@@ -100,11 +100,11 @@ public class FindCustomerAccountValue
 
     /// <remarks/>
     [XmlElement("CustomerAccountContact")]
-    public FindCustomerAccountValueCustomerAccountContact[] CustomerAccountContacts { get; set; }
+    public FindCustomerAccountValueCustomerAccountContact[]? CustomerAccountContacts { get; set; }
 
     /// <remarks/>
     [XmlElement("CustomerAccountSite")]
-    public FindCustomerAccountValueCustomerAccountSite[] CustomerAccountSites { get; set; }
+    public FindCustomerAccountValueCustomerAccountSite[]? CustomerAccountSites { get; set; }
 }
 
 /// <remarks/>

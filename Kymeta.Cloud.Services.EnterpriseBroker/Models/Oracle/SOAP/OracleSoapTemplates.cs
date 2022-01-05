@@ -1,4 +1,6 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Globalization;
+using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.SOAP;
 
@@ -226,11 +228,19 @@ public static class OracleSoapTemplates
                             "<ns2:PartySite xmlns:ns3=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/\">" +
                                 $"<ns3:LocationId>{ps.LocationId}</ns3:LocationId>" +
                                 $"<ns3:OrigSystemReference>{ps.OrigSystemReference}</ns3:OrigSystemReference>" +
-                                "<ns3:CreatedByModule>HZ_WS</ns3:CreatedByModule>" +
-                                "<ns3:PartySiteUse>" +
-                                    $"<ns3:SiteUseType>{ps.SiteUseType}</ns3:SiteUseType>" +
-                                    "<ns3:CreatedByModule>HZ_WS</ns3:CreatedByModule>" +
-                                "</ns3:PartySiteUse>" +
+                                "<ns3:CreatedByModule>HZ_WS</ns3:CreatedByModule>";
+            if (ps.SiteUses != null)
+            {
+                foreach (var siteUse in ps.SiteUses)
+                {
+                    locationEnvelope +=
+                                    "<ns3:PartySiteUse>" +
+                                        $"<ns3:SiteUseType>{siteUse.SiteUseType}</ns3:SiteUseType>" +
+                                        "<ns3:CreatedByModule>HZ_WS</ns3:CreatedByModule>" +
+                                    "</ns3:PartySiteUse>";
+                }
+            }
+            locationEnvelope +=
                             "</ns2:PartySite>";
         }
 
@@ -244,6 +254,67 @@ public static class OracleSoapTemplates
     #endregion
 
     #region Person
+    /// <summary>
+    ///  A template for finding Persons in Oracle based on Enterprise Id.
+    /// </summary>
+    /// <returns>TBD</returns>
+    public static string FindPersons(List<string> contactIds)
+    {
+        if (contactIds == null || contactIds.Count == 0) return null;
+
+        var findPersonsEnvelope =
+            $@"<soap:Envelope
+	            xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/""
+	            xmlns:find=""http://xmlns.oracle.com/adf/svc/types/""
+	            xmlns:typ=""http://xmlns.oracle.com/apps/cdm/foundation/parties/personService/applicationModule/types/"">
+	            <soap:Body>
+		            <typ:findPerson>
+			            <typ:findCriteria>
+				            <find:fetchStart>0</find:fetchStart>
+				            <find:fetchSize>-1</find:fetchSize>
+				            <find:filter>
+					            <find:conjunction/>
+					            <find:group>
+						            <find:conjunction/>
+						            <find:upperCaseCompare>false</find:upperCaseCompare>";
+        foreach (var contactId in contactIds)
+        {
+            findPersonsEnvelope +=
+                                    @$"<find:item>
+							            <find:conjunction>Or</find:conjunction>
+							            <find:upperCaseCompare>false</find:upperCaseCompare>
+							            <find:attribute>OrigSystemReference</find:attribute>
+							            <find:operator>=</find:operator>
+							            <find:value>{contactId}</find:value>
+						            </find:item>";
+        }
+
+        findPersonsEnvelope +=
+                                @$"</find:group>
+				            </find:filter>
+				            <find:findAttribute>PartyId</find:findAttribute>
+				            <find:findAttribute>OrigSystemReference</find:findAttribute>
+				            <find:findAttribute>PartyName</find:findAttribute>
+				            <find:findAttribute>PersonFirstName</find:findAttribute>
+				            <find:findAttribute>PersonLastName</find:findAttribute>
+				            <find:findAttribute>EmailAddress</find:findAttribute>
+ 				            <find:findAttribute>Relationship</find:findAttribute>
+				            <find:childFindCriteria>
+					            <find:fetchStart>0</find:fetchStart>
+					            <find:fetchSize>-1</find:fetchSize>
+					            <find:childAttrName>Relationship</find:childAttrName>
+					            <find:findAttribute>RelationshipId</find:findAttribute>
+					            <find:findAttribute>ObjectId</find:findAttribute>
+					            <find:findAttribute>ObjectType</find:findAttribute>
+				            </find:childFindCriteria>
+				            <find:excludeAttribute>false</find:excludeAttribute>
+			            </typ:findCriteria>
+		            </typ:findPerson>
+	            </soap:Body>
+            </soap:Envelope>";
+        return findPersonsEnvelope;
+    }
+
     /// <summary>
     ///  A template for creating a Person object in Oracle
     /// </summary>
@@ -411,7 +482,6 @@ public static class OracleSoapTemplates
         return findCustomerAccountEnvelope;
     }
 
-
     /// <summary>
     ///  A template for creating a Customer Account object in Oracle
     /// </summary>
@@ -454,6 +524,8 @@ public static class OracleSoapTemplates
                             $"<cus:PartySiteId>{site.PartySiteId}</cus:PartySiteId>" +
                             "<cus:CreatedByModule>HZ_WS</cus:CreatedByModule>" +
                             "<cus:SetId>300000001127004</cus:SetId>" +
+                            "<cus:OrigSystem>SFDC</cus:OrigSystem>" +
+                            $"<cus:OrigSystemReference>{site.OrigSystemReference}</cus:OrigSystemReference>" +
                             "<cus:CustomerAccountSiteUse>" +
                                 "<cus:SiteUseCode>BILL_TO</cus:SiteUseCode>" +
                                 "<cus:CreatedByModule>HZ_WS</cus:CreatedByModule>" +
@@ -479,13 +551,8 @@ public static class OracleSoapTemplates
                             "<cus:RoleType>CONTACT</cus:RoleType>" +
                             "<cus:CreatedByModule>HZ_WS</cus:CreatedByModule>" +
                             $"<cus:RelationshipId>{person.RelationshipId}</cus:RelationshipId>" +
+                            "<cus:OrigSystem>SFDC</cus:OrigSystem>" +
                             $"<cus:OrigSystemReference>{person.OrigSystemReference}</cus:OrigSystemReference>" +
-                            "<cus:OriginalSystemReference>" +
-                                "<par:OrigSystem>SFDC</par:OrigSystem>" +
-                                $"<par:OrigSystemReference>{person.OrigSystemReference}</par:OrigSystemReference>" +
-                                "<par:OwnerTableName>HZ_CUST_ACCOUNT_ROLES</par:OwnerTableName>" +
-                                "<par:CreatedByModule>HZ_WS</par:CreatedByModule>" +
-                            "</cus:OriginalSystemReference>" +
                         "</cus:CustomerAccountContact>";
             }
         }
@@ -541,26 +608,59 @@ public static class OracleSoapTemplates
                                 $"<cus6:salesforceId>{account.SalesforceId}</cus6:salesforceId>" +
                                 $"<cus6:ksnId>{account.OssId}</cus6:ksnId>" +
                             "</cus:CustAcctInformation>";
-        //if (persons != null && persons.Count > 0)
-        //{
-        //    foreach (var contact in persons)
-        //    {
-        //        if (contact.RelationshipId != null)
-        //        {
-        //            customerAccountEnvelope +=
-        //                "<cus:CustomerAccountContact>" +
-        //                    $"<cus:PrimaryFlag>{contact.IsPrimary}</cus:PrimaryFlag>" +
-        //                    "<cus:CreatedByModule>HZ_WS</cus:CreatedByModule>" +
-        //                    $"<cus:RelationshipId>{contact.RelationshipId}</cus:RelationshipId>" + // RelationshipId from the Person response
-        //                    "<cus:RoleType>CONTACT</cus:RoleType>" +
-        //                    "<cus:CustomerAccountContactRole>" +
-        //                        //$"<cus:ResponsibilityType>{contact.ResponsibilityType}</cus:ResponsibilityType>" +
-        //                        $"<cus:PrimaryFlag>{contact.IsPrimary}</cus:PrimaryFlag>" +
-        //                    "</cus:CustomerAccountContactRole>" +
-        //                "</cus:CustomerAccountContact>";
-        //        }
-        //    }
-        //}
+
+        // update Customer Account Contacts
+        if (persons != null && persons.Count > 0)
+        {
+            foreach (var person in persons)
+            {
+                if (person.RelationshipId != null)
+                {
+                    customerAccountEnvelope +=
+                            "<cus:CustomerAccountContact>" +
+                                $"<cus:PrimaryFlag>{person.IsPrimary}</cus:PrimaryFlag>" +
+                                "<cus:CreatedByModule>HZ_WS</cus:CreatedByModule>" +
+                                $"<cus:RelationshipId>{person.RelationshipId}</cus:RelationshipId>" + // RelationshipId from the Person response
+                                "<cus:RoleType>CONTACT</cus:RoleType>" +
+                                //"<cus:CustomerAccountContactRole>" +
+                                //    //$"<cus:ResponsibilityType>{person.ResponsibilityType}</cus:ResponsibilityType>" +
+                                //    $"<cus:PrimaryFlag>{person.IsPrimary}</cus:PrimaryFlag>" +
+                                //"</cus:CustomerAccountContactRole>" +
+                            "</cus:CustomerAccountContact>";
+                }
+            }
+        }
+
+        // update Customer Account Sites
+        if (sites != null && sites.Count > 0)
+        {
+            foreach (var site in sites)
+            {
+                // TODO: invesitgate SetId and how it should flow to here... there are two options AFAIK (Kymeta, KGS)
+                // TODO: see how critical it is to differentiate
+                customerAccountEnvelope +=
+                            $@"<cus:CustomerAccountSite>
+								<cus:PartySiteId>{site.PartySiteId}</cus:PartySiteId>
+								<cus:CustomerAccountId>{account.CustomerAccountId}</cus:CustomerAccountId>
+								<cus:CreatedByModule>HZ_WS</cus:CreatedByModule>
+								<cus:SetId>300000001127004</cus:SetId>
+								<cus:OrigSystemReference>{site.OrigSystemReference}</cus:OrigSystemReference>";
+
+                if (site.SiteUses != null)
+                {
+                    foreach (var siteUse in site.SiteUses)
+                    {
+                        customerAccountEnvelope +=
+                                        @$"<cus:CustomerAccountSiteUse>
+									        <cus:SiteUseCode>{siteUse.SiteUseType}</cus:SiteUseCode>
+									        <cus:CreatedByModule>HZ_WS</cus:CreatedByModule>
+								        </cus:CustomerAccountSiteUse>";
+                    }
+                }
+                customerAccountEnvelope +=
+                            "</cus:CustomerAccountSite>";
+            }
+        }
         customerAccountEnvelope +=
                         "</typ:customerAccount>" +
                     "</typ:mergeCustomerAccount>" +
@@ -631,6 +731,13 @@ public static class OracleSoapTemplates
         SHIP_TO
     }
 
+    public static readonly Dictionary<string, string> SiteUseTypes = new()
+    {
+        { "Billing & Shipping", "300000001127004" },
+        { "Billing", "300000001127004" },
+        { "Shipping", "300000001127004" }
+    };
+
     public static readonly Dictionary<string, string> AddressSetIds = new()
     {
         { "kymeta", "300000001127004" },
@@ -676,5 +783,15 @@ public static class OracleSoapTemplates
         { "Legal Svcs", "LEGAL SVCS" },
         { "Other", "OTHER" }
     };
+
+    public static string DecodeEncodedNonAsciiCharacters(string value)
+    {
+        return Regex.Replace(
+            value,
+            @"\\u(?<Value>[a-zA-Z0-9]{4})",
+            m => {
+                return ((char)int.Parse(m.Groups["Value"].Value, NumberStyles.HexNumber)).ToString();
+            });
+    }
     #endregion
 }

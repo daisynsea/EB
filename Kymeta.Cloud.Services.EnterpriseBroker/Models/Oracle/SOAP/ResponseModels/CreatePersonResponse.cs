@@ -3,15 +3,13 @@ using System.Xml.Serialization;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.SOAP.ResponseModels;
 
-
-
 // NOTE: Generated code may require at least .NET Framework 4.5 or .NET Core/Standard 2.0.
 /// <remarks/>
-[Serializable]
-[DesignerCategory("code")]
-[XmlType(AnonymousType = true, Namespace = "http://schemas.xmlsoap.org/soap/envelope/")]
-[XmlRoot("Envelope", Namespace = "http://schemas.xmlsoap.org/soap/envelope/", IsNullable = false)]
-public class CreatePersonEnvelope
+[System.SerializableAttribute()]
+[System.ComponentModel.DesignerCategoryAttribute("code")]
+[System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://schemas.xmlsoap.org/soap/envelope/")]
+[System.Xml.Serialization.XmlRootAttribute("Envelope", Namespace = "http://schemas.xmlsoap.org/soap/envelope/", IsNullable = false)]
+public partial class CreatePersonEnvelope
 {
 
     private CreatePersonEnvelopeHeader headerField;
@@ -46,10 +44,10 @@ public class CreatePersonEnvelope
 }
 
 /// <remarks/>
-[Serializable]
-[DesignerCategory("code")]
-[XmlType(AnonymousType = true, Namespace = "http://schemas.xmlsoap.org/soap/envelope/")]
-public class CreatePersonEnvelopeHeader
+[System.SerializableAttribute()]
+[System.ComponentModel.DesignerCategoryAttribute("code")]
+[System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://schemas.xmlsoap.org/soap/envelope/")]
+public partial class CreatePersonEnvelopeHeader
 {
 
     private string actionField;
@@ -57,7 +55,7 @@ public class CreatePersonEnvelopeHeader
     private string messageIDField;
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://www.w3.org/2005/08/addressing")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://www.w3.org/2005/08/addressing")]
     public string Action
     {
         get
@@ -71,7 +69,7 @@ public class CreatePersonEnvelopeHeader
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://www.w3.org/2005/08/addressing")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://www.w3.org/2005/08/addressing")]
     public string MessageID
     {
         get
@@ -86,16 +84,17 @@ public class CreatePersonEnvelopeHeader
 }
 
 /// <remarks/>
-[Serializable]
-[DesignerCategory("code")]
-[XmlType(AnonymousType = true, Namespace = "http://schemas.xmlsoap.org/soap/envelope/")]
-public class CreatePersonEnvelopeBody
+[System.SerializableAttribute()]
+[System.ComponentModel.DesignerCategoryAttribute("code")]
+[System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://schemas.xmlsoap.org/soap/envelope/")]
+public partial class CreatePersonEnvelopeBody
 {
 
     private createPersonResponse createPersonResponseField;
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/personService/applicationModule/types/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/personService/applicationModu" +
+        "le/types/")]
     public createPersonResponse createPersonResponse
     {
         get
@@ -110,11 +109,11 @@ public class CreatePersonEnvelopeBody
 }
 
 /// <remarks/>
-[Serializable]
-[DesignerCategory("code")]
-[XmlType(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/personService/applicationModule/types/")]
-[XmlRoot("result", Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/personService/applicationModule/types/", IsNullable = false)]
-public class createPersonResponse
+[System.SerializableAttribute()]
+[System.ComponentModel.DesignerCategoryAttribute("code")]
+[System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/personService/applicationModule/types/")]
+[System.Xml.Serialization.XmlRootAttribute("result", Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/personService/applicationModule/types/", IsNullable = false)]
+public partial class createPersonResponse
 {
 
     private createPersonResponseResult resultField;
@@ -134,16 +133,16 @@ public class createPersonResponse
 }
 
 /// <remarks/>
-[Serializable]
-[DesignerCategory("code")]
-[XmlType(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/personService/", TypeName = "PersonResult")]
-public class createPersonResponseResult
+[System.SerializableAttribute()]
+[System.ComponentModel.DesignerCategoryAttribute("code")]
+[System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/personService/", TypeName = "PersonResult")]
+public partial class createPersonResponseResult
 {
 
     private CreatePersonValue valueField;
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/personService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/personService/")]
     public CreatePersonValue Value
     {
         get
@@ -158,11 +157,11 @@ public class createPersonResponseResult
 }
 
 /// <remarks/>
-[Serializable]
-[DesignerCategory("code")]
-[XmlType(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/personService/")]
-[XmlRoot(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/personService/", IsNullable = false)]
-public class CreatePersonValue
+[System.SerializableAttribute()]
+[System.ComponentModel.DesignerCategoryAttribute("code")]
+[System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/personService/")]
+[System.Xml.Serialization.XmlRootAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/personService/", IsNullable = false)]
+public partial class CreatePersonValue
 {
 
     private ulong partyIdField;
@@ -259,13 +258,13 @@ public class CreatePersonValue
 
     private ulong primaryPhoneContactPTIdField;
 
-    private byte primaryPhoneCountryCodeField;
+    private object primaryPhoneCountryCodeField;
 
     private string primaryPhoneLineTypeField;
 
     private string primaryPhoneNumberField;
 
-    private byte primaryPhoneAreaCodeField;
+    private object primaryPhoneAreaCodeField;
 
     private object preferredContactMethodField;
 
@@ -368,7 +367,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object ValidatedFlag
     {
         get
@@ -421,7 +420,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object RequestId
     {
         get
@@ -474,7 +473,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object SICCode
     {
         get
@@ -488,7 +487,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object JgzzFiscalCode
     {
         get
@@ -515,7 +514,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PersonPreNameAdjunct
     {
         get
@@ -542,7 +541,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PersonMiddleName
     {
         get
@@ -556,7 +555,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PersonTitle
     {
         get
@@ -570,7 +569,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PersonNameSuffix
     {
         get
@@ -584,7 +583,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PersonPreviousLastName
     {
         get
@@ -598,7 +597,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PersonAcademicTitle
     {
         get
@@ -612,7 +611,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object Country
     {
         get
@@ -626,7 +625,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object Address2
     {
         get
@@ -640,7 +639,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object Address1
     {
         get
@@ -654,7 +653,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object Address4
     {
         get
@@ -668,7 +667,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object Address3
     {
         get
@@ -682,7 +681,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PostalCode
     {
         get
@@ -696,7 +695,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object City
     {
         get
@@ -710,7 +709,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object Province
     {
         get
@@ -724,7 +723,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object State
     {
         get
@@ -738,7 +737,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object County
     {
         get
@@ -765,7 +764,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object URL
     {
         get
@@ -779,7 +778,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object SICCodeType
     {
         get
@@ -806,7 +805,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object GSAIndicatorFlag
     {
         get
@@ -820,7 +819,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object LanguageName
     {
         get
@@ -834,7 +833,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object MissionStatement
     {
         get
@@ -848,7 +847,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object CategoryCode
     {
         get
@@ -862,7 +861,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object ThirdPartyFlag
     {
         get
@@ -876,7 +875,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object Salutation
     {
         get
@@ -903,7 +902,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object CertReasonCode
     {
         get
@@ -917,7 +916,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object CertificationLevel
     {
         get
@@ -931,7 +930,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PrimaryPhonePurpose
     {
         get
@@ -958,7 +957,8 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    public byte PrimaryPhoneCountryCode
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
+    public object PrimaryPhoneCountryCode
     {
         get
         {
@@ -997,7 +997,8 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    public byte PrimaryPhoneAreaCode
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
+    public object PrimaryPhoneAreaCode
     {
         get
         {
@@ -1010,7 +1011,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PreferredContactMethod
     {
         get
@@ -1024,7 +1025,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PrimaryPhoneExtension
     {
         get
@@ -1038,7 +1039,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object IdenAddrLocationId
     {
         get
@@ -1065,7 +1066,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object IdenAddrPartySiteId
     {
         get
@@ -1079,7 +1080,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PersonLastNamePrefix
     {
         get
@@ -1093,7 +1094,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PrimaryURLContactPTId
     {
         get
@@ -1107,7 +1108,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PreferredName
     {
         get
@@ -1121,7 +1122,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PersonSecondLastName
     {
         get
@@ -1135,7 +1136,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PreferredNameId
     {
         get
@@ -1149,7 +1150,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PreferredContactPersonId
     {
         get
@@ -1176,7 +1177,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PreferredFunctionalCurrency
     {
         get
@@ -1190,7 +1191,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object Gender
     {
         get
@@ -1204,7 +1205,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object MaritalStatus
     {
         get
@@ -1218,7 +1219,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object Comments
     {
         get
@@ -1232,7 +1233,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object DateOfBirth
     {
         get
@@ -1246,7 +1247,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object UserGUID
     {
         get
@@ -1299,7 +1300,7 @@ public class CreatePersonValue
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object SourceSystemUpdateDate
     {
         get
@@ -1340,10 +1341,10 @@ public class CreatePersonValue
 }
 
 /// <remarks/>
-[Serializable]
-[DesignerCategory("code")]
-[XmlType(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/personService/")]
-public class CreatePersonValuePersonProfile
+[System.SerializableAttribute()]
+[System.ComponentModel.DesignerCategoryAttribute("code")]
+[System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/personService/")]
+public partial class CreatePersonValuePersonProfile
 {
 
     private ulong personProfileIdField;
@@ -1480,7 +1481,7 @@ public class CreatePersonValuePersonProfile
 
     private object primaryFormattedAddressField;
 
-    private string primaryFormattedPhoneNumberField;
+    private uint primaryFormattedPhoneNumberField;
 
     private object primaryLanguageField;
 
@@ -1502,11 +1503,11 @@ public class CreatePersonValuePersonProfile
 
     private ulong primaryEmailIdField;
 
-    private byte primaryPhoneAreaCodeField;
+    private object primaryPhoneAreaCodeField;
 
     private ulong primaryPhoneIdField;
 
-    private byte primaryPhoneCountryCodeField;
+    private object primaryPhoneCountryCodeField;
 
     private object primaryPhoneExtensionField;
 
@@ -1679,7 +1680,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object RequestId
     {
         get
@@ -1693,7 +1694,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PersonPreNameAdjunct
     {
         get
@@ -1720,7 +1721,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PersonMiddleName
     {
         get
@@ -1747,7 +1748,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PersonNameSuffix
     {
         get
@@ -1761,7 +1762,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PersonTitle
     {
         get
@@ -1775,7 +1776,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PersonAcademicTitle
     {
         get
@@ -1789,7 +1790,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PersonPreviousLastName
     {
         get
@@ -1803,7 +1804,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PersonInitials
     {
         get
@@ -1817,7 +1818,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object JgzzFiscalCode
     {
         get
@@ -1831,7 +1832,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object DateOfBirth
     {
         get
@@ -1845,7 +1846,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PlaceOfBirth
     {
         get
@@ -1859,7 +1860,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object DateOfDeath
     {
         get
@@ -1873,7 +1874,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object Gender
     {
         get
@@ -1887,7 +1888,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object DeclaredEthnicity
     {
         get
@@ -1901,7 +1902,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object MaritalStatus
     {
         get
@@ -1915,7 +1916,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object MaritalStatusEffectiveDate
     {
         get
@@ -1929,7 +1930,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PersonalIncomeAmount
     {
         get
@@ -1943,7 +1944,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object RentOwnInd
     {
         get
@@ -1957,7 +1958,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object LastKnownGPS
     {
         get
@@ -1971,7 +1972,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(DataType = "date")]
+    [System.Xml.Serialization.XmlElementAttribute(DataType = "date")]
     public System.DateTime EffectiveStartDate
     {
         get
@@ -1985,7 +1986,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(DataType = "date")]
+    [System.Xml.Serialization.XmlElementAttribute(DataType = "date")]
     public System.DateTime EffectiveEndDate
     {
         get
@@ -2051,7 +2052,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object Comments
     {
         get
@@ -2065,7 +2066,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PersonLastNamePrefix
     {
         get
@@ -2079,7 +2080,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PersonSecondLastName
     {
         get
@@ -2093,7 +2094,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PreferredFunctionalCurrency
     {
         get
@@ -2107,7 +2108,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object OrigSystem
     {
         get
@@ -2147,7 +2148,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object HeadOfHouseholdFlag
     {
         get
@@ -2161,7 +2162,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object HouseholdIncomeAmount
     {
         get
@@ -2175,7 +2176,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object HouseholdSize
     {
         get
@@ -2215,7 +2216,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object UniqueNameSuffix
     {
         get
@@ -2281,7 +2282,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object Salutation
     {
         get
@@ -2295,7 +2296,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object CertReasonCode
     {
         get
@@ -2309,7 +2310,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object CertificationLevel
     {
         get
@@ -2323,7 +2324,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PreferredContactMethod
     {
         get
@@ -2337,7 +2338,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PreferredContactPersonId
     {
         get
@@ -2351,7 +2352,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PrimaryAddressLine1
     {
         get
@@ -2365,7 +2366,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PrimaryAddressLine2
     {
         get
@@ -2379,7 +2380,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PrimaryAddressLine3
     {
         get
@@ -2393,7 +2394,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PrimaryAddressLine4
     {
         get
@@ -2407,7 +2408,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object Alias
     {
         get
@@ -2421,7 +2422,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PrimaryAddressCity
     {
         get
@@ -2435,7 +2436,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PrimaryAddressCountry
     {
         get
@@ -2449,7 +2450,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PrimaryAddressCounty
     {
         get
@@ -2476,7 +2477,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PrimaryFormattedAddress
     {
         get
@@ -2490,7 +2491,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    public string PrimaryFormattedPhoneNumber
+    public uint PrimaryFormattedPhoneNumber
     {
         get
         {
@@ -2503,7 +2504,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PrimaryLanguage
     {
         get
@@ -2530,7 +2531,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PrimaryAddressPostalCode
     {
         get
@@ -2544,7 +2545,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PreferredContactEmail
     {
         get
@@ -2558,7 +2559,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PreferredContactName
     {
         get
@@ -2572,7 +2573,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PreferredContactPhone
     {
         get
@@ -2586,7 +2587,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PreferredContactURL
     {
         get
@@ -2600,7 +2601,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PreferredName
     {
         get
@@ -2614,7 +2615,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PreferredNameId
     {
         get
@@ -2641,7 +2642,8 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    public byte PrimaryPhoneAreaCode
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
+    public object PrimaryPhoneAreaCode
     {
         get
         {
@@ -2667,7 +2669,8 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    public byte PrimaryPhoneCountryCode
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
+    public object PrimaryPhoneCountryCode
     {
         get
         {
@@ -2680,7 +2683,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PrimaryPhoneExtension
     {
         get
@@ -2720,7 +2723,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PrimaryPhonePurpose
     {
         get
@@ -2734,7 +2737,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PrimaryWebId
     {
         get
@@ -2748,7 +2751,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object Pronunciation
     {
         get
@@ -2762,7 +2765,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PrimaryAddressProvince
     {
         get
@@ -2776,7 +2779,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PrimaryAddressState
     {
         get
@@ -2790,7 +2793,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PrimaryURL
     {
         get
@@ -2804,7 +2807,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object ValidatedFlag
     {
         get
@@ -2818,7 +2821,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PrimaryAddressLatitude
     {
         get
@@ -2832,7 +2835,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PrimaryAddressLongitude
     {
         get
@@ -2872,7 +2875,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object Distance
     {
         get
@@ -2886,7 +2889,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object SalesAffinityCode
     {
         get
@@ -2900,7 +2903,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object SalesBuyingRoleCode
     {
         get
@@ -2914,7 +2917,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object DepartmentCode
     {
         get
@@ -2928,7 +2931,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object Department
     {
         get
@@ -2942,7 +2945,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object JobTitleCode
     {
         get
@@ -2956,7 +2959,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object JobTitle
     {
         get
@@ -3022,7 +3025,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object LastContactDate
     {
         get
@@ -3101,7 +3104,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object DataCloudStatus
     {
         get
@@ -3115,7 +3118,7 @@ public class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object LastEnrichmentDate
     {
         get
@@ -3130,10 +3133,10 @@ public class CreatePersonValuePersonProfile
 }
 
 /// <remarks/>
-[Serializable]
-[DesignerCategory("code")]
-[XmlType(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/personService/")]
-public class CreatePersonValueRelationship
+[System.SerializableAttribute()]
+[System.ComponentModel.DesignerCategoryAttribute("code")]
+[System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/personService/")]
+public partial class CreatePersonValueRelationship
 {
 
     private ulong relationshipRecIdField;
@@ -3275,7 +3278,7 @@ public class CreatePersonValueRelationship
     private CreatePersonEmail emailField;
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
     public ulong RelationshipRecId
     {
         get
@@ -3289,7 +3292,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
     public ulong RelationshipId
     {
         get
@@ -3303,7 +3306,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
     public ulong SubjectId
     {
         get
@@ -3317,7 +3320,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
     public string SubjectType
     {
         get
@@ -3331,7 +3334,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
     public string SubjectTableName
     {
         get
@@ -3345,7 +3348,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
     public ulong ObjectId
     {
         get
@@ -3359,7 +3362,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
     public string ObjectType
     {
         get
@@ -3373,7 +3376,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
     public string ObjectTableName
     {
         get
@@ -3387,7 +3390,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
     public string RelationshipCode
     {
         get
@@ -3401,7 +3404,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
     public string RelationshipType
     {
         get
@@ -3415,7 +3418,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
     public string Role
     {
         get
@@ -3429,7 +3432,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
     public object Comments
     {
         get
@@ -3443,7 +3446,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", DataType = "date")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", DataType = "date")]
     public System.DateTime StartDate
     {
         get
@@ -3457,7 +3460,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", DataType = "date")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", DataType = "date")]
     public System.DateTime EndDate
     {
         get
@@ -3471,7 +3474,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
     public string Status
     {
         get
@@ -3485,7 +3488,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
     public string CreatedBy
     {
         get
@@ -3499,7 +3502,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
     public System.DateTime CreationDate
     {
         get
@@ -3513,7 +3516,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
     public string LastUpdatedBy
     {
         get
@@ -3527,7 +3530,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
     public System.DateTime LastUpdateDate
     {
         get
@@ -3541,7 +3544,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
     public string LastUpdateLogin
     {
         get
@@ -3555,7 +3558,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
     public object RequestId
     {
         get
@@ -3569,7 +3572,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
     public byte ObjectVersionNumber
     {
         get
@@ -3583,7 +3586,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
     public string CreatedByModule
     {
         get
@@ -3597,7 +3600,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
     public object AdditionalInformation1
     {
         get
@@ -3611,7 +3614,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
     public object AdditionalInformation2
     {
         get
@@ -3625,7 +3628,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
     public object AdditionalInformation3
     {
         get
@@ -3639,7 +3642,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
     public object AdditionalInformation4
     {
         get
@@ -3653,7 +3656,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
     public object AdditionalInformation5
     {
         get
@@ -3667,7 +3670,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
     public object AdditionalInformation6
     {
         get
@@ -3681,7 +3684,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
     public object AdditionalInformation7
     {
         get
@@ -3695,7 +3698,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
     public object AdditionalInformation8
     {
         get
@@ -3709,7 +3712,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
     public object AdditionalInformation9
     {
         get
@@ -3723,7 +3726,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
     public object AdditionalInformation10
     {
         get
@@ -3737,7 +3740,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
     public object AdditionalInformation11
     {
         get
@@ -3751,7 +3754,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
     public object AdditionalInformation12
     {
         get
@@ -3765,7 +3768,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
     public object AdditionalInformation13
     {
         get
@@ -3779,7 +3782,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
     public object AdditionalInformation14
     {
         get
@@ -3793,7 +3796,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
     public object AdditionalInformation15
     {
         get
@@ -3807,7 +3810,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
     public object AdditionalInformation16
     {
         get
@@ -3821,7 +3824,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
     public object AdditionalInformation17
     {
         get
@@ -3835,7 +3838,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
     public object AdditionalInformation18
     {
         get
@@ -3849,7 +3852,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
     public object AdditionalInformation19
     {
         get
@@ -3863,7 +3866,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
     public object AdditionalInformation20
     {
         get
@@ -3877,7 +3880,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
     public object AdditionalInformation21
     {
         get
@@ -3891,7 +3894,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
     public object AdditionalInformation22
     {
         get
@@ -3905,7 +3908,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
     public object AdditionalInformation23
     {
         get
@@ -3919,7 +3922,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
     public object AdditionalInformation24
     {
         get
@@ -3933,7 +3936,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
     public object AdditionalInformation25
     {
         get
@@ -3947,7 +3950,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
     public object AdditionalInformation26
     {
         get
@@ -3961,7 +3964,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
     public object AdditionalInformation27
     {
         get
@@ -3975,7 +3978,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
     public object AdditionalInformation28
     {
         get
@@ -3989,7 +3992,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
     public object AdditionalInformation29
     {
         get
@@ -4003,7 +4006,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
     public object AdditionalInformation30
     {
         get
@@ -4017,7 +4020,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
     public string DirectionCode
     {
         get
@@ -4031,7 +4034,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
     public object PercentageOwnership
     {
         get
@@ -4045,7 +4048,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
     public object ObjectUsageCode
     {
         get
@@ -4059,7 +4062,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
     public object SubjectUsageCode
     {
         get
@@ -4073,7 +4076,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
     public bool PreferredContactFlag
     {
         get
@@ -4087,7 +4090,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
     public string ObjectPartyName
     {
         get
@@ -4101,7 +4104,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
     public string PartyName
     {
         get
@@ -4115,7 +4118,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
     public string CurrencyCode
     {
         get
@@ -4129,7 +4132,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
     public string CurcyConvRateType
     {
         get
@@ -4143,7 +4146,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
     public string CorpCurrencyCode
     {
         get
@@ -4157,7 +4160,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
     public bool PrimaryCustomerFlag
     {
         get
@@ -4171,7 +4174,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
     public string SubjectEmailAddress
     {
         get
@@ -4185,7 +4188,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = true)]
     public object ObjectEmailAddress
     {
         get
@@ -4199,7 +4202,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
     public CreatePersonOrganizationContact OrganizationContact
     {
         get
@@ -4213,7 +4216,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
     public CreatePersonPhone Phone
     {
         get
@@ -4227,7 +4230,7 @@ public class CreatePersonValueRelationship
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
     public CreatePersonEmail Email
     {
         get
@@ -4242,11 +4245,11 @@ public class CreatePersonValueRelationship
 }
 
 /// <remarks/>
-[Serializable]
-[DesignerCategory("code")]
-[XmlType(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
-[XmlRoot(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = false)]
-public class CreatePersonOrganizationContact
+[System.SerializableAttribute()]
+[System.ComponentModel.DesignerCategoryAttribute("code")]
+[System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+[System.Xml.Serialization.XmlRootAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = false)]
+public partial class CreatePersonOrganizationContact
 {
 
     private ulong orgContactIdField;
@@ -4450,7 +4453,7 @@ public class CreatePersonOrganizationContact
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PersonPreNameAdjunct
     {
         get
@@ -4464,7 +4467,7 @@ public class CreatePersonOrganizationContact
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PersonMiddleName
     {
         get
@@ -4478,7 +4481,7 @@ public class CreatePersonOrganizationContact
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PersonNameSuffix
     {
         get
@@ -4492,7 +4495,7 @@ public class CreatePersonOrganizationContact
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PersonPreviousLastName
     {
         get
@@ -4506,7 +4509,7 @@ public class CreatePersonOrganizationContact
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PersonAcademicTitle
     {
         get
@@ -4520,7 +4523,7 @@ public class CreatePersonOrganizationContact
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object Salutation
     {
         get
@@ -4534,7 +4537,7 @@ public class CreatePersonOrganizationContact
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PersonLastNamePrefix
     {
         get
@@ -4548,7 +4551,7 @@ public class CreatePersonOrganizationContact
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PreferredName
     {
         get
@@ -4562,7 +4565,7 @@ public class CreatePersonOrganizationContact
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PersonSecondLastName
     {
         get
@@ -4576,7 +4579,7 @@ public class CreatePersonOrganizationContact
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PersonLanguageName
     {
         get
@@ -4590,7 +4593,7 @@ public class CreatePersonOrganizationContact
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PersonTitle
     {
         get
@@ -4604,7 +4607,7 @@ public class CreatePersonOrganizationContact
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PersonCertificationLevel
     {
         get
@@ -4618,7 +4621,7 @@ public class CreatePersonOrganizationContact
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PersonCertReasonCode
     {
         get
@@ -4684,7 +4687,7 @@ public class CreatePersonOrganizationContact
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object FormattedPhoneNumber
     {
         get
@@ -4724,7 +4727,7 @@ public class CreatePersonOrganizationContact
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object Comments
     {
         get
@@ -4751,7 +4754,7 @@ public class CreatePersonOrganizationContact
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object DepartmentCode
     {
         get
@@ -4765,7 +4768,7 @@ public class CreatePersonOrganizationContact
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object Department
     {
         get
@@ -4779,7 +4782,7 @@ public class CreatePersonOrganizationContact
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object JobTitle
     {
         get
@@ -4806,7 +4809,7 @@ public class CreatePersonOrganizationContact
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object JobTitleCode
     {
         get
@@ -4833,7 +4836,7 @@ public class CreatePersonOrganizationContact
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object Rank
     {
         get
@@ -4912,7 +4915,7 @@ public class CreatePersonOrganizationContact
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object RequestId
     {
         get
@@ -4926,7 +4929,7 @@ public class CreatePersonOrganizationContact
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PartySiteId
     {
         get
@@ -4979,7 +4982,7 @@ public class CreatePersonOrganizationContact
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PartySiteName
     {
         get
@@ -4993,7 +4996,7 @@ public class CreatePersonOrganizationContact
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object SalesAffinityCode
     {
         get
@@ -5007,7 +5010,7 @@ public class CreatePersonOrganizationContact
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object SalesAffinityComments
     {
         get
@@ -5021,7 +5024,7 @@ public class CreatePersonOrganizationContact
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object SalesBuyingRoleCode
     {
         get
@@ -5035,7 +5038,7 @@ public class CreatePersonOrganizationContact
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object SalesInfluenceLevelCode
     {
         get
@@ -5049,7 +5052,7 @@ public class CreatePersonOrganizationContact
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object FormattedAddress
     {
         get
@@ -5063,7 +5066,7 @@ public class CreatePersonOrganizationContact
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object PreferredContactMethod
     {
         get
@@ -5129,7 +5132,7 @@ public class CreatePersonOrganizationContact
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object ContactFormattedAddress
     {
         get
@@ -5143,7 +5146,7 @@ public class CreatePersonOrganizationContact
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object ContactFormattedMultilineAddress
     {
         get
@@ -5157,7 +5160,7 @@ public class CreatePersonOrganizationContact
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object CustomerEmailAddress
     {
         get
@@ -5198,10 +5201,10 @@ public class CreatePersonOrganizationContact
 }
 
 /// <remarks/>
-[Serializable]
-[DesignerCategory("code")]
-[XmlType(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
-public class CreatePersonOrganizationContactOrganizationContactRole
+[System.SerializableAttribute()]
+[System.ComponentModel.DesignerCategoryAttribute("code")]
+[System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+public partial class CreatePersonOrganizationContactOrganizationContactRole
 {
 
     private ulong orgContactRoleIdField;
@@ -5315,7 +5318,7 @@ public class CreatePersonOrganizationContactOrganizationContactRole
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object RoleLevel
     {
         get
@@ -5394,7 +5397,7 @@ public class CreatePersonOrganizationContactOrganizationContactRole
     }
 
     /// <remarks/>
-    [XmlElement(IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
     public object RequestId
     {
         get
@@ -5448,11 +5451,11 @@ public class CreatePersonOrganizationContactOrganizationContactRole
 }
 
 /// <remarks/>
-[Serializable]
-[DesignerCategory("code")]
-[XmlType(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
-[XmlRoot(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = false)]
-public class CreatePersonPhone
+[System.SerializableAttribute()]
+[System.ComponentModel.DesignerCategoryAttribute("code")]
+[System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+[System.Xml.Serialization.XmlRootAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = false)]
+public partial class CreatePersonPhone
 {
 
     private ulong contactPointIdField;
@@ -5503,9 +5506,9 @@ public class CreatePersonPhone
 
     private object lastContactDtTimeField;
 
-    private byte phoneAreaCodeField;
+    private object phoneAreaCodeField;
 
-    private byte phoneCountryCodeField;
+    private object phoneCountryCodeField;
 
     private string phoneNumberField;
 
@@ -5517,9 +5520,9 @@ public class CreatePersonPhone
 
     private object pagerTypeCodeField;
 
-    private string formattedPhoneNumberField;
+    private uint formattedPhoneNumberField;
 
-    private ulong transposedPhoneNumberField;
+    private uint transposedPhoneNumberField;
 
     private string partyNameField;
 
@@ -5528,7 +5531,7 @@ public class CreatePersonPhone
     private bool overallPrimaryFlagField;
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public ulong ContactPointId
     {
         get
@@ -5542,7 +5545,7 @@ public class CreatePersonPhone
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public string ContactPointType
     {
         get
@@ -5556,7 +5559,7 @@ public class CreatePersonPhone
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public string Status
     {
         get
@@ -5570,7 +5573,7 @@ public class CreatePersonPhone
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public string OwnerTableName
     {
         get
@@ -5584,7 +5587,7 @@ public class CreatePersonPhone
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public ulong OwnerTableId
     {
         get
@@ -5598,7 +5601,7 @@ public class CreatePersonPhone
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public bool PrimaryFlag
     {
         get
@@ -5612,7 +5615,7 @@ public class CreatePersonPhone
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public ulong OrigSystemReference
     {
         get
@@ -5626,7 +5629,7 @@ public class CreatePersonPhone
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public System.DateTime LastUpdateDate
     {
         get
@@ -5640,7 +5643,7 @@ public class CreatePersonPhone
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public string LastUpdatedBy
     {
         get
@@ -5654,7 +5657,7 @@ public class CreatePersonPhone
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public System.DateTime CreationDate
     {
         get
@@ -5668,7 +5671,7 @@ public class CreatePersonPhone
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public string CreatedBy
     {
         get
@@ -5682,7 +5685,7 @@ public class CreatePersonPhone
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public string LastUpdateLogin
     {
         get
@@ -5696,7 +5699,7 @@ public class CreatePersonPhone
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/", IsNullable = true)]
     public object RequestId
     {
         get
@@ -5710,7 +5713,7 @@ public class CreatePersonPhone
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public byte ObjectVersionNumber
     {
         get
@@ -5724,7 +5727,7 @@ public class CreatePersonPhone
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public string CreatedByModule
     {
         get
@@ -5738,7 +5741,7 @@ public class CreatePersonPhone
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/", IsNullable = true)]
     public string ContactPointPurpose
     {
         get
@@ -5752,7 +5755,7 @@ public class CreatePersonPhone
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public string PrimaryByPurpose
     {
         get
@@ -5766,7 +5769,7 @@ public class CreatePersonPhone
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/", DataType = "date")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/", DataType = "date")]
     public System.DateTime StartDate
     {
         get
@@ -5780,7 +5783,7 @@ public class CreatePersonPhone
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/", DataType = "date")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/", DataType = "date")]
     public System.DateTime EndDate
     {
         get
@@ -5794,7 +5797,7 @@ public class CreatePersonPhone
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public ulong RelationshipId
     {
         get
@@ -5808,7 +5811,7 @@ public class CreatePersonPhone
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/", IsNullable = true)]
     public object PartyUsageCode
     {
         get
@@ -5822,7 +5825,7 @@ public class CreatePersonPhone
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/", IsNullable = true)]
     public object OrigSystem
     {
         get
@@ -5836,7 +5839,7 @@ public class CreatePersonPhone
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/", IsNullable = true)]
     public object PhoneCallingCalendar
     {
         get
@@ -5850,7 +5853,7 @@ public class CreatePersonPhone
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/", IsNullable = true)]
     public object LastContactDtTime
     {
         get
@@ -5864,8 +5867,8 @@ public class CreatePersonPhone
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
-    public byte PhoneAreaCode
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/", IsNullable = true)]
+    public object PhoneAreaCode
     {
         get
         {
@@ -5878,8 +5881,8 @@ public class CreatePersonPhone
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
-    public byte PhoneCountryCode
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/", IsNullable = true)]
+    public object PhoneCountryCode
     {
         get
         {
@@ -5892,7 +5895,7 @@ public class CreatePersonPhone
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public string PhoneNumber
     {
         get
@@ -5906,7 +5909,7 @@ public class CreatePersonPhone
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/", IsNullable = true)]
     public object PhoneExtension
     {
         get
@@ -5920,7 +5923,7 @@ public class CreatePersonPhone
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public string PhoneLineType
     {
         get
@@ -5934,7 +5937,7 @@ public class CreatePersonPhone
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public string RawPhoneNumber
     {
         get
@@ -5948,7 +5951,7 @@ public class CreatePersonPhone
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/", IsNullable = true)]
     public object PagerTypeCode
     {
         get
@@ -5962,8 +5965,8 @@ public class CreatePersonPhone
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
-    public string FormattedPhoneNumber
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    public uint FormattedPhoneNumber
     {
         get
         {
@@ -5976,8 +5979,8 @@ public class CreatePersonPhone
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
-    public ulong TransposedPhoneNumber
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    public uint TransposedPhoneNumber
     {
         get
         {
@@ -5990,7 +5993,7 @@ public class CreatePersonPhone
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public string PartyName
     {
         get
@@ -6004,7 +6007,7 @@ public class CreatePersonPhone
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/", IsNullable = true)]
     public object TimezoneCode
     {
         get
@@ -6018,7 +6021,7 @@ public class CreatePersonPhone
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public bool OverallPrimaryFlag
     {
         get
@@ -6033,11 +6036,11 @@ public class CreatePersonPhone
 }
 
 /// <remarks/>
-[Serializable]
-[DesignerCategory("code")]
-[XmlType(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
-[XmlRoot(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = false)]
-public class CreatePersonEmail
+[System.SerializableAttribute()]
+[System.ComponentModel.DesignerCategoryAttribute("code")]
+[System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+[System.Xml.Serialization.XmlRootAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = false)]
+public partial class CreatePersonEmail
 {
 
     private ulong contactPointIdField;
@@ -6093,7 +6096,7 @@ public class CreatePersonEmail
     private bool overallPrimaryFlagField;
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public ulong ContactPointId
     {
         get
@@ -6107,7 +6110,7 @@ public class CreatePersonEmail
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public string ContactPointType
     {
         get
@@ -6121,7 +6124,7 @@ public class CreatePersonEmail
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public string Status
     {
         get
@@ -6135,7 +6138,7 @@ public class CreatePersonEmail
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public string OwnerTableName
     {
         get
@@ -6149,7 +6152,7 @@ public class CreatePersonEmail
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public ulong OwnerTableId
     {
         get
@@ -6163,7 +6166,7 @@ public class CreatePersonEmail
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public bool PrimaryFlag
     {
         get
@@ -6177,7 +6180,7 @@ public class CreatePersonEmail
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public ulong OrigSystemReference
     {
         get
@@ -6191,7 +6194,7 @@ public class CreatePersonEmail
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public System.DateTime LastUpdateDate
     {
         get
@@ -6205,7 +6208,7 @@ public class CreatePersonEmail
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public string LastUpdatedBy
     {
         get
@@ -6219,7 +6222,7 @@ public class CreatePersonEmail
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public System.DateTime CreationDate
     {
         get
@@ -6233,7 +6236,7 @@ public class CreatePersonEmail
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public string CreatedBy
     {
         get
@@ -6247,7 +6250,7 @@ public class CreatePersonEmail
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public string LastUpdateLogin
     {
         get
@@ -6261,7 +6264,7 @@ public class CreatePersonEmail
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/", IsNullable = true)]
     public object RequestId
     {
         get
@@ -6275,7 +6278,7 @@ public class CreatePersonEmail
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public byte ObjectVersionNumber
     {
         get
@@ -6289,7 +6292,7 @@ public class CreatePersonEmail
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public string CreatedByModule
     {
         get
@@ -6303,7 +6306,7 @@ public class CreatePersonEmail
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/", IsNullable = true)]
     public string ContactPointPurpose
     {
         get
@@ -6317,7 +6320,7 @@ public class CreatePersonEmail
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public string PrimaryByPurpose
     {
         get
@@ -6331,7 +6334,7 @@ public class CreatePersonEmail
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/", DataType = "date")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/", DataType = "date")]
     public System.DateTime StartDate
     {
         get
@@ -6345,7 +6348,7 @@ public class CreatePersonEmail
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/", DataType = "date")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/", DataType = "date")]
     public System.DateTime EndDate
     {
         get
@@ -6359,7 +6362,7 @@ public class CreatePersonEmail
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public ulong RelationshipId
     {
         get
@@ -6373,7 +6376,7 @@ public class CreatePersonEmail
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/", IsNullable = true)]
     public object PartyUsageCode
     {
         get
@@ -6387,7 +6390,7 @@ public class CreatePersonEmail
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/", IsNullable = true)]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/", IsNullable = true)]
     public object OrigSystem
     {
         get
@@ -6401,7 +6404,7 @@ public class CreatePersonEmail
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public object EmailFormat
     {
         get
@@ -6415,7 +6418,7 @@ public class CreatePersonEmail
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public string EmailAddress
     {
         get
@@ -6429,7 +6432,7 @@ public class CreatePersonEmail
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public string PartyName
     {
         get
@@ -6443,7 +6446,7 @@ public class CreatePersonEmail
     }
 
     /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public bool OverallPrimaryFlag
     {
         get

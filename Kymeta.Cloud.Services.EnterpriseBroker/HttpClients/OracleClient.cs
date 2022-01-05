@@ -91,12 +91,20 @@ public class OracleClient : IOracleClient
             using var stream = wex.Response.GetResponseStream();
             using var reader = new StreamReader(stream);
 
-            // deserialize the xml response envelope
-            XmlSerializer serializer = new(typeof(FaultEnvelope));
-            var result = (FaultEnvelope)serializer.Deserialize(reader);
-            var faultMessage = result.Body.Fault.faultstring;
+            try
+            {
+                // deserialize the xml response envelope
+                XmlSerializer serializer = new(typeof(FaultEnvelope));
+                var result = (FaultEnvelope)serializer.Deserialize(reader);
+                var faultMessage = result.Body.Fault.faultstring;
 
-            return new Tuple<XDocument, string, string>(null, wex.Message, faultMessage);
+                return new Tuple<XDocument, string, string>(null, wex.Message, faultMessage);
+            }
+            catch (Exception ex)
+            {
+                // additional catch-all in case the fault cannot be deserialized
+                return new Tuple<XDocument, string, string>(null, ex.Message, null);
+            }
         }
         catch (Exception ex)
         {

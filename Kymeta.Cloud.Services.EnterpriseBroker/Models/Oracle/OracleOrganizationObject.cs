@@ -19,7 +19,13 @@ public class OraclePartySite
     public ulong? LocationId { get; set; }
     public ulong? PartySiteId { get; set; }
     public string OrigSystemReference { get; set; }
-    public string SiteUseType { get; set; }
+    public List<OraclePartySiteUse>? SiteUses { get; set; }
+}
+
+public class OraclePartySiteUse
+{
+    public ulong? PartySiteUseId { get; set; }
+    public string? SiteUseType { get; set; }
 }
 
 public class OracleOrganizationContact
