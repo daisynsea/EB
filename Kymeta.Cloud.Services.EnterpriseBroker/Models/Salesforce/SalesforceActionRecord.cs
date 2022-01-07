@@ -107,6 +107,7 @@ public enum SalesforceTransactionAction
     UpdateCustomerProfileInOracle,
     // Update Address
     UpdateAddressInOss,
+    UpdateLocationInOracle,
     UpdateCustomerAccountSiteInOracle,
     // Create Contact
     CreatePersonInOracle,

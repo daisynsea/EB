@@ -196,7 +196,7 @@ public class AccountBrokerService : IAccountBrokerService
                 #endregion
 
                 #region Location & OrgPartySite
-                var customerAccountSites = new List<OracleCustomerAccountSite>();
+                var accountSites = new List<OracleCustomerAccountSite>();
 
                 // verify we have addresses
                 if (model.Addresses != null && model.Addresses.Count > 0)
@@ -232,7 +232,7 @@ public class AccountBrokerService : IAccountBrokerService
                             if (orgPartySite == null)
                             {
                                 // re-map Salesforce values to Oracle models
-                                var siteUseTypes = RemapAddressTypeToOracleSiteUse(address);
+                                var siteUseTypes = Helpers.RemapAddressTypeToOracleSiteUse(address);
                                 // add to the list of Party Sites to create for the current address since it does not have an existing PartySite
                                 partySitesToCreate.Add(new OraclePartySite
                                 {
@@ -243,7 +243,8 @@ public class AccountBrokerService : IAccountBrokerService
                             }
                             else
                             {
-                                customerAccountSites.Add(new OracleCustomerAccountSite {
+                                // append to the list of accountSites so we can verify the Customer Account has the necessary objects for the Location(s)
+                                accountSites.Add(new OracleCustomerAccountSite {
                                     OrigSystemReference = orgPartySite.OrigSystemReference,
                                     PartySiteId = orgPartySite.PartySiteId,
                                     SiteUses = orgPartySite.SiteUses?.Select(su => new OracleCustomerAccountSiteUse
@@ -278,7 +279,7 @@ public class AccountBrokerService : IAccountBrokerService
                             else
                             {
                                 // re-map Salesforce values to Oracle models
-                                var siteUseTypes = RemapAddressTypeToOracleSiteUse(address);
+                                var siteUseTypes = Helpers.RemapAddressTypeToOracleSiteUse(address);
 
                                 // Location was created successfully... so add to the list so we can create a Party Site record for it
                                 partySitesToCreate.Add(new OraclePartySite
@@ -303,7 +304,7 @@ public class AccountBrokerService : IAccountBrokerService
                         }
                         else
                         {
-                            // map to list of OracleCustomerAccountSite
+                            // map created PartySites to list of OracleCustomerAccountSites to create below
                             var sites = createPartySitesResult.Item1.Select(cpr => new OracleCustomerAccountSite
                             {
                                 PartySiteId = cpr.PartySiteId,
@@ -313,7 +314,7 @@ public class AccountBrokerService : IAccountBrokerService
                                     SiteUseCode = su.SiteUseType
                                 }).ToList()
                             });
-                            customerAccountSites.AddRange(sites);
+                            accountSites.AddRange(sites);
                         }
                     }
                 }
@@ -347,7 +348,7 @@ public class AccountBrokerService : IAccountBrokerService
                             // create Person requests as a list of tasks to run async (outside of the loop)
                             // unable to use Task.WhenAll because Oracle is complaining... response from Oracle:
                             // JBO-26092: Failed to lock the record in table HZ_ORGANIZATION_PROFILES with key oracle.jbo.Key[300000100251313], another user holds the lock.
-                            var addedPersonResult = await _oracleService.CreatePerson(contact, organization.PartyId.ToString(), salesforceTransaction);
+                            var addedPersonResult = await _oracleService.CreatePerson(contact, organization.PartyId, salesforceTransaction);
                             if (addedPersonResult.Item1 == null)
                             {
                                 // TODO: what action should we take here? Alert of some sort?
@@ -398,7 +399,7 @@ public class AccountBrokerService : IAccountBrokerService
                 // If Customer Account does not exist, create it
                 if (existingCustomerAccount.Item2 == null)
                 {
-                    var addedCustomerAccount = await _oracleService.CreateCustomerAccount(organization.PartyId, model, customerAccountSites, accountContacts, salesforceTransaction);
+                    var addedCustomerAccount = await _oracleService.CreateCustomerAccount(organization.PartyId, model, accountSites, accountContacts, salesforceTransaction);
                     if (addedCustomerAccount.Item1 == null)
                     {
                         // error creating the Customer Account.... indicate failure
@@ -433,18 +434,22 @@ public class AccountBrokerService : IAccountBrokerService
                         foreach (var site in existingAccount.Sites)
                         {
                             // check to see if the this site already has been established as a Customer Account Site
-                            if (customerAccountSites.Exists(ps => ps.OrigSystemReference == site.OrigSystemReference))
+                            if (accountSites.Exists(ps => ps.OrigSystemReference == site.OrigSystemReference))
                             {
                                 // remove the partySite from the list because it already exists and doesn't need to be added again
-                                customerAccountSites.RemoveAll(ps => ps.OrigSystemReference == site.OrigSystemReference);
+                                accountSites.RemoveAll(ps => ps.OrigSystemReference == site.OrigSystemReference);
                             }
                         }
                     }
 
                     // update the Customer Account
-                    var updatedCustomerAccount = await _oracleService.UpdateCustomerAccount(existingAccount, model, customerAccountSites, accountContacts, salesforceTransaction);
-                    customerAccount = updatedCustomerAccount.Item1;
-                    oracleCustomerAccountId = updatedCustomerAccount.Item1.CustomerAccountId.ToString();
+                    var updateCustomerAccountResult = await _oracleService.UpdateCustomerAccount(existingAccount, model, accountSites, accountContacts, salesforceTransaction);
+                    if (updateCustomerAccountResult.Item1 == null)
+                    {
+                        // TODO: error updating Customer Account
+                    }
+                    customerAccount = updateCustomerAccountResult.Item1;
+                    oracleCustomerAccountId = customerAccount?.CustomerAccountId?.ToString();
                 }
                 #endregion
 
@@ -512,28 +517,5 @@ public class AccountBrokerService : IAccountBrokerService
         await _actionsRepository.UpdateActionRecord(salesforceTransaction);
 
         return response;
-    }
-
-    private List<OraclePartySiteUse> RemapAddressTypeToOracleSiteUse(SalesforceAddressModel address)
-    {
-        // if no Address, then return empty list
-        if (address == null) return new List<OraclePartySiteUse>();
-
-        // calculate SiteUseTypes (there can be multiple purposes (billing & shipping)
-        var decodedType = OracleSoapTemplates.DecodeEncodedNonAsciiCharacters(address.Type);
-        var siteUseTypes = new List<OraclePartySiteUse>();
-        switch (decodedType.ToLower())
-        {
-            case "billing & shipping":
-                siteUseTypes.Add(new OraclePartySiteUse { SiteUseType = OracleSoapTemplates.AddressType.BILL_TO.ToString() });
-                siteUseTypes.Add(new OraclePartySiteUse { SiteUseType = OracleSoapTemplates.AddressType.SHIP_TO.ToString() });
-                break;
-            case "shipping":
-                siteUseTypes.Add(new OraclePartySiteUse { SiteUseType = OracleSoapTemplates.AddressType.SHIP_TO.ToString() });
-                break;
-            default:
-                break;
-        }
-        return siteUseTypes;
     }
 }

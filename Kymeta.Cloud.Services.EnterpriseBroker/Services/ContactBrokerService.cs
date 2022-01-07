@@ -61,20 +61,102 @@ public class ContactBrokerService : IContactBrokerService
         #region Send to Oracle
         if (syncToOracle)
         {
+            // Get Organization by Salesforce Account Id
+            var organizationResult = await _oracleService.GetOrganizationBySalesforceAccountId(model.ParentAccountName, model.ParentAccountId, salesforceTransaction);
+            if (!organizationResult.Item1)
+            {
+                response.OracleStatus = StatusType.Error;
+                response.OracleErrorMessage = $"Error syncing Contact to Oracle: Organization object with SF reference Id {model.ParentAccountId} was not found.";
+                return response;
+            }
+            var organization = organizationResult.Item2;
+
             // Get customer account by Salesforce Account Id
-            var customerAccount = await _oracleService.GetCustomerAccountBySalesforceAccountId(model.ParentAccountId);
-            if (customerAccount == null)
+            var customerAccountResult = await _oracleService.GetCustomerAccountBySalesforceAccountId(model.ParentAccountId);
+            if (!customerAccountResult.Item1)
             {
                 response.OracleStatus = StatusType.Error;
                 response.OracleErrorMessage = $"Error syncing Contact to Oracle: Customer Account object with SF reference Id {model.ParentAccountId} was not found.";
+                return response;
+            }
+            var customerAccount = customerAccountResult.Item2;
+
+            var accountContacts = new List<OracleCustomerAccountContact>();
+            // fetch Person by Salesforce Id
+            var contactIds = new List<string> { model.ObjectId };
+            var personsResult = await _oracleService.GetPersonsBySalesforceContactId(contactIds.ToList());
+            if (!personsResult.Item1)
+            {
+                // fatal error occurred when sending request to oracle
+                response.OracleStatus = StatusType.Error;
+                response.OracleErrorMessage = personsResult.Item3;
+                return response;
             }
 
-            // TODO: Figure out how to get an existing person from the customer account
+            if (personsResult != null && personsResult.Item2.Count() == 0)
+            {
+                // Person does not exist, so create them
+                var createPersonResult = await _oracleService.CreatePerson(model, organization.PartyId, salesforceTransaction);
+                if (createPersonResult.Item1 == null)
+                {
+                    // error while trying to create the Person record
+                    response.OracleStatus = StatusType.Error;
+                    response.OracleErrorMessage = createPersonResult.Item2;
+                    return response;
+                }
+                var createdPerson = createPersonResult.Item1;
+                response.OraclePersonId = createdPerson.PartyId.ToString();
 
-            // If exists, update
-            // Otherwise, create
+                // append to list for Account Contacts
+                accountContacts.Add(new OracleCustomerAccountContact
+                {
+                    ContactPersonId = createdPerson.PartyId,
+                    OrigSystemReference = createdPerson.OrigSystemReference,
+                    ResponsibilityType = model.Role,
+                    RelationshipId = createdPerson.RelationshipId,
+                    IsPrimary = createdPerson.IsPrimary
+                });
+            }
+            else
+            {
+                // Person exists, perform update
+                var existingPerson = personsResult.Item2.FirstOrDefault();
+                var updatePersonResult = await _oracleService.UpdatePerson(model, existingPerson, salesforceTransaction);
+                if (updatePersonResult.Item1 == null)
+                {
+                    // error while trying to update the Person record
+                    response.OracleStatus = StatusType.Error;
+                    response.OracleErrorMessage = updatePersonResult.Item2;
+                    return response;
+                }
+                var updatedPerson = updatePersonResult.Item1;
+                response.OraclePersonId = updatedPerson.PartyId.ToString();
 
-            // TODO: Delete this mock response and hook this up
+                // append to list for Account Contacts
+                accountContacts.Add(new OracleCustomerAccountContact
+                {
+                    ContactPersonId = updatedPerson.PartyId,
+                    OrigSystemReference = updatedPerson.OrigSystemReference,
+                    ResponsibilityType = model.Role,
+                    RelationshipId = updatedPerson.RelationshipId,
+                    IsPrimary = updatedPerson.IsPrimary
+                });
+            }
+
+            // verify that the Customer Account has the necessary Contact objects
+            var customerAccountContact = customerAccount.Contacts?.FirstOrDefault(c => c.OrigSystemReference == model.ObjectId);
+            if (customerAccountContact == null)
+            {
+                // update the customer account to add the contact
+                var customerAccountUpdateResult = await _oracleService.UpdateCustomerAccountChildren(customerAccount, salesforceTransaction, null, accountContacts);
+                if (customerAccountUpdateResult.Item1 == null)
+                {
+                    response.OracleStatus = StatusType.Error;
+                    response.OracleErrorMessage = customerAccountUpdateResult.Item2;
+                    return response;
+                }
+            }
+
             response.OracleStatus = StatusType.Successful;
         }
         #endregion
