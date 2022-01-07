@@ -9,15 +9,15 @@ public interface IOracleService
     // Account Endpoints
     Task<Tuple<OracleOrganization, string>> CreateOrganization(SalesforceAccountModel model, SalesforceActionTransaction transaction);
     Task<Tuple<OracleOrganization, string>> UpdateOrganization(OracleOrganization existingOracleOrganization, SalesforceAccountModel model, SalesforceActionTransaction transaction);
-    Task<Tuple<List<OraclePartySite>, string>> CreateOrganizationPartySites(long organizationPartyId, List<OraclePartySite> partySites, SalesforceActionTransaction transaction);
-    Task<Tuple<OracleCustomerAccount, string>> CreateCustomerAccount(long organizationPartyId, SalesforceAccountModel model, List<OraclePartySite> partySites, List<OraclePersonObject> persons, SalesforceActionTransaction transaction);
+    Task<Tuple<List<OraclePartySite>, string>> CreateOrganizationPartySites(ulong organizationPartyId, List<OraclePartySite> partySites, SalesforceActionTransaction transaction);
+    Task<Tuple<OracleCustomerAccount, string>> CreateCustomerAccount(ulong organizationPartyId, SalesforceAccountModel model, List<OracleCustomerAccountSite> accountSites, List<OracleCustomerAccountContact> accountContacts, SalesforceActionTransaction transaction);
     Task<Tuple<OracleCustomerAccountProfile, string>> CreateCustomerAccountProfile(ulong? customerAccountId, uint customerAccountNumber, SalesforceActionTransaction transaction);
-    Task<Tuple<OracleCustomerAccount, string>> UpdateCustomerAccount(OracleCustomerAccount existingCustomerAccount, SalesforceAccountModel model, List<OraclePartySite> partySites, List<OraclePersonObject> persons, SalesforceActionTransaction transaction);
+    Task<Tuple<OracleCustomerAccount, string>> UpdateCustomerAccount(OracleCustomerAccount existingCustomerAccount, SalesforceAccountModel model, List<OracleCustomerAccountSite> accountSites, List<OracleCustomerAccountContact> accountContacts, SalesforceActionTransaction transaction);
     Task<Tuple<bool, OracleOrganization, string>> GetOrganizationBySalesforceAccountId(string organizationName, string salesforceAccountId, SalesforceActionTransaction transaction);
     Task<Tuple<bool, OracleCustomerAccount, string>> GetCustomerAccountBySalesforceAccountId(string salesforceAccountId);
     Task<Tuple<bool, OracleCustomerAccountProfile, string>> GetCustomerProfileByAccountNumber(string customerAccountNumber, SalesforceActionTransaction transaction);
     // Address Endpoints
-    Task<Tuple<bool, IEnumerable<OracleLocationModel>, string>> GetLocationBySalesforceAddressId(List<string> addressIds);
+    Task<Tuple<bool, IEnumerable<OracleLocationModel>, string>> GetLocationsBySalesforceAddressId(List<string> addressIds);
     Task<Tuple<OracleLocationModel, string>> CreateLocation(SalesforceAddressModel address, SalesforceActionTransaction transaction);
     Task<Tuple<string, string>> UpdateLocation(SalesforceContactModel model, SalesforceActionTransaction transaction);
     // Contact Endpoints
@@ -59,25 +59,30 @@ public class OracleService : IOracleService
         // deserialize the xml response envelope
         XmlSerializer serializer = new(typeof(FindOrganizationEnvelope));
         var oracleCustomerAccount = (FindOrganizationEnvelope)serializer.Deserialize(findOrgResponse.Item1.CreateReader());
-        if (oracleCustomerAccount.Body?.findOrganizationResponse?.result?.Value == null) return new Tuple<bool, OracleOrganization, string>(true, null, $"Organization not found.");
-        if (oracleCustomerAccount.Body?.findOrganizationResponse?.result?.Value?.OriginalSystemReference?.OrigSystemReference == null) return new Tuple<bool, OracleOrganization, string>(true, null, $"Organization not found.");
+
+        var oracleResult = oracleCustomerAccount.Body?.findOrganizationResponse?.result?.Value;
+        if (oracleResult == null || oracleResult?.OriginalSystemReference?.OrigSystemReference == null)
+        {
+            await LogAction(transaction, SalesforceTransactionAction.GetOrganizationInOracleBySFID, ActionObjectType.Account, StatusType.Successful);
+            return new Tuple<bool, OracleOrganization, string>(true, null, $"Organization not found.");
+        }
 
         // map the response model into our simplified C# model
         var organization = new OracleOrganization
         {
-            OrganizationName = oracleCustomerAccount.Body.findOrganizationResponse.result.Value.PartyName,
-            PartyId = (long)oracleCustomerAccount.Body.findOrganizationResponse.result.Value.PartyId,
-            PartyNumber = oracleCustomerAccount.Body.findOrganizationResponse.result.Value.PartyNumber.ToString(),
-            OrigSystemReference = oracleCustomerAccount.Body.findOrganizationResponse.result.Value.OriginalSystemReference?.OrigSystemReference,
+            OrganizationName = oracleResult.PartyName,
+            PartyId = oracleResult.PartyId,
+            PartyNumber = oracleResult.PartyNumber.ToString(),
+            OrigSystemReference = oracleResult.OriginalSystemReference?.OrigSystemReference,
             // map the response object to our C# model for party sites
-            PartySites = oracleCustomerAccount.Body.findOrganizationResponse.result.Value.PartySite?
+            PartySites = oracleResult.PartySite?
                 .Select(ps => new OraclePartySite
                 {
                     PartySiteId = ps.PartySiteId,
                     OrigSystemReference = ps.OrigSystemReference,
                     LocationId = ps.LocationId
                 }).ToList(),
-            Contacts = oracleCustomerAccount.Body.findOrganizationResponse.result.Value.Relationship?
+            Contacts = oracleResult.Relationship?
                 .Select(r => new OracleOrganizationContact
                 {
                     ContactPartyId = r.OrganizationContact.ContactPartyId,
@@ -86,6 +91,8 @@ public class OracleService : IOracleService
                     PersonLastName = r.OrganizationContact.PersonLastName
                 }).ToList()
         };
+
+        await LogAction(transaction, SalesforceTransactionAction.GetOrganizationInOracleBySFID, ActionObjectType.Account, StatusType.Successful);
 
         // return the Organization that was found
         return new Tuple<bool, OracleOrganization, string>(true, organization, null);
@@ -99,21 +106,19 @@ public class OracleService : IOracleService
         var orgToCreate = RemapSalesforceAccountToCreateOracleOrganization(model);
         
         // create the organization in Oracle
-        var organization = await _oracleClient.CreateOrganization(orgToCreate);
+        var organizationResult = await _oracleClient.CreateOrganization(orgToCreate);
         
         // validate the the org was created
-        if (!string.IsNullOrEmpty(organization.Item2))
+        if (!string.IsNullOrEmpty(organizationResult.Item2))
         {
-            await LogAction(transaction, SalesforceTransactionAction.CreateOrganizationInOracle, ActionObjectType.Account, StatusType.Error, model.ObjectId, organization.Item2);
-            return new Tuple<OracleOrganization, string>(null, $"There was an error adding the account to Oracle: {organization.Item2}");
+            await LogAction(transaction, SalesforceTransactionAction.CreateOrganizationInOracle, ActionObjectType.Account, StatusType.Error, model.ObjectId, organizationResult.Item2);
+            return new Tuple<OracleOrganization, string>(null, $"There was an error adding the account to Oracle: {organizationResult.Item2}");
         }
 
-        // TODO: map the response object to our simplified model
-
-        await LogAction(transaction, SalesforceTransactionAction.CreateOrganizationInOracle, ActionObjectType.Account, StatusType.Successful, organization.Item1.PartyId.ToString());
+        await LogAction(transaction, SalesforceTransactionAction.CreateOrganizationInOracle, ActionObjectType.Account, StatusType.Successful, organizationResult.Item1.PartyId.ToString());
 
         // return the Oracle Organization
-        return new Tuple<OracleOrganization, string>(organization.Item1, String.Empty);
+        return new Tuple<OracleOrganization, string>(organizationResult.Item1, String.Empty);
     }
 
     public async Task<Tuple<OracleOrganization, string>> UpdateOrganization(OracleOrganization existingOracleOrganization, SalesforceAccountModel model, SalesforceActionTransaction transaction)
@@ -155,30 +160,33 @@ public class OracleService : IOracleService
         // deserialize the xml response envelope
         XmlSerializer serializer = new(typeof(FindCustomerAccountEnvelope));
         var oracleCustomerAccount = (FindCustomerAccountEnvelope)serializer.Deserialize(findAccountResponse.Item1.CreateReader());
-        if (oracleCustomerAccount.Body?.findCustomerAccountResponse?.result?.Value == null) return new Tuple<bool, OracleCustomerAccount, string>(true, null, $"Customer Account not found.");
-        if (oracleCustomerAccount.Body?.findCustomerAccountResponse?.result?.Value?.OrigSystemReference == null) return new Tuple<bool, OracleCustomerAccount, string>(true, null, $"Customer Account not found.");
+        
+        // verify we have a found object
+        var oracleResult = oracleCustomerAccount.Body?.findCustomerAccountResponse?.result?.Value;
+        if (oracleResult == null) return new Tuple<bool, OracleCustomerAccount, string>(true, null, $"Customer Account not found.");
+        if (oracleResult?.OrigSystemReference == null) return new Tuple<bool, OracleCustomerAccount, string>(true, null, $"Customer Account not found.");
 
         // map the response model into our simplified C# model
         var account = new OracleCustomerAccount
         {
-            PartyId = oracleCustomerAccount.Body?.findCustomerAccountResponse?.result?.Value?.PartyId,
-            AccountName = oracleCustomerAccount.Body?.findCustomerAccountResponse?.result?.Value?.AccountName?.ToString(),
-            AccountNumber = oracleCustomerAccount.Body?.findCustomerAccountResponse?.result?.Value?.AccountNumber,
-            OrigSystemReference = oracleCustomerAccount.Body?.findCustomerAccountResponse?.result?.Value?.OrigSystemReference?.ToString(),
-            AccountType = oracleCustomerAccount.Body?.findCustomerAccountResponse?.result?.Value?.CustomerType?.ToString(),
-            AccountSubType = oracleCustomerAccount.Body?.findCustomerAccountResponse?.result?.Value?.CustomerClassCode?.ToString(),
-            CustomerAccountId = oracleCustomerAccount.Body?.findCustomerAccountResponse?.result?.Value?.CustomerAccountId,
-            SalesforceId = oracleCustomerAccount.Body?.findCustomerAccountResponse?.result?.Value?.CustAcctInformation?.salesforceId,
-            OssId = oracleCustomerAccount.Body?.findCustomerAccountResponse?.result?.Value?.CustAcctInformation?.ksnId,
-            Contacts = oracleCustomerAccount.Body?.findCustomerAccountResponse?.result?.Value?.CustomerAccountContacts?
+            PartyId = oracleResult?.PartyId,
+            AccountName = oracleResult?.AccountName?.ToString(),
+            AccountNumber = oracleResult?.AccountNumber,
+            OrigSystemReference = oracleResult?.OrigSystemReference?.ToString(),
+            AccountType = oracleResult?.CustomerType?.ToString(),
+            AccountSubType = oracleResult?.CustomerClassCode?.ToString(),
+            CustomerAccountId = oracleResult?.CustomerAccountId,
+            SalesforceId = oracleResult?.CustAcctInformation?.salesforceId,
+            OssId = oracleResult?.CustAcctInformation?.ksnId,
+            Contacts = oracleResult?.CustomerAccountContacts?
                 .Select(cac => new OracleCustomerAccountContact
                 {
                     ContactPersonId = cac.ContactPersonId,
                     OrigSystemReference = cac.OrigSystemReference,
                     IsPrimary = cac.PrimaryFlag,
-                    RelationshipId = cac.RelationshipId.ToString()
+                    RelationshipId = cac.RelationshipId
                 }).ToList(),
-            Sites = oracleCustomerAccount.Body?.findCustomerAccountResponse?.result?.Value?.CustomerAccountSites?
+            Sites = oracleResult?.CustomerAccountSites?
                 .Select(cas => new OracleCustomerAccountSite
                 {
                     PartySiteId = cas.PartySiteId,
@@ -190,7 +198,7 @@ public class OracleService : IOracleService
         return new Tuple<bool, OracleCustomerAccount, string>(true, account, null);
     }
 
-    public async Task<Tuple<OracleCustomerAccount, string>> CreateCustomerAccount(long organizationPartyId, SalesforceAccountModel model, List<OraclePartySite> partySites, List<OraclePersonObject> persons, SalesforceActionTransaction transaction)
+    public async Task<Tuple<OracleCustomerAccount, string>> CreateCustomerAccount(ulong organizationPartyId, SalesforceAccountModel model, List<OracleCustomerAccountSite> accountSites, List<OracleCustomerAccountContact> accountContacts, SalesforceActionTransaction transaction)
     {
         await LogAction(transaction, SalesforceTransactionAction.CreateCustomerAccountInOracle, ActionObjectType.Account, StatusType.Started, model.ObjectId);
 
@@ -198,7 +206,7 @@ public class OracleService : IOracleService
         var customerAccount = RemapSalesforceAccountToOracleCustomerAccount(model);
 
         // populate the template
-        var customerAccountEnvelope = OracleSoapTemplates.CreateCustomerAccount(customerAccount, organizationPartyId, partySites, persons);
+        var customerAccountEnvelope = OracleSoapTemplates.CreateCustomerAccount(customerAccount, organizationPartyId, accountSites, accountContacts);
 
         // create the Customer Account via SOAP service
         var customerAccountResponse = await _oracleClient.SendSoapRequest(customerAccountEnvelope, $"{_config["Oracle:Endpoint"]}/{_config["Oracle:Services:CustomerAccount"]}");
@@ -213,17 +221,18 @@ public class OracleService : IOracleService
         var oracleCustomerAccount = (CreateCustomerAccountResponseEnvelope)serializer.Deserialize(customerAccountResponse.Item1.CreateReader());
 
         // map Oracle response to our simplified object
+        var oracleResult = oracleCustomerAccount?.Body?.createCustomerAccountResponse?.result?.Value;
         var customerAccountResult = new OracleCustomerAccount
         {
-            PartyId = oracleCustomerAccount?.Body?.createCustomerAccountResponse?.result?.Value?.PartyId,
-            CustomerAccountId = oracleCustomerAccount?.Body?.createCustomerAccountResponse?.result?.Value?.CustomerAccountId,
-            AccountNumber = oracleCustomerAccount?.Body?.createCustomerAccountResponse?.result?.Value?.AccountNumber,
-            AccountName = oracleCustomerAccount?.Body?.createCustomerAccountResponse?.result?.Value?.AccountName?.ToString(),
-            AccountType = oracleCustomerAccount?.Body?.createCustomerAccountResponse?.result?.Value?.CustomerType?.ToString(),
-            AccountSubType = oracleCustomerAccount?.Body?.createCustomerAccountResponse?.result?.Value?.CustomerClassCode?.ToString(),
-            OrigSystemReference = oracleCustomerAccount?.Body?.createCustomerAccountResponse?.result?.Value?.OriginalSystemReference?.OrigSystemReference.ToString(),
-            SalesforceId = oracleCustomerAccount?.Body?.createCustomerAccountResponse?.result?.Value?.CustAcctInformation.salesforceId,
-            OssId = oracleCustomerAccount?.Body?.createCustomerAccountResponse?.result?.Value?.CustAcctInformation.ksnId
+            PartyId = oracleResult?.PartyId,
+            CustomerAccountId = oracleResult?.CustomerAccountId,
+            AccountNumber = oracleResult?.AccountNumber,
+            AccountName = oracleResult?.AccountName?.ToString(),
+            AccountType = oracleResult?.CustomerType?.ToString(),
+            AccountSubType = oracleResult?.CustomerClassCode?.ToString(),
+            OrigSystemReference = oracleResult?.OrigSystemReference.ToString(),
+            SalesforceId = oracleResult?.CustAcctInformation.salesforceId,
+            OssId = oracleResult?.CustAcctInformation.ksnId
         };
 
         await LogAction(transaction, SalesforceTransactionAction.CreateCustomerAccountInOracle, ActionObjectType.Account, StatusType.Successful, customerAccountResult.PartyId.ToString());
@@ -232,7 +241,7 @@ public class OracleService : IOracleService
         return new Tuple<OracleCustomerAccount, string>(customerAccountResult, string.Empty);
     }
 
-    public async Task<Tuple<OracleCustomerAccount, string>> UpdateCustomerAccount(OracleCustomerAccount existingCustomerAccount, SalesforceAccountModel model, List<OraclePartySite> partySites, List<OraclePersonObject> persons, SalesforceActionTransaction transaction)
+    public async Task<Tuple<OracleCustomerAccount, string>> UpdateCustomerAccount(OracleCustomerAccount existingCustomerAccount, SalesforceAccountModel model, List<OracleCustomerAccountSite> accountSites, List<OracleCustomerAccountContact> accountContacts, SalesforceActionTransaction transaction)
     {
         await LogAction(transaction, SalesforceTransactionAction.UpdateCustomerAccountInOracle, ActionObjectType.Account, StatusType.Started, model.ObjectId);
 
@@ -240,7 +249,7 @@ public class OracleService : IOracleService
         var customerAccount = RemapSalesforceAccountToOracleCustomerAccount(model, existingCustomerAccount);
 
         // populate the template
-        var customerAccountEnvelope = OracleSoapTemplates.UpsertCustomerAccount(customerAccount, partySites, persons);
+        var customerAccountEnvelope = OracleSoapTemplates.UpsertCustomerAccount(customerAccount, accountSites, accountContacts);
 
         // update the Customer Account via SOAP service
         var customerAccountResponse = await _oracleClient.SendSoapRequest(customerAccountEnvelope, $"{_config["Oracle:Endpoint"]}/{_config["Oracle:Services:CustomerAccount"]}");
@@ -255,17 +264,18 @@ public class OracleService : IOracleService
         var oracleCustomerAccount = (UpdateCustomerAccountEnvelope)serializer.Deserialize(customerAccountResponse.Item1.CreateReader());
 
         // map Oracle response to our simplified object
+        var updateResponse = oracleCustomerAccount?.Body?.mergeCustomerAccountResponse?.result?.Value;
         var customerAccountResult = new OracleCustomerAccount
         {
-            PartyId = oracleCustomerAccount?.Body?.mergeCustomerAccountResponse?.result?.Value?.PartyId,
-            CustomerAccountId = oracleCustomerAccount?.Body?.mergeCustomerAccountResponse?.result?.Value?.CustomerAccountId,
-            AccountNumber = oracleCustomerAccount?.Body?.mergeCustomerAccountResponse?.result?.Value?.AccountNumber,
-            AccountName = oracleCustomerAccount?.Body?.mergeCustomerAccountResponse?.result?.Value?.AccountName?.ToString(),
-            AccountType = oracleCustomerAccount?.Body?.mergeCustomerAccountResponse?.result?.Value?.CustomerType?.ToString(),
-            AccountSubType = oracleCustomerAccount?.Body?.mergeCustomerAccountResponse?.result?.Value?.CustomerClassCode?.ToString(),
-            OrigSystemReference = oracleCustomerAccount?.Body?.mergeCustomerAccountResponse?.result?.Value?.OrigSystemReference,
-            SalesforceId = oracleCustomerAccount?.Body?.mergeCustomerAccountResponse?.result?.Value?.CustAcctInformation.salesforceId,
-            OssId = oracleCustomerAccount?.Body?.mergeCustomerAccountResponse?.result?.Value?.CustAcctInformation.ksnId,
+            PartyId = updateResponse?.PartyId,
+            CustomerAccountId = updateResponse?.CustomerAccountId,
+            AccountNumber = updateResponse?.AccountNumber,
+            AccountName = updateResponse?.AccountName?.ToString(),
+            AccountType = updateResponse?.CustomerType?.ToString(),
+            AccountSubType = updateResponse?.CustomerClassCode?.ToString(),
+            OrigSystemReference = updateResponse?.OrigSystemReference,
+            SalesforceId = updateResponse?.CustAcctInformation.salesforceId,
+            OssId = updateResponse?.CustAcctInformation.ksnId,
         };
 
         await LogAction(transaction, SalesforceTransactionAction.UpdateCustomerAccountInOracle, ActionObjectType.Account, StatusType.Successful, customerAccountResult.PartyId.ToString());
@@ -337,7 +347,7 @@ public class OracleService : IOracleService
     #endregion
 
     #region Address/Location
-    public async Task<Tuple<bool, IEnumerable<OracleLocationModel>, string>> GetLocationBySalesforceAddressId(List<string> addressIds)
+    public async Task<Tuple<bool, IEnumerable<OracleLocationModel>, string>> GetLocationsBySalesforceAddressId(List<string> addressIds)
     {
         var findLocationsEnvelope = OracleSoapTemplates.FindLocations(addressIds);
         // Find the Organization via SOAP service
@@ -395,16 +405,17 @@ public class OracleService : IOracleService
         var oracleLocation = (CreateLocationEnvelope)serializer.Deserialize(locationResponse.Item1.CreateReader());
 
         // map response model to simplified object
+        var oracleResult = oracleLocation?.Body?.createLocationResponse?.result?.Value;
         var locationResult = new OracleLocationModel
         {
-            LocationId = oracleLocation?.Body?.createLocationResponse?.result?.Value?.LocationId,
-            OrigSystemReference = oracleLocation?.Body?.createLocationResponse?.result?.Value?.OrigSystemReference?.ToString(),
-            Address1 = oracleLocation?.Body?.createLocationResponse?.result?.Value?.Address1?.ToString(),
-            Address2 = oracleLocation?.Body?.createLocationResponse?.result?.Value?.Address2.ToString(),
-            City = oracleLocation?.Body?.createLocationResponse?.result?.Value?.City?.ToString(),
-            State = oracleLocation?.Body?.createLocationResponse?.result?.Value?.State?.ToString(),
-            PostalCode = oracleLocation?.Body?.createLocationResponse?.result?.Value?.PostalCode?.ToString(),
-            Country = oracleLocation?.Body?.createLocationResponse?.result?.Value?.Country?.ToString()
+            LocationId = oracleResult?.LocationId,
+            OrigSystemReference = oracleResult?.OrigSystemReference?.ToString(),
+            Address1 = oracleResult?.Address1?.ToString(),
+            Address2 = oracleResult?.Address2.ToString(),
+            City = oracleResult?.City?.ToString(),
+            State = oracleResult?.State?.ToString(),
+            PostalCode = oracleResult?.PostalCode?.ToString(),
+            Country = oracleResult?.Country?.ToString()
         };
 
         await LogAction(transaction, SalesforceTransactionAction.CreateLocationInOracle, ActionObjectType.Address, StatusType.Started, locationResult.LocationId.ToString());
@@ -418,7 +429,7 @@ public class OracleService : IOracleService
         throw new NotImplementedException();
     }
 
-    public async Task<Tuple<List<OraclePartySite>, string>> CreateOrganizationPartySites(long organizationPartyId, List<OraclePartySite> partySites, SalesforceActionTransaction transaction)
+    public async Task<Tuple<List<OraclePartySite>, string>> CreateOrganizationPartySites(ulong organizationPartyId, List<OraclePartySite> partySites, SalesforceActionTransaction transaction)
     {
         await LogAction(transaction, SalesforceTransactionAction.CreatePartySiteInOracle, ActionObjectType.Account, StatusType.Started);
 
@@ -517,15 +528,16 @@ public class OracleService : IOracleService
         var res = (CreatePersonEnvelope)serializer.Deserialize(createPersonResponse.Item1.CreateReader());
 
         // map response model to a simplified object
+        var oracleResult = res?.Body?.createPersonResponse?.result?.Value;
         var oraclePerson = new OraclePersonObject
         {
-            PartyId = res?.Body?.createPersonResponse?.result?.Value?.PartyId,
-            OrigSystemReference = res?.Body?.createPersonResponse?.result?.Value?.OrigSystemReference,
-            RelationshipId = res?.Body?.createPersonResponse?.result?.Value?.Relationship.RelationshipId,
-            EmailAddress = res?.Body?.createPersonResponse?.result?.Value?.EmailAddress,
-            FirstName = res?.Body?.createPersonResponse?.result?.Value?.PersonFirstName,
-            LastName = res?.Body?.createPersonResponse?.result?.Value?.PersonLastName,
-            PhoneNumber = res?.Body?.createPersonResponse?.result?.Value?.PrimaryPhoneNumber,
+            PartyId = oracleResult?.PartyId,
+            OrigSystemReference = oracleResult?.OrigSystemReference,
+            RelationshipId = oracleResult?.Relationship.RelationshipId,
+            EmailAddress = oracleResult?.EmailAddress,
+            FirstName = oracleResult?.PersonFirstName,
+            LastName = oracleResult?.PersonLastName,
+            PhoneNumber = oracleResult?.PrimaryPhoneNumber
             // TODO: validate the format of this data
             //PhoneAreaCode = res?.Body?.createPersonResponse?.result?.Value?.Phone.PhoneAreaCode,
         };
@@ -596,7 +608,7 @@ public class OracleService : IOracleService
         return organization;
     }
 
-    private OracleCustomerAccount RemapOrganizationToOracleCustomerAccount(SalesforceAccountModel model)
+    private OracleCustomerAccount RemapOrganizationToCustomerAccount(SalesforceAccountModel model)
     {
         var account = new OracleCustomerAccount
         {
@@ -606,9 +618,7 @@ public class OracleService : IOracleService
         // check for accountType
         var accountType = model.AccountType;
         if (!string.IsNullOrEmpty(accountType)) account.AccountType = OracleSoapTemplates.CustomerTypeMap.GetValue(accountType);
-        // check for account sub-type
-        var accountSubType = model.SubType;
-        if (!string.IsNullOrEmpty(accountSubType)) account.AccountSubType = OracleSoapTemplates.CustomerClassMap.GetValue(accountSubType);
+        
         return account;
     }
 
@@ -624,8 +634,6 @@ public class OracleService : IOracleService
 
         // check for accountType
         if (!string.IsNullOrEmpty(model.AccountType)) customerAccount.AccountType = OracleSoapTemplates.CustomerTypeMap.GetValue(model.AccountType);
-        // check for account sub-type
-        if (!string.IsNullOrEmpty(model.SubType)) customerAccount.AccountSubType = OracleSoapTemplates.CustomerClassMap.GetValue(model.SubType);
 
         // populate the existing metadata
         if (existingCustomerAccount != null)

@@ -196,14 +196,14 @@ public class AccountBrokerService : IAccountBrokerService
                 #endregion
 
                 #region Location & OrgPartySite
-                var partySites = new List<OraclePartySite>();
+                var customerAccountSites = new List<OracleCustomerAccountSite>();
 
                 // verify we have addresses
                 if (model.Addresses != null && model.Addresses.Count > 0)
                 {
                     // find locations by Enterprise Id
                     var addressIds = model.Addresses.Select(a => a.ObjectId);
-                    var locationsResult = await _oracleService.GetLocationBySalesforceAddressId(addressIds.ToList());
+                    var locationsResult = await _oracleService.GetLocationsBySalesforceAddressId(addressIds.ToList());
                     if (!locationsResult.Item1)
                     {
                         // TODO: fatal error occurred when sending request to oracle... return badRequest here?
@@ -243,7 +243,14 @@ public class AccountBrokerService : IAccountBrokerService
                             }
                             else
                             {
-                                partySites.Add(orgPartySite);
+                                customerAccountSites.Add(new OracleCustomerAccountSite {
+                                    OrigSystemReference = orgPartySite.OrigSystemReference,
+                                    PartySiteId = orgPartySite.PartySiteId,
+                                    SiteUses = orgPartySite.SiteUses?.Select(su => new OracleCustomerAccountSiteUse
+                                    {
+                                        SiteUseCode = su.SiteUseType
+                                    }).ToList()
+                                });
                             }
                         }
                     }
@@ -296,7 +303,17 @@ public class AccountBrokerService : IAccountBrokerService
                         }
                         else
                         {
-                            partySites.AddRange(createPartySitesResult.Item1);
+                            // map to list of OracleCustomerAccountSite
+                            var sites = createPartySitesResult.Item1.Select(cpr => new OracleCustomerAccountSite
+                            {
+                                PartySiteId = cpr.PartySiteId,
+                                OrigSystemReference = cpr.OrigSystemReference,
+                                SiteUses = cpr.SiteUses?.Select(su => new OracleCustomerAccountSiteUse
+                                {
+                                    SiteUseCode = su.SiteUseType
+                                }).ToList()
+                            });
+                            customerAccountSites.AddRange(sites);
                         }
                     }
                 }
@@ -304,9 +321,7 @@ public class AccountBrokerService : IAccountBrokerService
 
                 #region Person
                 // create empty list of persons to track new additions
-                var persons = new List<OraclePersonObject>();
-
-                // TODO: getPersonByOriginalSystemReference
+                var accountContacts = new List<OracleCustomerAccountContact>();
 
                 // verify we have contacts
                 if (model.Contacts != null && model.Contacts.Count > 0)
@@ -341,14 +356,27 @@ public class AccountBrokerService : IAccountBrokerService
                             else
                             {
                                 // Person was created successfully... add it to the list so we can check it against the Customer Account Contacts
-                                persons.Add(addedPersonResult.Item1);
+                                accountContacts.Add(new OracleCustomerAccountContact {
+                                    ContactPersonId = addedPersonResult.Item1.PartyId,
+                                    OrigSystemReference = contact.ObjectId,
+                                    RelationshipId = addedPersonResult.Item1.RelationshipId,
+                                    ResponsibilityType = contact.Role,
+                                    IsPrimary = contact.IsPrimary
+                                });
                             }
                         }
                         else
                         {
-                            // TODO: update Person? do nothing?
+                            // TODO: update Person? do nothing? We may not need to do anything here because the edit Contact action in the ContactBroker will handle updating a Contact
                             // add to `persons` list so we can check Customer Account to ensure the Customer Account Contact exists (or create it)
-                            persons.Add(existingContact);
+                            accountContacts.Add(new OracleCustomerAccountContact
+                            {
+                                ContactPersonId = existingContact.PartyId,
+                                OrigSystemReference = existingContact.OrigSystemReference,
+                                RelationshipId = existingContact.RelationshipId,
+                                ResponsibilityType = contact.Role,
+                                IsPrimary = contact.IsPrimary
+                            });
                         }
                     }
                 }
@@ -370,7 +398,7 @@ public class AccountBrokerService : IAccountBrokerService
                 // If Customer Account does not exist, create it
                 if (existingCustomerAccount.Item2 == null)
                 {
-                    var addedCustomerAccount = await _oracleService.CreateCustomerAccount(organization.PartyId, model, partySites, persons, salesforceTransaction);
+                    var addedCustomerAccount = await _oracleService.CreateCustomerAccount(organization.PartyId, model, customerAccountSites, accountContacts, salesforceTransaction);
                     if (addedCustomerAccount.Item1 == null)
                     {
                         // error creating the Customer Account.... indicate failure
@@ -391,10 +419,10 @@ public class AccountBrokerService : IAccountBrokerService
                         foreach (var contact in existingAccount.Contacts)
                         {
                             // check to see if a matching person (contact) is found
-                            if (persons.Exists(p => p.OrigSystemReference == contact.OrigSystemReference))
+                            if (accountContacts.Exists(p => p.OrigSystemReference == contact.OrigSystemReference))
                             {
                                 // remove the person from the list because they already exist as a contact on the Customer Account
-                                persons.RemoveAll(p => p.OrigSystemReference == contact.OrigSystemReference);
+                                accountContacts.RemoveAll(p => p.OrigSystemReference == contact.OrigSystemReference);
                             }
                         }
                     }
@@ -405,16 +433,16 @@ public class AccountBrokerService : IAccountBrokerService
                         foreach (var site in existingAccount.Sites)
                         {
                             // check to see if the this site already has been established as a Customer Account Site
-                            if (partySites.Exists(ps => ps.OrigSystemReference == site.OrigSystemReference))
+                            if (customerAccountSites.Exists(ps => ps.OrigSystemReference == site.OrigSystemReference))
                             {
                                 // remove the partySite from the list because it already exists and doesn't need to be added again
-                                partySites.RemoveAll(ps => ps.OrigSystemReference == site.OrigSystemReference);
+                                customerAccountSites.RemoveAll(ps => ps.OrigSystemReference == site.OrigSystemReference);
                             }
                         }
                     }
 
                     // update the Customer Account
-                    var updatedCustomerAccount = await _oracleService.UpdateCustomerAccount(existingAccount, model, partySites, persons, salesforceTransaction);
+                    var updatedCustomerAccount = await _oracleService.UpdateCustomerAccount(existingAccount, model, customerAccountSites, accountContacts, salesforceTransaction);
                     customerAccount = updatedCustomerAccount.Item1;
                     oracleCustomerAccountId = updatedCustomerAccount.Item1.CustomerAccountId.ToString();
                 }

@@ -2,7 +2,7 @@
 
 public class OracleOrganizationUpdateResponse
 {
-    public long PartyId { get; set; }
+    public ulong PartyId { get; set; }
     public string PartyNumber { get; set; }
     public string SourceSystem { get; set; }
     public string SourceSystemReferenceValue { get; set; }

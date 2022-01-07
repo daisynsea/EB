@@ -7,6 +7,10 @@ public class SalesforceAddressModel : SalesforceActionObject
     /// </summary>
     public string? ParentAccountId { get; set; }
     /// <summary>
+    /// Parent Account Name
+    /// </summary>
+    public string? ParentAccountName { get; set; }
+    /// <summary>
     /// This is required to link the site to the customer account?
     /// </summary>
     public string? ParentOracleAccountId { get; set; }

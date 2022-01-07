@@ -213,7 +213,7 @@ public static class OracleSoapTemplates
     ///  A template for creating an Organization Party Site object in Oracle.
     /// </summary>
     /// <returns>TBD</returns>
-    public static string CreateOrganizationPartySites(long organizationPartyId, List<OraclePartySite> partySites)
+    public static string CreateOrganizationPartySites(ulong organizationPartyId, List<OraclePartySite> partySites)
     {
         var locationEnvelope =
             $"<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">" +
@@ -486,7 +486,7 @@ public static class OracleSoapTemplates
     ///  A template for creating a Customer Account object in Oracle
     /// </summary>
     /// <returns>SOAP Envelope (payload) for creating a Customer Account in Oracle</returns>
-    public static string CreateCustomerAccount(OracleCustomerAccount model, long organizationPartyId, List<OraclePartySite> partySites, List<OraclePersonObject> persons)
+    public static string CreateCustomerAccount(OracleCustomerAccount model, ulong organizationPartyId, List<OracleCustomerAccountSite> customerSites, List<OracleCustomerAccountContact> contacts)
     {
         // create the SOAP envelope with a beefy string
         var customerAccountEnvelope =
@@ -505,19 +505,13 @@ public static class OracleSoapTemplates
                         "<cus:CustAcctInformation>" +
                             $"<info:salesforceId>{model.SalesforceId}</info:salesforceId>" +
                             $"<info:ksnId>{model.OssId}</info:ksnId>" +
-                        "</cus:CustAcctInformation>" +
-                        "<cus:OriginalSystemReference xmlns:ns7=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/\">" +
-                           "<ns7:OrigSystem>SFDC</ns7:OrigSystem>" +
-                           $"<ns7:OrigSystemReference>{model.SalesforceId}</ns7:OrigSystemReference>" +
-                           "<ns7:OwnerTableName>HZ_CUST_ACCOUNTS</ns7:OwnerTableName>" +
-                           "<ns7:CreatedByModule>HZ_WS</ns7:CreatedByModule>" +
-                        "</cus:OriginalSystemReference>";
+                        "</cus:CustAcctInformation>";
 
         // check for the existence of any Sites
-        if (partySites != null && partySites.Count > 0)
+        if (customerSites != null && customerSites.Count > 0)
         {
             // include each Site
-            foreach (var site in partySites)
+            foreach (var site in customerSites)
             {
                 customerAccountEnvelope +=
                         "<cus:CustomerAccountSite>" +
@@ -529,30 +523,27 @@ public static class OracleSoapTemplates
                             "<cus:CustomerAccountSiteUse>" +
                                 "<cus:SiteUseCode>BILL_TO</cus:SiteUseCode>" +
                                 "<cus:CreatedByModule>HZ_WS</cus:CreatedByModule>" +
-                                "<cus:OriginalSystemReference>" +
-                                    "<par:OrigSystem>SFDC</par:OrigSystem>" +
-                                    $"<par:OrigSystemReference>{site.OrigSystemReference}</par:OrigSystemReference>" +
-                                    "<par:OwnerTableName>HZ_CUST_SITE_USES_ALL</par:OwnerTableName>" +
-                                    "<par:CreatedByModule>HZ_WS</par:CreatedByModule>" +
-                                "</cus:OriginalSystemReference>" +
                             "</cus:CustomerAccountSiteUse>" +
                         "</cus:CustomerAccountSite>";
             }
         }
 
         // check for the existence of any Persons
-        if (persons != null && persons.Count > 0)
+        if (contacts != null && contacts.Count > 0)
         {
             // include each Person
-            foreach (var person in persons)
+            foreach (var contact in contacts)
             {
                 customerAccountEnvelope +=
                         "<cus:CustomerAccountContact>" +
                             "<cus:RoleType>CONTACT</cus:RoleType>" +
                             "<cus:CreatedByModule>HZ_WS</cus:CreatedByModule>" +
-                            $"<cus:RelationshipId>{person.RelationshipId}</cus:RelationshipId>" +
+                            $"<cus:RelationshipId>{contact.RelationshipId}</cus:RelationshipId>" +
                             "<cus:OrigSystem>SFDC</cus:OrigSystem>" +
-                            $"<cus:OrigSystemReference>{person.OrigSystemReference}</cus:OrigSystemReference>" +
+                            $"<cus:OrigSystemReference>{contact.OrigSystemReference}</cus:OrigSystemReference>" +
+                            "<cus:CustomerAccountContactRole>" +
+						        $"<cus:ResponsibilityType>{contact.ResponsibilityType}</cus:ResponsibilityType>" +
+                            "</cus:CustomerAccountContactRole>" +
                         "</cus:CustomerAccountContact>";
             }
         }
@@ -570,7 +561,7 @@ public static class OracleSoapTemplates
     ///  A template for adding a Contact to a Customer Account in Oracle
     /// </summary>
     /// <returns>SOAP Envelope (payload) for creating updating a Customer Account in Oracle with a new Contact</returns>
-    public static string UpsertCustomerAccount(OracleCustomerAccount account, List<OraclePartySite> sites, List<OraclePersonObject> persons)
+    public static string UpsertCustomerAccount(OracleCustomerAccount account, List<OracleCustomerAccountSite> accountSites, List<OracleCustomerAccountContact> accountContacts)
     {
         // validate the inputs
         if (account.CustomerAccountId == null)
@@ -610,9 +601,9 @@ public static class OracleSoapTemplates
                             "</cus:CustAcctInformation>";
 
         // update Customer Account Contacts
-        if (persons != null && persons.Count > 0)
+        if (accountContacts != null && accountContacts.Count > 0)
         {
-            foreach (var person in persons)
+            foreach (var person in accountContacts)
             {
                 if (person.RelationshipId != null)
                 {
@@ -632,9 +623,9 @@ public static class OracleSoapTemplates
         }
 
         // update Customer Account Sites
-        if (sites != null && sites.Count > 0)
+        if (accountSites != null && accountSites.Count > 0)
         {
-            foreach (var site in sites)
+            foreach (var site in accountSites)
             {
                 // TODO: invesitgate SetId and how it should flow to here... there are two options AFAIK (Kymeta, KGS)
                 // TODO: see how critical it is to differentiate
@@ -652,7 +643,7 @@ public static class OracleSoapTemplates
                     {
                         customerAccountEnvelope +=
                                         @$"<cus:CustomerAccountSiteUse>
-									        <cus:SiteUseCode>{siteUse.SiteUseType}</cus:SiteUseCode>
+									        <cus:SiteUseCode>{siteUse.SiteUseCode}</cus:SiteUseCode>
 									        <cus:CreatedByModule>HZ_WS</cus:CreatedByModule>
 								        </cus:CustomerAccountSiteUse>";
                     }
@@ -750,6 +741,7 @@ public static class OracleSoapTemplates
         { "United States", "US" }
     };
 
+    // acceptable value map for Account Type
     public static readonly Dictionary<string, string> CustomerTypeMap = new()
     {
         { "Consultant", "CONSULTANT" },
@@ -763,24 +755,6 @@ public static class OracleSoapTemplates
         { "Regulatory Organization", "REGULATORY" },
         { "SubDistributor", "SUBDISTRIBUTOR" },
         { "Supplier", "SUPPLIER" },
-        { "Other", "OTHER" }
-    };
-
-    public static readonly Dictionary<string, string> CustomerClassMap = new()
-    {
-        { "End User", "END USER" },
-        { "VAR/Distributor", "VAR/ DISTRIBUTOR" },
-        { "Integrator", "INTEGRATOR" },
-        { "Eqpmt Mfr", "EQPMT MFR" },
-        { "Component Mfr", "COMPONENT MFR" },
-        { "OEM", "OEM" },
-        { "SSO", "SSO" },
-        { "SSP", "SSP" },
-        { "Technology Partner", "TECHNOLOGY PARTNER" },
-        { "Technology Provider", "TECHNOLOGY PROVIDER" },
-        { "Consulting Svcs", "CONSULTING SVCS" },
-        { "Financial Svcs", "FINANCIAL SVCS" },
-        { "Legal Svcs", "LEGAL SVCS" },
         { "Other", "OTHER" }
     };
 
