@@ -363,19 +363,25 @@ public static class OracleSoapTemplates
                                     <rel:CreatedByModule>HZ_WS</rel:CreatedByModule>
                                     <rel:OrganizationContactRole>
                                         <rel:RoleType>CONTACT</rel:RoleType>
-                                        <rel:PrimaryFlag>{person.IsPrimary}</rel:PrimaryFlag>
+                                        <rel:PrimaryFlag>{person.IsPrimary ?? false}</rel:PrimaryFlag>
                                         <rel:CreatedByModule>HZ_WS</rel:CreatedByModule>
                                     </rel:OrganizationContactRole>
-                                </rel:OrganizationContact>
-                                <rel:Phone>
+                                </rel:OrganizationContact>";
+
+        // verify we have Phone metadata
+        if (!string.IsNullOrEmpty(person.PhoneNumber))
+        {
+            personEnvelope +=
+                                $@"<rel:Phone>
                                     <con:OwnerTableName>HZ_PARTIES</con:OwnerTableName>
                                     <con:CreatedByModule>HZ_WS</con:CreatedByModule>
-									<con:PhoneCountryCode>{person.PhoneCountryCode}</con:PhoneCountryCode>
-                                    <con:PhoneAreaCode>{person.PhoneAreaCode}</con:PhoneAreaCode>
                                     <con:PhoneNumber>{person.PhoneNumber}</con:PhoneNumber>
-                                    <!-- <con:PhoneLineType>MOBILE</con:PhoneLineType> -->
-                                </rel:Phone>
-                                <rel:Email>
+                                    <con:PhoneLineType>MOBILE</con:PhoneLineType> 
+                                </rel:Phone>";
+        }
+
+        personEnvelope +=
+                                    $@"<rel:Email>
                                     <con:OwnerTableName>HZ_PARTIES</con:OwnerTableName>
                                     <con:PrimaryFlag>true</con:PrimaryFlag>
                                     <con:CreatedByModule>HZ_WS</con:CreatedByModule>
@@ -585,10 +591,16 @@ public static class OracleSoapTemplates
                             "<cus:CreatedByModule>HZ_WS</cus:CreatedByModule>" +
                             $"<cus:RelationshipId>{contact.RelationshipId}</cus:RelationshipId>" +
                             "<cus:OrigSystem>SFDC</cus:OrigSystem>" +
-                            $"<cus:OrigSystemReference>{contact.OrigSystemReference}</cus:OrigSystemReference>" +
-                            "<cus:CustomerAccountContactRole>" +
-						        $"<cus:ResponsibilityType>{contact.ResponsibilityType}</cus:ResponsibilityType>" +
-                            "</cus:CustomerAccountContactRole>" +
+                            $"<cus:OrigSystemReference>{contact.OrigSystemReference}</cus:OrigSystemReference>";
+
+                if (contact.ResponsibilityType != null)
+                {
+                    //customerAccountEnvelope +=
+                            //"<cus:CustomerAccountContactRole>" +
+                            //    $"<cus:ResponsibilityType>{contact.ResponsibilityType}</cus:ResponsibilityType>" +
+                            //"</cus:CustomerAccountContactRole>";
+                }
+                customerAccountEnvelope +=
                         "</cus:CustomerAccountContact>";
             }
         }
@@ -657,10 +669,10 @@ public static class OracleSoapTemplates
                                 "<cus:CreatedByModule>HZ_WS</cus:CreatedByModule>" +
                                 $"<cus:RelationshipId>{person.RelationshipId}</cus:RelationshipId>" + // RelationshipId from the Person response
                                 "<cus:RoleType>CONTACT</cus:RoleType>" +
-                                "<cus:CustomerAccountContactRole>" +
-                                    $"<cus:ResponsibilityType>{person.ResponsibilityType}</cus:ResponsibilityType>" +
-                                    $"<cus:PrimaryFlag>{person.IsPrimary}</cus:PrimaryFlag>" +
-                                "</cus:CustomerAccountContactRole>" +
+                                //"<cus:CustomerAccountContactRole>" +
+                                //    $"<cus:ResponsibilityType>{person.ResponsibilityType}</cus:ResponsibilityType>" +
+                                //    $"<cus:PrimaryFlag>{person.IsPrimary}</cus:PrimaryFlag>" +
+                                //"</cus:CustomerAccountContactRole>" +
                             "</cus:CustomerAccountContact>";
                 }
             }
@@ -754,10 +766,10 @@ public static class OracleSoapTemplates
                                 "<cus:CreatedByModule>HZ_WS</cus:CreatedByModule>" +
                                 $"<cus:RelationshipId>{person.RelationshipId}</cus:RelationshipId>" + // RelationshipId from the Person response
                                 "<cus:RoleType>CONTACT</cus:RoleType>" +
-                                "<cus:CustomerAccountContactRole>" +
-                                    $"<cus:ResponsibilityType>{person.ResponsibilityType}</cus:ResponsibilityType>" +
-                                    $"<cus:PrimaryFlag>{person.IsPrimary}</cus:PrimaryFlag>" +
-                                "</cus:CustomerAccountContactRole>" +
+                                //"<cus:CustomerAccountContactRole>" +
+                                //    $"<cus:ResponsibilityType>{person.ResponsibilityType}</cus:ResponsibilityType>" +
+                                //    $"<cus:PrimaryFlag>{person.IsPrimary}</cus:PrimaryFlag>" +
+                                //"</cus:CustomerAccountContactRole>" +
                             "</cus:CustomerAccountContact>";
                 }
             }
@@ -898,6 +910,14 @@ public static class OracleSoapTemplates
         { "SubDistributor", "SUBDISTRIBUTOR" },
         { "Supplier", "SUPPLIER" },
         { "Other", "OTHER" }
+    };
+
+    // TODO: must create a full dictionary to match values from Salesforce
+    public static readonly Dictionary<string, string> ResponsibilityTypeMap = new()
+    {
+        { "Bill To Contact", "Bill to" },
+        { "Ship To Contact", "Ship to" },
+        { "Primary", "Primary" },
     };
 
     public static string DecodeEncodedNonAsciiCharacters(string value)

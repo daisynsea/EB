@@ -357,11 +357,12 @@ public class AccountBrokerService : IAccountBrokerService
                             else
                             {
                                 // Person was created successfully... add it to the list so we can check it against the Customer Account Contacts
+                                var responsibilityType = OracleSoapTemplates.ResponsibilityTypeMap.GetValue(contact.Role, contact.Role);
                                 accountContacts.Add(new OracleCustomerAccountContact {
                                     ContactPersonId = addedPersonResult.Item1.PartyId,
                                     OrigSystemReference = contact.ObjectId,
                                     RelationshipId = addedPersonResult.Item1.RelationshipId,
-                                    ResponsibilityType = contact.Role,
+                                    ResponsibilityType = responsibilityType,
                                     IsPrimary = contact.IsPrimary
                                 });
                             }
@@ -370,12 +371,13 @@ public class AccountBrokerService : IAccountBrokerService
                         {
                             // TODO: update Person? do nothing? We may not need to do anything here because the edit Contact action in the ContactBroker will handle updating a Contact
                             // add to `persons` list so we can check Customer Account to ensure the Customer Account Contact exists (or create it)
+                            var responsibilityType = OracleSoapTemplates.ResponsibilityTypeMap.GetValue(contact.Role, contact.Role);
                             accountContacts.Add(new OracleCustomerAccountContact
                             {
                                 ContactPersonId = existingContact.PartyId,
                                 OrigSystemReference = existingContact.OrigSystemReference,
                                 RelationshipId = existingContact.RelationshipId,
-                                ResponsibilityType = contact.Role,
+                                ResponsibilityType = responsibilityType,
                                 IsPrimary = contact.IsPrimary
                             });
                         }
