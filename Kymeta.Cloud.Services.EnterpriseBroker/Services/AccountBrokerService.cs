@@ -39,6 +39,18 @@ public class AccountBrokerService : IAccountBrokerService
         var syncToOracle = model.SyncToOracle.GetValueOrDefault();
 
         /*
+         * MARSHAL UP RESPONSE
+         */
+        #region Build initial response object
+        var response = new AccountResponse
+        {
+            SalesforceObjectId = model.ObjectId,
+            OracleStatus = syncToOracle ? StatusType.Started : StatusType.Skipped,
+            OSSStatus = syncToOss ? StatusType.Started : StatusType.Skipped
+        };
+        #endregion
+
+        /*
          * LOG THE ENTERPRISE APPLICATION BROKER ACTION
          */
         #region Log the Enterprise Action
@@ -59,18 +71,6 @@ public class AccountBrokerService : IAccountBrokerService
 
         // Insert the event into the database, receive the response object and update the existing variable
         salesforceTransaction = await _actionsRepository.InsertActionRecord(salesforceTransaction);
-        #endregion
-
-        /*
-         * MARSHAL UP RESPONSE
-         */
-        #region Build initial response object
-        var response = new AccountResponse
-        {
-            SalesforceObjectId = model.ObjectId,
-            OracleStatus = syncToOracle ? StatusType.Started : StatusType.Skipped,
-            OSSStatus = syncToOss ? StatusType.Started : StatusType.Skipped
-        };
         #endregion
 
         /*
@@ -95,11 +95,6 @@ public class AccountBrokerService : IAccountBrokerService
         string? oracleOrganizationId = null;
         string? oracleCustomerAccountId = null;
         string? oracleCustomerAccountProfileId = null;
-
-        /*
-        * FETCH ORGANIZATION
-        */
-
 
         #region Process Account Create
         /*

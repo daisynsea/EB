@@ -18,5 +18,16 @@
         /// Id of the created/updated Oracle Organization
         /// </summary>
         public string? OracleOrganizationId { get; set; } = null;
+
+        // Optional when creating an account
+        public IEnumerable<AccountChildResponse>? Contacts { get; set; }
+        public IEnumerable<AccountChildResponse>? Addresses { get; set; }
+    }
+
+    public class AccountChildResponse
+    {
+        public string? OracleEntityType { get; set; }
+        public string? OracleId { get; set; }
+        public string? SalesforceId { get; set; }
     }
 }
