@@ -37,7 +37,7 @@ public interface IOssService
     /// </summary>
     /// <param name="salesforceId"></param>
     /// <returns></returns>
-    Task<Account> GetAccountBySalesforceId(string salesforceId);
+    Task<Account?> GetAccountBySalesforceId(string salesforceId);
 }
 
 public class OssService : IOssService

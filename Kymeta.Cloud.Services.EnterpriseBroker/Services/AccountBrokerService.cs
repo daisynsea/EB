@@ -39,6 +39,18 @@ public class AccountBrokerService : IAccountBrokerService
         var syncToOracle = model.SyncToOracle.GetValueOrDefault();
 
         /*
+         * MARSHAL UP RESPONSE
+         */
+        #region Build initial response object
+        var response = new AccountResponse
+        {
+            SalesforceObjectId = model.ObjectId,
+            OracleStatus = syncToOracle ? StatusType.Started : StatusType.Skipped,
+            OSSStatus = syncToOss ? StatusType.Started : StatusType.Skipped
+        };
+        #endregion
+
+        /*
          * LOG THE ENTERPRISE APPLICATION BROKER ACTION
          */
         #region Log the Enterprise Action
@@ -59,18 +71,6 @@ public class AccountBrokerService : IAccountBrokerService
 
         // Insert the event into the database, receive the response object and update the existing variable
         salesforceTransaction = await _actionsRepository.InsertActionRecord(salesforceTransaction);
-        #endregion
-
-        /*
-         * MARSHAL UP RESPONSE
-         */
-        #region Build initial response object
-        var response = new AccountResponse
-        {
-            SalesforceObjectId = model.ObjectId,
-            OracleStatus = syncToOracle ? StatusType.Started : StatusType.Skipped,
-            OSSStatus = syncToOss ? StatusType.Started : StatusType.Skipped
-        };
         #endregion
 
         /*
@@ -96,11 +96,6 @@ public class AccountBrokerService : IAccountBrokerService
         string? oracleCustomerAccountId = null;
         string? oracleCustomerAccountProfileId = null;
 
-        /*
-        * FETCH ORGANIZATION
-        */
-
-
         #region Process Account Create
         /*
          * SEND TO OSS IF REQUIRED
@@ -108,39 +103,61 @@ public class AccountBrokerService : IAccountBrokerService
         #region Send to OSS
         if (syncToOss)
         {
-            // First, fetch to see if the account exists in OSS. If it does, we do an update. Otherwise we add.
-            var existingAccount = await _ossService.GetAccountBySalesforceId(model.ObjectId);
-            // Set initial OSSStatus response value to Successful. It will get overwritten if there is an error.
-            response.OSSStatus = StatusType.Successful;
+            try
+            {
+                // First, fetch to see if the account exists in OSS. If it does, we do an update. Otherwise we add.
+                var existingAccount = await _ossService.GetAccountBySalesforceId(model.ObjectId);
+                // Set initial OSSStatus response value to Successful. It will get overwritten if there is an error.
+                response.OSSStatus = StatusType.Successful;
 
-            // If the account exists, it's an update
-            if (existingAccount != null)
+                // If the account exists, it's an update
+                if (existingAccount != null)
+                {
+                    // If the account exists, we can set the Id early
+                    response.OssAccountId = existingAccount?.Id?.ToString();
+                    ossAccountId = existingAccount?.Id.ToString();
+                    // Update the account
+                    var updatedAccountTuple = await _ossService.UpdateAccount(model, salesforceTransaction);
+                    // Item1 is the account object -- if it's null, we have a problem
+                    if (updatedAccountTuple.Item1 == null)
+                    {
+                        response.OSSErrorMessage = updatedAccountTuple.Item2;
+                        response.OSSStatus = StatusType.Error;
+                    }
+                }
+                else
+                {
+                    // Keep in mind, when adding, we do not fill in the Oracle Id here -- we update it after all the Oracle creation is finished
+                    var addedAccountTuple = await _ossService.AddAccount(model, salesforceTransaction);
+                    if (string.IsNullOrEmpty(addedAccountTuple.Item2)) // No error!
+                    {
+                        response.OssAccountId = addedAccountTuple.Item1.Id.ToString();
+                        ossAccountId = addedAccountTuple.Item1?.Id?.ToString();
+                    }
+                    else // Is error, do not EXIT..
+                    {
+                        response.OSSStatus = StatusType.Error;
+                        response.OSSErrorMessage = addedAccountTuple.Item2;
+                    }
+                }
+            } catch (Exception ex)
             {
-                // If the account exists, we can set the Id early
-                response.OssAccountId = existingAccount?.Id?.ToString();
-                ossAccountId = existingAccount?.Id.ToString();
-                // Update the account
-                var updatedAccountTuple = await _ossService.UpdateAccount(model, salesforceTransaction);
-                // Item1 is the account object -- if it's null, we have a problem
-                if (updatedAccountTuple.Item1 == null)
+                response.OSSStatus = StatusType.Error;
+                response.OSSErrorMessage = $"Error syncing to OSS due to an exception: {ex.Message}";
+
+                if (salesforceTransaction.TransactionLog == null) salesforceTransaction.TransactionLog = new List<SalesforceActionRecord>();
+                // Add the salesforce transaction record
+                var actionRecord = new SalesforceActionRecord
                 {
-                    response.OSSErrorMessage = updatedAccountTuple.Item2;
-                    response.OSSStatus = StatusType.Error;
-                }
-            } else
-            {
-                // Keep in mind, when adding, we do not fill in the Oracle Id here -- we update it after all the Oracle creation is finished
-                var addedAccountTuple = await _ossService.AddAccount(model, salesforceTransaction);
-                if (string.IsNullOrEmpty(addedAccountTuple.Item2)) // No error!
-                {
-                    response.OssAccountId = addedAccountTuple.Item1.Id.ToString();
-                    ossAccountId = addedAccountTuple.Item1?.Id?.ToString();
-                }
-                else // Is error, do not EXIT..
-                {
-                    response.OSSStatus = StatusType.Error;
-                    response.OSSErrorMessage = addedAccountTuple.Item2;
-                }
+                    ObjectType = ActionObjectType.Account,
+                    Action = salesforceTransaction.TransactionLog.OrderByDescending(s => s.Timestamp).FirstOrDefault()?.Action ?? SalesforceTransactionAction.Default,
+                    Status = StatusType.Error,
+                    Timestamp = DateTime.UtcNow,
+                    ErrorMessage = $"Error syncing to OSS due to an exception: {ex.Message}",
+                    EntityId = model.ObjectId
+                };
+                salesforceTransaction.TransactionLog?.Add(actionRecord);
+                await _actionsRepository.AddTransactionRecord(salesforceTransaction.Id, salesforceTransaction.Object.ToString() ?? "Unknown", actionRecord);
             }
         }
         #endregion
@@ -178,6 +195,7 @@ public class AccountBrokerService : IAccountBrokerService
                     }
                     organization = addedOrganization.Item1;
                     oracleOrganizationId = addedOrganization.Item1.PartyNumber;
+                    response.OracleOrganizationId = oracleOrganizationId;
                 }
                 else // Otherwise, update it
                 {
@@ -192,6 +210,7 @@ public class AccountBrokerService : IAccountBrokerService
                     }
                     organization = updatedOrganization.Item1;
                     oracleOrganizationId = organizationResult.Item2.PartyNumber;
+                    response.OracleOrganizationId = oracleOrganizationId;
                 }
                 #endregion
 
@@ -475,7 +494,7 @@ public class AccountBrokerService : IAccountBrokerService
                 }
                 else
                 {
-                    // TODO: do nothing? Customer Profile already exists
+                    oracleCustomerAccountProfileId = existingCustomerAccountProfile?.Item2?.PartyId?.ToString();
                 }
                 #endregion
 
