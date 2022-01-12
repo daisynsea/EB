@@ -42,7 +42,7 @@ public class AddressBrokerService : IAddressBrokerService
             ObjectId = model.ObjectId,
             CreatedOn = DateTime.UtcNow,
             UserName = model.UserName,
-            SerializedObjectValues = JsonSerializer.Serialize(model),
+            SerializedObjectValues = body,
             LastUpdatedOn = DateTime.UtcNow,
             TransactionLog = new List<SalesforceActionRecord>()
         };
@@ -65,7 +65,8 @@ public class AddressBrokerService : IAddressBrokerService
         #region Send to OSS
         if (syncToOss)
         {
-            var addedAddressTuple = await _ossService.UpdateAccountAddress(new UpdateAddressModel { ParentAccountId = model.ParentAccountId, Address1 = model.Address1, Address2 = model.Address2, Country = model.Country }, salesforceTransaction);
+            var ossAddressUpdate = new UpdateAddressModel { ParentAccountId = model.ParentAccountId, Address1 = model.Address1, Address2 = model.Address2, Country = model.Country };
+            var addedAddressTuple = await _ossService.UpdateAccountAddress(ossAddressUpdate, salesforceTransaction);
             if (string.IsNullOrEmpty(addedAddressTuple.Item2)) // No error!
             {
                 response.OSSStatus = StatusType.Successful;
@@ -111,7 +112,7 @@ public class AddressBrokerService : IAddressBrokerService
 
             // search for existing location
             var locationsResult = await _oracleService.GetLocationsBySalesforceAddressId(new List<string> { model.ObjectId }, salesforceTransaction);
-            if (locationsResult == null || locationsResult.Item2.Count() == 0)
+            if (locationsResult.Item2 == null || locationsResult.Item2.Count() == 0)
             {
                 // create new location
                 var createLocationResult = await _oracleService.CreateLocation(model, salesforceTransaction);
