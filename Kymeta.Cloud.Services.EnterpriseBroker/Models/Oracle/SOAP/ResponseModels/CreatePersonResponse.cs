@@ -165,7 +165,7 @@ public partial class CreatePersonValue
 
     private ulong partyIdField;
 
-    private uint partyNumberField;
+    private ulong partyNumberField;
 
     private string partyNameField;
 
@@ -327,7 +327,7 @@ public partial class CreatePersonValue
     }
 
     /// <remarks/>
-    public uint PartyNumber
+    public ulong PartyNumber
     {
         get
         {
@@ -1451,7 +1451,7 @@ public partial class CreatePersonValuePersonProfile
 
     private string currencyCodeField;
 
-    private uint partyNumberField;
+    private ulong partyNumberField;
 
     private object salutationField;
 
@@ -1483,7 +1483,7 @@ public partial class CreatePersonValuePersonProfile
 
     private object primaryFormattedAddressField;
 
-    private uint primaryFormattedPhoneNumberField;
+    private ulong primaryFormattedPhoneNumberField;
 
     private object primaryLanguageField;
 
@@ -2271,7 +2271,7 @@ public partial class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    public uint PartyNumber
+    public ulong PartyNumber
     {
         get
         {
@@ -2493,7 +2493,7 @@ public partial class CreatePersonValuePersonProfile
     }
 
     /// <remarks/>
-    public uint PrimaryFormattedPhoneNumber
+    public ulong PrimaryFormattedPhoneNumber
     {
         get
         {
@@ -4298,7 +4298,7 @@ public partial class CreatePersonOrganizationContact
 
     private string customerNameField;
 
-    private uint customerPartyNumberField;
+    private ulong customerPartyNumberField;
 
     private object formattedPhoneNumberField;
 
@@ -4308,7 +4308,7 @@ public partial class CreatePersonOrganizationContact
 
     private object commentsField;
 
-    private uint contactNumberField;
+    private ulong contactNumberField;
 
     private object departmentCodeField;
 
@@ -4676,7 +4676,7 @@ public partial class CreatePersonOrganizationContact
     }
 
     /// <remarks/>
-    public uint CustomerPartyNumber
+    public ulong CustomerPartyNumber
     {
         get
         {
@@ -4743,7 +4743,7 @@ public partial class CreatePersonOrganizationContact
     }
 
     /// <remarks/>
-    public uint ContactNumber
+    public ulong ContactNumber
     {
         get
         {
@@ -5522,9 +5522,9 @@ public partial class CreatePersonPhone
 
     private object pagerTypeCodeField;
 
-    private uint formattedPhoneNumberField;
+    private ulong formattedPhoneNumberField;
 
-    private uint transposedPhoneNumberField;
+    private ulong transposedPhoneNumberField;
 
     private string partyNameField;
 
@@ -5968,7 +5968,7 @@ public partial class CreatePersonPhone
 
     /// <remarks/>
     [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
-    public uint FormattedPhoneNumber
+    public ulong FormattedPhoneNumber
     {
         get
         {
@@ -5982,7 +5982,7 @@ public partial class CreatePersonPhone
 
     /// <remarks/>
     [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
-    public uint TransposedPhoneNumber
+    public ulong TransposedPhoneNumber
     {
         get
         {

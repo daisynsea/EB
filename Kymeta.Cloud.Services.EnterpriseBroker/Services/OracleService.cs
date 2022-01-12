@@ -655,17 +655,29 @@ public class OracleService : IOracleService
             PartyId = oracleResult?.PartyId,
             OrigSystemReference = oracleResult?.OrigSystemReference,
             RelationshipId = oracleResult?.Relationship.RelationshipId,
-            EmailAddresses = new List<OraclePersonEmailModel> { new OraclePersonEmailModel {
-                ContactPointId = oracleResult?.Email?.ContactPointId,
-                EmailAddress = oracleResult?.Email?.EmailAddress
-            }},
             FirstName = oracleResult?.PersonFirstName,
-            LastName = oracleResult?.PersonLastName,
-            PhoneNumbers = new List<OraclePersonPhoneModel> { new OraclePersonPhoneModel {
-                ContactPointId = oracleResult?.Phone?.ContactPointId,
-                PhoneNumber = oracleResult?.Phone?.PhoneNumber
-            }},
+            LastName = oracleResult?.PersonLastName
         };
+
+        // check for Phone number metadata
+        if (oracleResult?.Relationship != null && oracleResult?.Relationship?.Phone != null)
+        {
+            // append the existing metadata to the person
+            oraclePerson.PhoneNumbers = new List<OraclePersonPhoneModel> { new OraclePersonPhoneModel {
+                ContactPointId = oracleResult?.Relationship?.Phone.ContactPointId,
+                PhoneNumber = oracleResult?.Relationship?.Phone.PhoneNumber
+            }};
+        }
+
+        // check for email address metadata
+        if (oracleResult?.Relationship != null && oracleResult?.Relationship?.Email != null)
+        {
+            // append the existing metadata to the person
+            oraclePerson.EmailAddresses = new List<OraclePersonEmailModel> { new OraclePersonEmailModel {
+                ContactPointId = oracleResult?.Relationship?.Email.ContactPointId,
+                EmailAddress = oracleResult?.Relationship?.Email.EmailAddress
+            }};
+        }
 
         await LogAction(transaction, SalesforceTransactionAction.CreatePersonInOracle, ActionObjectType.Contact, StatusType.Successful, oraclePerson.PartyId.ToString());
 
