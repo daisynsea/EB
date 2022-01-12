@@ -63,6 +63,12 @@ public class ContactBrokerService : IContactBrokerService
         #region Send to Oracle
         if (syncToOracle)
         {
+            if (string.IsNullOrEmpty(model.Role))
+            {
+                response.OracleStatus = StatusType.Error;
+                response.OracleErrorMessage = $"Error syncing Contact to Oracle: Contact with SF reference Id {model.ObjectId} does not have a Contact Role assigned.";
+                return response;
+            }
             // Get Organization by Salesforce Account Id
             var organizationResult = await _oracleService.GetOrganizationBySalesforceAccountId(model.ParentAccountName, model.ParentAccountId, salesforceTransaction);
             if (!organizationResult.Item1)

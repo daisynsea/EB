@@ -177,14 +177,6 @@ public class UpdatePersonValuePhone
 
     /// <remarks/>
     [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
-    public ushort PhoneAreaCode { get; set; }
-
-    /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
-    public string PhoneCountryCode { get; set; }
-
-    /// <remarks/>
-    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public string PhoneNumber { get; set; }
 }
 
