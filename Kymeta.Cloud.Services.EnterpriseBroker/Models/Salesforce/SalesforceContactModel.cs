@@ -8,7 +8,7 @@
         public string? Phone { get; set; }
         public string? Email { get; set; }
         public string? FirstName => Name?.Split(' ')?.FirstOrDefault();
-        public string? LastName => Name?.Split(' ', 1)?.LastOrDefault();
+        public string? LastName => Name?.Split(' ')?.LastOrDefault();
         public bool? IsPrimary { get; set; }
         public string? Role { get; set; }
     }
