@@ -93,8 +93,7 @@ public partial class CreatePersonEnvelopeBody
     private createPersonResponse createPersonResponseField;
 
     /// <remarks/>
-    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/personService/applicationModu" +
-        "le/types/")]
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/personService/applicationModule/types/")]
     public createPersonResponse createPersonResponse
     {
         get
@@ -1325,6 +1324,9 @@ public partial class CreatePersonValue
             this.personProfileField = value;
         }
     }
+
+    public CreatePersonPhone Phone { get; set; }
+    public CreatePersonEmail Email { get; set; }
 
     /// <remarks/>
     public CreatePersonValueRelationship Relationship

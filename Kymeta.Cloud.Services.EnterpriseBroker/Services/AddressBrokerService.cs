@@ -92,7 +92,7 @@ public class AddressBrokerService : IAddressBrokerService
             var organization = organizationResult.Item2;
 
             // Get customer account by Salesforce Account Id
-            var customerAccountResult = await _oracleService.GetCustomerAccountBySalesforceAccountId(model.ParentAccountId);
+            var customerAccountResult = await _oracleService.GetCustomerAccountBySalesforceAccountId(model.ParentAccountId, salesforceTransaction);
             if (!customerAccountResult.Item1)
             {
                 response.OracleStatus = StatusType.Error;
@@ -110,7 +110,7 @@ public class AddressBrokerService : IAddressBrokerService
             var accountSites = new List<OracleCustomerAccountSite>();
 
             // search for existing location
-            var locationsResult = await _oracleService.GetLocationsBySalesforceAddressId(new List<string> { model.ObjectId });
+            var locationsResult = await _oracleService.GetLocationsBySalesforceAddressId(new List<string> { model.ObjectId }, salesforceTransaction);
             if (locationsResult == null || locationsResult.Item2.Count() == 0)
             {
                 // create new location

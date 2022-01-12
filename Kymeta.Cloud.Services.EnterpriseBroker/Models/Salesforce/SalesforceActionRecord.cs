@@ -90,6 +90,8 @@ public enum SalesforceTransactionAction
     GetOrganizationInOracleBySFID,
     GetCustomerAccountBySFID,
     GetCustomerProfileBySFID,
+    GetLocationBySalesforceId,
+    GetPersonBySalesforceId,
     // Create Account
     CreateAccountInOss,
     CreateOrganizationInOracle,

@@ -1,4 +1,6 @@
 ﻿namespace Kymeta.Cloud.Services.EnterpriseBroker.Services;
+
+using Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.SOAP;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 public interface IContactBrokerService
@@ -72,7 +74,7 @@ public class ContactBrokerService : IContactBrokerService
             var organization = organizationResult.Item2;
 
             // Get customer account by Salesforce Account Id
-            var customerAccountResult = await _oracleService.GetCustomerAccountBySalesforceAccountId(model.ParentAccountId);
+            var customerAccountResult = await _oracleService.GetCustomerAccountBySalesforceAccountId(model.ParentAccountId, salesforceTransaction);
             if (!customerAccountResult.Item1)
             {
                 response.OracleStatus = StatusType.Error;
@@ -84,7 +86,7 @@ public class ContactBrokerService : IContactBrokerService
             var accountContacts = new List<OracleCustomerAccountContact>();
             // fetch Person by Salesforce Id
             var contactIds = new List<string> { model.ObjectId };
-            var personsResult = await _oracleService.GetPersonsBySalesforceContactId(contactIds.ToList());
+            var personsResult = await _oracleService.GetPersonsBySalesforceContactId(contactIds.ToList(), salesforceTransaction);
             if (!personsResult.Item1)
             {
                 // fatal error occurred when sending request to oracle
@@ -93,7 +95,8 @@ public class ContactBrokerService : IContactBrokerService
                 return response;
             }
 
-            if (personsResult != null && personsResult.Item2.Count() == 0)
+            var responsibilityType = OracleSoapTemplates.GetResponsibilityType(model.Role);
+            if (personsResult.Item2 == null || personsResult.Item2?.Count() == 0)
             {
                 // Person does not exist, so create them
                 var createPersonResult = await _oracleService.CreatePerson(model, organization.PartyId, salesforceTransaction);
@@ -112,9 +115,9 @@ public class ContactBrokerService : IContactBrokerService
                 {
                     ContactPersonId = createdPerson.PartyId,
                     OrigSystemReference = createdPerson.OrigSystemReference,
-                    ResponsibilityType = model.Role,
+                    ResponsibilityType = responsibilityType,
                     RelationshipId = createdPerson.RelationshipId,
-                    IsPrimary = createdPerson.IsPrimary
+                    IsPrimary = createdPerson.IsPrimary ?? false
                 });
             }
             else
@@ -137,9 +140,9 @@ public class ContactBrokerService : IContactBrokerService
                 {
                     ContactPersonId = updatedPerson.PartyId,
                     OrigSystemReference = updatedPerson.OrigSystemReference,
-                    ResponsibilityType = model.Role,
+                    ResponsibilityType = responsibilityType,
                     RelationshipId = updatedPerson.RelationshipId,
-                    IsPrimary = updatedPerson.IsPrimary
+                    IsPrimary = updatedPerson.IsPrimary ?? false
                 });
             }
 

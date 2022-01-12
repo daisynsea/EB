@@ -203,7 +203,7 @@ public class AccountBrokerService : IAccountBrokerService
                 {
                     // find locations by Enterprise Id
                     var addressIds = model.Addresses.Select(a => a.ObjectId);
-                    var locationsResult = await _oracleService.GetLocationsBySalesforceAddressId(addressIds.ToList());
+                    var locationsResult = await _oracleService.GetLocationsBySalesforceAddressId(addressIds.ToList(), salesforceTransaction);
                     if (!locationsResult.Item1)
                     {
                         // TODO: fatal error occurred when sending request to oracle... return badRequest here?
@@ -329,7 +329,7 @@ public class AccountBrokerService : IAccountBrokerService
                 {
                     // find Persons by Enterprise Id
                     var contactIds = model.Contacts?.Select(a => a.ObjectId);
-                    var personsResult = await _oracleService.GetPersonsBySalesforceContactId(contactIds.ToList());
+                    var personsResult = await _oracleService.GetPersonsBySalesforceContactId(contactIds.ToList(), salesforceTransaction);
                     if (!personsResult.Item1)
                     {
                         // TODO: fatal error occurred when sending request to oracle... return badRequest here?
@@ -341,6 +341,7 @@ public class AccountBrokerService : IAccountBrokerService
                     // create a Person for each contact
                     foreach (var contact in model.Contacts)
                     {
+                        var responsibilityType = OracleSoapTemplates.GetResponsibilityType(contact.Role);
                         // check the found Persons with the contact to see if they have been created already
                         var existingContact = personsResult.Item2?.FirstOrDefault(l => l.OrigSystemReference == contact.ObjectId);
                         if (existingContact == null)
@@ -357,8 +358,8 @@ public class AccountBrokerService : IAccountBrokerService
                             else
                             {
                                 // Person was created successfully... add it to the list so we can check it against the Customer Account Contacts
-                                var responsibilityType = OracleSoapTemplates.ResponsibilityTypeMap.GetValue(contact.Role, contact.Role);
-                                accountContacts.Add(new OracleCustomerAccountContact {
+                                accountContacts.Add(new OracleCustomerAccountContact
+                                {
                                     ContactPersonId = addedPersonResult.Item1.PartyId,
                                     OrigSystemReference = contact.ObjectId,
                                     RelationshipId = addedPersonResult.Item1.RelationshipId,
@@ -371,7 +372,6 @@ public class AccountBrokerService : IAccountBrokerService
                         {
                             // TODO: update Person? do nothing? We may not need to do anything here because the edit Contact action in the ContactBroker will handle updating a Contact
                             // add to `persons` list so we can check Customer Account to ensure the Customer Account Contact exists (or create it)
-                            var responsibilityType = OracleSoapTemplates.ResponsibilityTypeMap.GetValue(contact.Role, contact.Role);
                             accountContacts.Add(new OracleCustomerAccountContact
                             {
                                 ContactPersonId = existingContact.PartyId,
@@ -387,7 +387,7 @@ public class AccountBrokerService : IAccountBrokerService
 
                 #region Customer Account
                 // search for existing Customer Account records based on Name and Salesforce Id
-                var existingCustomerAccount = await _oracleService.GetCustomerAccountBySalesforceAccountId(model.ObjectId);
+                var existingCustomerAccount = await _oracleService.GetCustomerAccountBySalesforceAccountId(model.ObjectId, salesforceTransaction);
                 if (!existingCustomerAccount.Item1)
                 {
                     // TODO: fatal error occurred when sending request to oracle... return badRequest here?
