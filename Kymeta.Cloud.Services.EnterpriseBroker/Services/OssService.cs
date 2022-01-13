@@ -293,6 +293,7 @@ public class OssService : IOssService
     {
         var actionRecord = new SalesforceActionRecord
         {
+            ObjectType = objectType,
             Action = action,
             Status = status,
             Timestamp = DateTime.UtcNow,
@@ -301,6 +302,6 @@ public class OssService : IOssService
         };
         if (transaction.TransactionLog == null) transaction.TransactionLog = new List<SalesforceActionRecord>();
         transaction.TransactionLog?.Add(actionRecord);
-        await _actionsRepository.AddTransactionRecord(transaction.Id, objectType.ToString() ?? "Unknown", actionRecord);
+        await _actionsRepository.AddTransactionRecord(transaction.Id, transaction.Object.ToString() ?? "Unknown", actionRecord);
     }
 }

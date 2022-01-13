@@ -303,7 +303,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                 .Setup(ors => ors.CreateOrganization(It.IsAny<SalesforceAccountModel>(), transaction))
                 .ReturnsAsync(new Tuple<OracleOrganization, string>(oracleOrg, string.Empty));
             _fixture.OracleService
-                .Setup(ors => ors.GetLocationsBySalesforceAddressId(It.IsAny<List<string>>()))
+                .Setup(ors => ors.GetLocationsBySalesforceAddressId(It.IsAny<List<string>>(), transaction))
                 .ReturnsAsync(new Tuple<bool, IEnumerable<OracleLocationModel>, string>(false, null, $"There was an error finding the Locations in Oracle: Epic Fail."));
 
             // Act

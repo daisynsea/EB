@@ -150,14 +150,14 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
             new OracleLocationModel { LocationId = 30002, OrigSystemReference = "add30002" }
         };
         _fixture.OracleService
-            .Setup(ors => ors.GetLocationsBySalesforceAddressId(It.IsAny<List<string>>()))
+            .Setup(ors => ors.GetLocationsBySalesforceAddressId(It.IsAny<List<string>>(), transaction))
             .ReturnsAsync(new Tuple<bool, IEnumerable<OracleLocationModel>, string>(true, locations, string.Empty));
         var persons = new List<OraclePersonObject>
         {
             new OraclePersonObject { PartyId = 30001, OrigSystemReference = "con30001" }
         };
         _fixture.OracleService
-            .Setup(ors => ors.GetPersonsBySalesforceContactId(It.IsAny<List<string>>()))
+            .Setup(ors => ors.GetPersonsBySalesforceContactId(It.IsAny<List<string>>(), transaction))
             .ReturnsAsync(new Tuple<bool, IEnumerable<OraclePersonObject>, string>(true, persons, string.Empty));
         var customerAccount = new OracleCustomerAccount
         {
@@ -166,7 +166,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
             OrigSystemReference = "acc30001"
         };
         _fixture.OracleService
-            .Setup(ors => ors.GetCustomerAccountBySalesforceAccountId(It.IsAny<string>()))
+            .Setup(ors => ors.GetCustomerAccountBySalesforceAccountId(It.IsAny<string>(), transaction))
             .ReturnsAsync(new Tuple<bool, OracleCustomerAccount, string>(true, customerAccount, string.Empty));
         _fixture.OracleService
             .Setup(ors => ors.UpdateCustomerAccount(It.IsAny<OracleCustomerAccount>(), It.IsAny<SalesforceAccountModel>(), It.IsAny<List<OracleCustomerAccountSite>>(), It.IsAny<List<OracleCustomerAccountContact>>(), transaction))
@@ -255,7 +255,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
             .ReturnsAsync(new Tuple<OracleOrganization, string>(oracleOrg, string.Empty));
         // locations return null, too
         _fixture.OracleService
-            .Setup(ors => ors.GetLocationsBySalesforceAddressId(It.IsAny<List<string>>()))
+            .Setup(ors => ors.GetLocationsBySalesforceAddressId(It.IsAny<List<string>>(), transaction))
             .ReturnsAsync(new Tuple<bool, IEnumerable<OracleLocationModel>, string>(true, null, string.Empty));
         // we have to mock out create locations
         var locations = new List<OracleLocationModel>
@@ -280,7 +280,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
             .ReturnsAsync(new Tuple<List<OraclePartySite>, string>(partySites, string.Empty));
         // persons returns null
         _fixture.OracleService
-            .Setup(ors => ors.GetPersonsBySalesforceContactId(It.IsAny<List<string>>()))
+            .Setup(ors => ors.GetPersonsBySalesforceContactId(It.IsAny<List<string>>(), transaction))
             .ReturnsAsync(new Tuple<bool, IEnumerable<OraclePersonObject>, string>(true, null, string.Empty));
         // we have to mock out CreatePerson
         var person = new OraclePersonObject
@@ -294,7 +294,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
             .ReturnsAsync(new Tuple<OraclePersonObject, string>(person, string.Empty));
         // customer account returns null
         _fixture.OracleService
-            .Setup(ors => ors.GetCustomerAccountBySalesforceAccountId(It.IsAny<string>()))
+            .Setup(ors => ors.GetCustomerAccountBySalesforceAccountId(It.IsAny<string>(), transaction))
             .ReturnsAsync(new Tuple<bool, OracleCustomerAccount, string>(true, null, string.Empty));
         // we have to mock out customer account
         var customerAccount = new OracleCustomerAccount
@@ -382,7 +382,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
                 new OracleLocationModel { LocationId = 30002, OrigSystemReference = "add30002" }
             };
         _fixture.OracleService
-            .Setup(ors => ors.GetLocationsBySalesforceAddressId(It.IsAny<List<string>>()))
+            .Setup(ors => ors.GetLocationsBySalesforceAddressId(It.IsAny<List<string>>(), transaction))
             .ReturnsAsync(new Tuple<bool, IEnumerable<OracleLocationModel>, string>(true, locations, string.Empty));
         // also have to mock out create party sites
         var partySites = new List<OraclePartySite>
@@ -402,7 +402,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
             .ReturnsAsync(new Tuple<List<OraclePartySite>, string>(partySites, string.Empty));
         // persons returns null
         _fixture.OracleService
-            .Setup(ors => ors.GetPersonsBySalesforceContactId(It.IsAny<List<string>>()))
+            .Setup(ors => ors.GetPersonsBySalesforceContactId(It.IsAny<List<string>>(), transaction))
             .ReturnsAsync(new Tuple<bool, IEnumerable<OraclePersonObject>, string>(true, null, string.Empty));
         // we have to mock out CreatePerson
         var person = new OraclePersonObject
@@ -416,7 +416,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
             .ReturnsAsync(new Tuple<OraclePersonObject, string>(person, string.Empty));
         // customer account returns null
         _fixture.OracleService
-            .Setup(ors => ors.GetCustomerAccountBySalesforceAccountId(It.IsAny<string>()))
+            .Setup(ors => ors.GetCustomerAccountBySalesforceAccountId(It.IsAny<string>(), transaction))
             .ReturnsAsync(new Tuple<bool, OracleCustomerAccount, string>(true, null, string.Empty));
         // we have to mock out customer account
         var customerAccount = new OracleCustomerAccount
@@ -519,7 +519,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
                 new OracleLocationModel { LocationId = 30002, OrigSystemReference = "add30002" }
             };
         _fixture.OracleService
-            .Setup(ors => ors.GetLocationsBySalesforceAddressId(It.IsAny<List<string>>()))
+            .Setup(ors => ors.GetLocationsBySalesforceAddressId(It.IsAny<List<string>>(), transaction))
             .ReturnsAsync(new Tuple<bool, IEnumerable<OracleLocationModel>, string>(true, locations, string.Empty));
         // also have to mock out create party sites
         var partySites = new List<OraclePartySite>
@@ -539,7 +539,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
             .ReturnsAsync(new Tuple<List<OraclePartySite>, string>(partySites, string.Empty));
         // persons returns null
         _fixture.OracleService
-            .Setup(ors => ors.GetPersonsBySalesforceContactId(It.IsAny<List<string>>()))
+            .Setup(ors => ors.GetPersonsBySalesforceContactId(It.IsAny<List<string>>(), transaction))
             .ReturnsAsync(new Tuple<bool, IEnumerable<OraclePersonObject>, string>(true, null, string.Empty));
         // we have to mock out CreatePerson
         var person = new OraclePersonObject
@@ -553,7 +553,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
             .ReturnsAsync(new Tuple<OraclePersonObject, string>(person, string.Empty));
         // customer account returns null
         _fixture.OracleService
-            .Setup(ors => ors.GetCustomerAccountBySalesforceAccountId(It.IsAny<string>()))
+            .Setup(ors => ors.GetCustomerAccountBySalesforceAccountId(It.IsAny<string>(), transaction))
             .ReturnsAsync(new Tuple<bool, OracleCustomerAccount, string>(true, null, string.Empty));
         // we have to mock out customer account
         var customerAccount = new OracleCustomerAccount

@@ -42,7 +42,7 @@ public class AddressBrokerService : IAddressBrokerService
             ObjectId = model.ObjectId,
             CreatedOn = DateTime.UtcNow,
             UserName = model.UserName,
-            SerializedObjectValues = JsonSerializer.Serialize(model),
+            SerializedObjectValues = body,
             LastUpdatedOn = DateTime.UtcNow,
             TransactionLog = new List<SalesforceActionRecord>()
         };
@@ -65,7 +65,8 @@ public class AddressBrokerService : IAddressBrokerService
         #region Send to OSS
         if (syncToOss)
         {
-            var addedAddressTuple = await _ossService.UpdateAccountAddress(new UpdateAddressModel { ParentAccountId = model.ParentAccountId, Address1 = model.Address1, Address2 = model.Address2, Country = model.Country }, salesforceTransaction);
+            var ossAddressUpdate = new UpdateAddressModel { ParentAccountId = model.ParentAccountId, Address1 = model.Address1, Address2 = model.Address2, Country = model.Country };
+            var addedAddressTuple = await _ossService.UpdateAccountAddress(ossAddressUpdate, salesforceTransaction);
             if (string.IsNullOrEmpty(addedAddressTuple.Item2)) // No error!
             {
                 response.OSSStatus = StatusType.Successful;
@@ -92,7 +93,7 @@ public class AddressBrokerService : IAddressBrokerService
             var organization = organizationResult.Item2;
 
             // Get customer account by Salesforce Account Id
-            var customerAccountResult = await _oracleService.GetCustomerAccountBySalesforceAccountId(model.ParentAccountId);
+            var customerAccountResult = await _oracleService.GetCustomerAccountBySalesforceAccountId(model.ParentAccountId, salesforceTransaction);
             if (!customerAccountResult.Item1)
             {
                 response.OracleStatus = StatusType.Error;
@@ -110,8 +111,8 @@ public class AddressBrokerService : IAddressBrokerService
             var accountSites = new List<OracleCustomerAccountSite>();
 
             // search for existing location
-            var locationsResult = await _oracleService.GetLocationsBySalesforceAddressId(new List<string> { model.ObjectId });
-            if (!locationsResult.Item1)
+            var locationsResult = await _oracleService.GetLocationsBySalesforceAddressId(new List<string> { model.ObjectId }, salesforceTransaction);
+            if (locationsResult.Item2 == null || locationsResult.Item2.Count() == 0)
             {
                 response.OracleStatus = StatusType.Error;
                 response.OracleErrorMessage = $"Error syncing Address to Oracle: {locationsResult.Item3}";

@@ -296,8 +296,23 @@ public static class OracleSoapTemplates
 				            <find:findAttribute>OrigSystemReference</find:findAttribute>
 				            <find:findAttribute>PartyName</find:findAttribute>
 				            <find:findAttribute>PersonFirstName</find:findAttribute>
-				            <find:findAttribute>PersonLastName</find:findAttribute>
-				            <find:findAttribute>EmailAddress</find:findAttribute>
+				            <find:findAttribute>PersonLastName</find:findAttribute>				
+				            <find:findAttribute>Email</find:findAttribute>
+				            <find:childFindCriteria>
+					            <find:fetchStart>0</find:fetchStart>
+					            <find:fetchSize>-1</find:fetchSize>
+					            <find:childAttrName>Email</find:childAttrName>
+					            <find:findAttribute>ContactPointId</find:findAttribute>
+					            <find:findAttribute>EmailAddress</find:findAttribute>
+				            </find:childFindCriteria>				
+				            <find:findAttribute>Phone</find:findAttribute>
+				            <find:childFindCriteria>
+					            <find:fetchStart>0</find:fetchStart>
+					            <find:fetchSize>-1</find:fetchSize>
+					            <find:childAttrName>Phone</find:childAttrName>
+					            <find:findAttribute>ContactPointId</find:findAttribute>
+					            <find:findAttribute>PhoneNumber</find:findAttribute>
+				            </find:childFindCriteria>				
  				            <find:findAttribute>Relationship</find:findAttribute>
 				            <find:childFindCriteria>
 					            <find:fetchStart>0</find:fetchStart>
@@ -341,8 +356,6 @@ public static class OracleSoapTemplates
                     <typ:createPerson>
                         <typ:personParty>
                             <per:CreatedByModule>HZ_WS</per:CreatedByModule>
-                            <per:SourceSystem>SFDC</per:SourceSystem>
-                            <per:SourceSystemReferenceValue>{person.OrigSystemReference}</per:SourceSystemReferenceValue>
                             <per:PersonProfile>
                                 <per:PersonFirstName>{person.FirstName}</per:PersonFirstName>
                                 <per:PersonLastName>{person.LastName}</per:PersonLastName>
@@ -369,27 +382,39 @@ public static class OracleSoapTemplates
                                 </rel:OrganizationContact>";
 
         // verify we have Phone metadata
-        if (!string.IsNullOrEmpty(person.PhoneNumber))
+        if (person.PhoneNumbers != null && person.PhoneNumbers.Count > 0)
         {
-            personEnvelope +=
+            var phone = person.PhoneNumbers.FirstOrDefault();
+            if (phone != null)
+            {
+                personEnvelope +=
                                 $@"<rel:Phone>
                                     <con:OwnerTableName>HZ_PARTIES</con:OwnerTableName>
                                     <con:CreatedByModule>HZ_WS</con:CreatedByModule>
-                                    <con:PhoneNumber>{person.PhoneNumber}</con:PhoneNumber>
+                                    <con:PhoneNumber>{phone.PhoneNumber}</con:PhoneNumber>
                                     <con:PhoneLineType>MOBILE</con:PhoneLineType> 
                                 </rel:Phone>";
+            }
+        }
+
+        // verify we have Email metadata
+        if (person.EmailAddresses != null && person.EmailAddresses.Count > 0)
+        {
+            var email = person.EmailAddresses.FirstOrDefault();
+            if (email != null)
+            {
+                personEnvelope +=
+                                $@"<rel:Email>
+                                    <con:OwnerTableName>HZ_PARTIES</con:OwnerTableName>
+                                    <con:CreatedByModule>HZ_WS</con:CreatedByModule>
+                                    <con:EmailAddress>{email.EmailAddress}</con:EmailAddress>
+                                    <con:ContactPointPurpose>BUSINESS</con:ContactPointPurpose>
+                                </rel:Email>";
+            }
         }
 
         personEnvelope +=
-                                    $@"<rel:Email>
-                                    <con:OwnerTableName>HZ_PARTIES</con:OwnerTableName>
-                                    <con:PrimaryFlag>true</con:PrimaryFlag>
-                                    <con:CreatedByModule>HZ_WS</con:CreatedByModule>
-                                    <con:ContactPointPurpose>BUSINESS</con:ContactPointPurpose>
-                                    <con:StartDate>{currentDate}</con:StartDate>
-                                    <con:EmailAddress>{person.EmailAddress}</con:EmailAddress>
-                                </rel:Email>
-                            </per:Relationship>
+                            $@"</per:Relationship>
                         </typ:personParty>
                     </typ:createPerson>
                 </soapenv:Body>
@@ -428,14 +453,36 @@ public static class OracleSoapTemplates
 				            <per:PersonProfile>
 					            <per:PersonFirstName>{person.FirstName}</per:PersonFirstName>
 					            <per:PersonLastName>{person.LastName}</per:PersonLastName>
-				            </per:PersonProfile>
-				            <per:Phone>
-					            <con:PhoneNumber>{person.PhoneNumber}</con:PhoneNumber>
-				            </per:Phone>
-				            <per:Email>
-					            <con:EmailAddress>{person.EmailAddress}</con:EmailAddress>
-				            </per:Email>
-			            </typ:personParty>
+				            </per:PersonProfile>";
+        // verify we have Phone metadata
+        if (person.PhoneNumbers != null && person.PhoneNumbers.Count > 0)
+        {
+            var phone = person.PhoneNumbers.FirstOrDefault();
+            if (phone != null)
+            {
+                personEnvelope +=
+                                $@"<per:Phone>
+                                    <con:ContactPointId>{phone.ContactPointId}</con:ContactPointId>
+                                    <con:PhoneNumber>{phone.PhoneNumber}</con:PhoneNumber>
+                                </per:Phone>";
+            }
+        }
+
+        // verify we have Email metadata
+        if (person.EmailAddresses != null && person.EmailAddresses.Count > 0)
+        {
+            var email = person.EmailAddresses.FirstOrDefault();
+            if (email != null)
+            {
+                personEnvelope +=
+                                $@"<per:Email>
+                                    <con:ContactPointId>{email.ContactPointId}</con:ContactPointId>
+                                    <con:EmailAddress>{email.EmailAddress}</con:EmailAddress>
+                                </per:Email>";
+            }
+        }
+        personEnvelope +=
+			            $@"</typ:personParty>
 		            </typ:updatePerson>
 	            </soapenv:Body>
             </soapenv:Envelope>";
@@ -595,10 +642,10 @@ public static class OracleSoapTemplates
 
                 if (contact.ResponsibilityType != null)
                 {
-                    //customerAccountEnvelope +=
-                            //"<cus:CustomerAccountContactRole>" +
-                            //    $"<cus:ResponsibilityType>{contact.ResponsibilityType}</cus:ResponsibilityType>" +
-                            //"</cus:CustomerAccountContactRole>";
+                    customerAccountEnvelope +=
+                            "<cus:CustomerAccountContactRole>" +
+                                $"<cus:ResponsibilityType>{contact.ResponsibilityType}</cus:ResponsibilityType>" +
+                            "</cus:CustomerAccountContactRole>";
                 }
                 customerAccountEnvelope +=
                         "</cus:CustomerAccountContact>";
@@ -669,10 +716,10 @@ public static class OracleSoapTemplates
                                 "<cus:CreatedByModule>HZ_WS</cus:CreatedByModule>" +
                                 $"<cus:RelationshipId>{person.RelationshipId}</cus:RelationshipId>" + // RelationshipId from the Person response
                                 "<cus:RoleType>CONTACT</cus:RoleType>" +
-                                //"<cus:CustomerAccountContactRole>" +
-                                //    $"<cus:ResponsibilityType>{person.ResponsibilityType}</cus:ResponsibilityType>" +
-                                //    $"<cus:PrimaryFlag>{person.IsPrimary}</cus:PrimaryFlag>" +
-                                //"</cus:CustomerAccountContactRole>" +
+                                "<cus:CustomerAccountContactRole>" +
+                                    $"<cus:ResponsibilityType>{person.ResponsibilityType}</cus:ResponsibilityType>" +
+                                    $"<cus:PrimaryFlag>{person.IsPrimary ?? false}</cus:PrimaryFlag>" +
+                                "</cus:CustomerAccountContactRole>" +
                             "</cus:CustomerAccountContact>";
                 }
             }
@@ -766,10 +813,10 @@ public static class OracleSoapTemplates
                                 "<cus:CreatedByModule>HZ_WS</cus:CreatedByModule>" +
                                 $"<cus:RelationshipId>{person.RelationshipId}</cus:RelationshipId>" + // RelationshipId from the Person response
                                 "<cus:RoleType>CONTACT</cus:RoleType>" +
-                                //"<cus:CustomerAccountContactRole>" +
-                                //    $"<cus:ResponsibilityType>{person.ResponsibilityType}</cus:ResponsibilityType>" +
-                                //    $"<cus:PrimaryFlag>{person.IsPrimary}</cus:PrimaryFlag>" +
-                                //"</cus:CustomerAccountContactRole>" +
+                                "<cus:CustomerAccountContactRole>" +
+                                    $"<cus:ResponsibilityType>{person.ResponsibilityType}</cus:ResponsibilityType>" +
+                                    $"<cus:PrimaryFlag>{person.IsPrimary ?? false}</cus:PrimaryFlag>" +
+                                "</cus:CustomerAccountContactRole>" +
                             "</cus:CustomerAccountContact>";
                 }
             }
@@ -913,12 +960,15 @@ public static class OracleSoapTemplates
     };
 
     // TODO: must create a full dictionary to match values from Salesforce
-    public static readonly Dictionary<string, string> ResponsibilityTypeMap = new()
+    public static string GetResponsibilityType(string role)
     {
-        { "Bill To Contact", "Bill to" },
-        { "Ship To Contact", "Ship to" },
-        { "Primary", "Primary" },
-    };
+        if (string.IsNullOrEmpty(role)) return null;
+        role = role.ToLower();
+        if (role.Contains("primary")) return "SFDCPRIMARY";
+        if (role.Contains("bill")) return "BILL_TO";
+        if (role.Contains("ship")) return "SHIP_TO";
+        return null;
+    }
 
     public static string DecodeEncodedNonAsciiCharacters(string value)
     {

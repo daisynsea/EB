@@ -6,9 +6,22 @@ public class OraclePersonObject
     public string OrigSystemReference { get; set; }
     public string FirstName { get; set; }
     public string LastName { get; set; }
-    public string PhoneCountryCode { get; set; }
-    public string PhoneAreaCode { get; set; }
-    public string PhoneNumber { get; set; }
-    public string EmailAddress { get; set; }
-    public bool? IsPrimary  { get; set; }
+    //public string PhoneNumber { get; set; }
+    public bool? IsPrimary { get; set; }
+    public List<OraclePersonEmailModel>? EmailAddresses{ get; set; }
+    public List<OraclePersonPhoneModel>? PhoneNumbers{ get; set; }
+}
+public class OracleContactPointModel
+{
+    public ulong? ContactPointId { get; set; }
+}
+
+public class OraclePersonEmailModel : OracleContactPointModel
+{
+    public string? EmailAddress { get; set; }
+}
+
+public class OraclePersonPhoneModel : OracleContactPointModel
+{
+    public string? PhoneNumber { get; set; }
 }

@@ -59,6 +59,10 @@ public partial class FindPersonsValue
     public string EmailAddress { get; set; }
 
     /// <remarks/>
+    public FindPersonsEmailValue Email { get; set; }
+    public FindPersonsPhoneValue Phone { get; set; }
+
+    /// <remarks/>
     public FindPersonsValueRelationship Relationship { get; set; }
 }
 
@@ -83,6 +87,36 @@ public partial class findPersonResponse
     /// <remarks/>
     [XmlArrayItem("Value", Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/personService/", IsNullable = false)]
     public FindPersonsValue[] result { get; set; }
+}
+
+/// <remarks/>
+[Serializable]
+[DesignerCategory("code")]
+[XmlType(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/personService/")]
+public partial class FindPersonsEmailValue
+{
+    /// <remarks/>
+    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    public ulong ContactPointId { get; set; }
+
+    /// <remarks/>
+    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    public string? EmailAddress { get; set; }
+}
+
+/// <remarks/>
+[Serializable]
+[DesignerCategory("code")]
+[XmlType(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/personService/")]
+public partial class FindPersonsPhoneValue
+{
+    /// <remarks/>
+    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    public ulong ContactPointId { get; set; }
+
+    /// <remarks/>
+    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    public string? PhoneNumber { get; set; }
 }
 
 /// <remarks/>
