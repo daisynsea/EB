@@ -111,6 +111,12 @@ public class AddressBrokerService : IAddressBrokerService
 
             // search for existing location
             var locationsResult = await _oracleService.GetLocationsBySalesforceAddressId(new List<string> { model.ObjectId });
+            if (!locationsResult.Item1)
+            {
+                response.OracleStatus = StatusType.Error;
+                response.OracleErrorMessage = $"Error syncing Address to Oracle: {locationsResult.Item3}";
+                return response;
+            }
             if (locationsResult == null || locationsResult.Item2.Count() == 0)
             {
                 // create new location
@@ -179,7 +185,9 @@ public class AddressBrokerService : IAddressBrokerService
                 if (createPartySitesResult.Item1 == null)
                 {
                     // create PartySites failed for some reason
-                    Console.WriteLine($"[DEBUG] Error: {createPartySitesResult.Item2}");
+                    response.OracleStatus = StatusType.Error;
+                    response.OracleErrorMessage = $"Error syncing Address to Oracle: Failed to create Organization Party Sites: {createPartySitesResult.Item2}.";
+                    return response;
                 }
                 else
                 {
