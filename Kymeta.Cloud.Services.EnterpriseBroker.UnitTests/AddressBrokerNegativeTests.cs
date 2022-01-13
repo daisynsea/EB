@@ -96,7 +96,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                 .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(true, oracleOrg, string.Empty));
             // The customer account fails to come back
             _fixture.OracleService
-                .Setup(ors => ors.GetCustomerAccountBySalesforceAccountId(It.IsAny<string>()))
+                .Setup(ors => ors.GetCustomerAccountBySalesforceAccountId(It.IsAny<string>(), transaction))
                 .ReturnsAsync(new Tuple<bool, OracleCustomerAccount, string>(false, null, string.Empty));
 
             // Act
@@ -131,11 +131,11 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             // The customer account exists
             var customerAccount = Helpers.BuildOracleCustomerAccount();
             _fixture.OracleService
-                .Setup(ors => ors.GetCustomerAccountBySalesforceAccountId(It.IsAny<string>()))
+                .Setup(ors => ors.GetCustomerAccountBySalesforceAccountId(It.IsAny<string>(), transaction))
                 .ReturnsAsync(new Tuple<bool, OracleCustomerAccount, string>(true, customerAccount, string.Empty));
             // locations are an empty list, which means we're creating
             _fixture.OracleService
-                .Setup(ors => ors.GetLocationsBySalesforceAddressId(It.IsAny<List<string>>()))
+                .Setup(ors => ors.GetLocationsBySalesforceAddressId(It.IsAny<List<string>>(), transaction))
                 .ReturnsAsync(new Tuple<bool, IEnumerable<OracleLocationModel>, string>(false, null, "Explosions"));
 
             // Act
@@ -170,11 +170,11 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             // The customer account exists
             var customerAccount = Helpers.BuildOracleCustomerAccount();
             _fixture.OracleService
-                .Setup(ors => ors.GetCustomerAccountBySalesforceAccountId(It.IsAny<string>()))
+                .Setup(ors => ors.GetCustomerAccountBySalesforceAccountId(It.IsAny<string>(), transaction))
                 .ReturnsAsync(new Tuple<bool, OracleCustomerAccount, string>(true, customerAccount, string.Empty));
             // locations are an empty list, which means we're creating
             _fixture.OracleService
-                .Setup(ors => ors.GetLocationsBySalesforceAddressId(It.IsAny<List<string>>()))
+                .Setup(ors => ors.GetLocationsBySalesforceAddressId(It.IsAny<List<string>>(), transaction))
                 .ReturnsAsync(new Tuple<bool, IEnumerable<OracleLocationModel>, string>(true, new List<OracleLocationModel>(), string.Empty));
             // Fails to create
             _fixture.OracleService
@@ -213,11 +213,11 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             // The customer account exists
             var customerAccount = Helpers.BuildOracleCustomerAccount();
             _fixture.OracleService
-                .Setup(ors => ors.GetCustomerAccountBySalesforceAccountId(It.IsAny<string>()))
+                .Setup(ors => ors.GetCustomerAccountBySalesforceAccountId(It.IsAny<string>(), transaction))
                 .ReturnsAsync(new Tuple<bool, OracleCustomerAccount, string>(true, customerAccount, string.Empty));
             // locations are an empty list, which means we're creating
             _fixture.OracleService
-                .Setup(ors => ors.GetLocationsBySalesforceAddressId(It.IsAny<List<string>>()))
+                .Setup(ors => ors.GetLocationsBySalesforceAddressId(It.IsAny<List<string>>(), transaction))
                 .ReturnsAsync(new Tuple<bool, IEnumerable<OracleLocationModel>, string>(true, new List<OracleLocationModel>(), string.Empty));
             // creates new locations
             var locations = new List<OracleLocationModel>
@@ -264,11 +264,11 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             // The customer account exists
             var customerAccount = Helpers.BuildOracleCustomerAccount();
             _fixture.OracleService
-                .Setup(ors => ors.GetCustomerAccountBySalesforceAccountId(It.IsAny<string>()))
+                .Setup(ors => ors.GetCustomerAccountBySalesforceAccountId(It.IsAny<string>(), transaction))
                 .ReturnsAsync(new Tuple<bool, OracleCustomerAccount, string>(true, customerAccount, string.Empty));
             // locations are an empty list, which means we're creating
             _fixture.OracleService
-                .Setup(ors => ors.GetLocationsBySalesforceAddressId(It.IsAny<List<string>>()))
+                .Setup(ors => ors.GetLocationsBySalesforceAddressId(It.IsAny<List<string>>(), transaction))
                 .ReturnsAsync(new Tuple<bool, IEnumerable<OracleLocationModel>, string>(true, new List<OracleLocationModel>(), string.Empty));
             var locations = new List<OracleLocationModel>
             {
@@ -328,7 +328,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             // The customer account exists
             var customerAccount = Helpers.BuildOracleCustomerAccount();
             _fixture.OracleService
-                .Setup(ors => ors.GetCustomerAccountBySalesforceAccountId(It.IsAny<string>()))
+                .Setup(ors => ors.GetCustomerAccountBySalesforceAccountId(It.IsAny<string>(), transaction))
                 .ReturnsAsync(new Tuple<bool, OracleCustomerAccount, string>(true, customerAccount, string.Empty));
             // locations exist, which means we're updating
             // this location has a different id than the organization's partysites model, so it will not exist on the organization
@@ -337,7 +337,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                 new OracleLocationModel { LocationId = 30003, OrigSystemReference = "add30003" }
             };
             _fixture.OracleService
-                .Setup(ors => ors.GetLocationsBySalesforceAddressId(It.IsAny<List<string>>()))
+                .Setup(ors => ors.GetLocationsBySalesforceAddressId(It.IsAny<List<string>>(), transaction))
                 .ReturnsAsync(new Tuple<bool, IEnumerable<OracleLocationModel>, string>(true, locations, string.Empty));
 
             _fixture.OracleService

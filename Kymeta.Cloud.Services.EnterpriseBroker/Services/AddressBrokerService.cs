@@ -112,7 +112,7 @@ public class AddressBrokerService : IAddressBrokerService
 
             // search for existing location
             var locationsResult = await _oracleService.GetLocationsBySalesforceAddressId(new List<string> { model.ObjectId }, salesforceTransaction);
-            if (locationsResult.Item2 == null || locationsResult.Item2.Count() == 0)
+            if (!locationsResult.Item1)
             {
                 response.OracleStatus = StatusType.Error;
                 response.OracleErrorMessage = $"Error syncing Address to Oracle: {locationsResult.Item3}";
