@@ -231,12 +231,12 @@ public class OssService : IOssService
         }
     }
 
-    public async Task<Account> GetAccountBySalesforceId(string salesforceId)
+    public async virtual Task<Account> GetAccountBySalesforceId(string salesforceId)
     {
         return await _accountsClient.GetAccountBySalesforceId(salesforceId);
     }
 
-    private async Task<Account> RemapSalesforceAccountToOssAccount(
+    public async virtual Task<Account> RemapSalesforceAccountToOssAccount(
         string name,
         string salesforceId,
         Guid userId,
@@ -289,7 +289,7 @@ public class OssService : IOssService
         return account;
     }
 
-    private async Task LogAction(SalesforceActionTransaction transaction, SalesforceTransactionAction action, ActionObjectType objectType, StatusType status, string? entityId = null, string? errorMessage = null)
+    public async virtual Task LogAction(SalesforceActionTransaction transaction, SalesforceTransactionAction action, ActionObjectType objectType, StatusType status, string? entityId = null, string? errorMessage = null)
     {
         var actionRecord = new SalesforceActionRecord
         {

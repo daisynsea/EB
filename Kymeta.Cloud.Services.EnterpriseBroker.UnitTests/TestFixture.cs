@@ -1,6 +1,7 @@
 ﻿using Kymeta.Cloud.Services.EnterpriseBroker.HttpClients;
 using Kymeta.Cloud.Services.EnterpriseBroker.Repositories;
 using Kymeta.Cloud.Services.EnterpriseBroker.Services;
+using Microsoft.Extensions.Configuration;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -18,6 +19,17 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
         public Mock<IActionsRepository> ActionsRepository = new Mock<IActionsRepository>();
         public Mock<IOssService> OssService = new Mock<IOssService>();
         public Mock<IOracleService> OracleService = new Mock<IOracleService>();
+        public IConfiguration Configuration;
+
+        public TestFixture()
+        {
+            var configValues = new Dictionary<string, string>
+            {
+                { "SystemUserId", Guid.NewGuid().ToString() },
+                { "KymetaAccountId", Guid.NewGuid().ToString() }
+            };
+            Configuration = new ConfigurationBuilder().AddInMemoryCollection(configValues).Build();
+        }
 
         public void Dispose()
         {
