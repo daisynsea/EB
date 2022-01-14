@@ -95,6 +95,8 @@ public class AccountBrokerService : IAccountBrokerService
         string? oracleOrganizationId = null;
         string? oracleCustomerAccountId = null;
         string? oracleCustomerAccountProfileId = null;
+        List<AccountChildResponse> addressesForSalesforce = new List<AccountChildResponse>();
+        List<AccountChildResponse> contactsForSalesforce = new List<AccountChildResponse>();
 
         #region Process Account Create
         /*
@@ -307,8 +309,19 @@ public class AccountBrokerService : IAccountBrokerService
                                     OrigSystemReference = result.Item1.OrigSystemReference,
                                     SiteUses = siteUseTypes
                                 });
+
+                                // Add to response container
+                                addressesForSalesforce.Add(new AccountChildResponse
+                                {
+                                    OracleId = result.Item1.LocationId?.ToString(),
+                                    SalesforceId = result.Item1.OrigSystemReference,
+                                    OracleEntityType = "Location"
+                                });
                             }
                         }
+
+                        // Attach addresses to the response
+                        response.Addresses = addressesForSalesforce;
                     }
 
                     // check to see if we need to create any PartySites for the Organization & Locations
@@ -385,6 +398,13 @@ public class AccountBrokerService : IAccountBrokerService
                                     ResponsibilityType = responsibilityType,
                                     IsPrimary = contact.IsPrimary
                                 });
+
+                                contactsForSalesforce.Add(new AccountChildResponse
+                                {
+                                    OracleId = addedPersonResult.Item1.PartyId?.ToString(),
+                                    SalesforceId = addedPersonResult.Item1.OrigSystemReference,
+                                    OracleEntityType = "Person"
+                                });
                             }
                         }
                         else
@@ -401,6 +421,9 @@ public class AccountBrokerService : IAccountBrokerService
                             });
                         }
                     }
+
+                    // Attach the contacts to the response
+                    response.Contacts = contactsForSalesforce;
                 }
                 #endregion
 
