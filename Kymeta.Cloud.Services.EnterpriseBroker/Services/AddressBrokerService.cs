@@ -118,7 +118,7 @@ public class AddressBrokerService : IAddressBrokerService
                 response.OracleErrorMessage = $"Error syncing Address to Oracle: {locationsResult.Item3}";
                 return response;
             }
-            if (locationsResult == null || locationsResult.Item2.Count() == 0)
+            if (locationsResult.Item2 == null || locationsResult.Item2.Count() == 0)
             {
                 // create new location
                 var createLocationResult = await _oracleService.CreateLocation(model, salesforceTransaction);
@@ -141,8 +141,10 @@ public class AddressBrokerService : IAddressBrokerService
             }
             else
             {
+                // acquire the Location returned from the search
+                var existingLocation = locationsResult.Item2.First();
                 // update the location
-                var updateLocationResult = await _oracleService.UpdateLocation(model, salesforceTransaction);
+                var updateLocationResult = await _oracleService.UpdateLocation(model, existingLocation, salesforceTransaction);
                 if (updateLocationResult.Item1 == null)
                 {
                     response.OracleStatus = StatusType.Error;

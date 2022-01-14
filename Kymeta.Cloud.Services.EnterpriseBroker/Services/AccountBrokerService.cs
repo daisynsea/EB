@@ -142,7 +142,11 @@ public class AccountBrokerService : IAccountBrokerService
                         response.OSSErrorMessage = addedAccountTuple.Item2;
                     }
                 }
-            } catch (Exception ex)
+
+                // set this value on the model so Oracle can intake it
+                model.OssId = ossAccountId;
+            }
+            catch (Exception ex)
             {
                 response.OSSStatus = StatusType.Error;
                 response.OSSErrorMessage = $"Error syncing to OSS due to an exception: {ex.Message}";
