@@ -20,7 +20,7 @@ public interface IOracleService
     // Address Endpoints
     Task<Tuple<bool, IEnumerable<OracleLocationModel>, string>> GetLocationsBySalesforceAddressId(List<string> addressIds, SalesforceActionTransaction transaction);
     Task<Tuple<OracleLocationModel, string>> CreateLocation(SalesforceAddressModel address, SalesforceActionTransaction transaction);
-    Task<Tuple<OracleLocationModel, string>> UpdateLocation(SalesforceAddressModel model, SalesforceActionTransaction transaction);
+    Task<Tuple<OracleLocationModel, string>> UpdateLocation(SalesforceAddressModel model, OracleLocationModel existingLocation, SalesforceActionTransaction transaction);
     // Contact Endpoints
     Task<Tuple<bool, IEnumerable<OraclePersonObject>, string>> GetPersonsBySalesforceContactId(List<string> contactIds, SalesforceActionTransaction transaction);
     Task<Tuple<OraclePersonObject, string>> CreatePerson(SalesforceContactModel model, ulong organizationPartyId, SalesforceActionTransaction transaction);
@@ -478,11 +478,11 @@ public class OracleService : IOracleService
         return new Tuple<OracleLocationModel, string>(locationResult, string.Empty);
     }
 
-    public async Task<Tuple<OracleLocationModel, string>> UpdateLocation(SalesforceAddressModel address, SalesforceActionTransaction transaction)
+    public async Task<Tuple<OracleLocationModel, string>> UpdateLocation(SalesforceAddressModel address, OracleLocationModel existingLocation, SalesforceActionTransaction transaction)
     {
         await LogAction(transaction, SalesforceTransactionAction.UpdateLocationInOracle, ActionObjectType.Address, StatusType.Started, address.ObjectId);
 
-        var location = RemapSalesforceAddressToOracleLocation(address);
+        var location = RemapSalesforceAddressToOracleLocation(address, existingLocation);
 
         // populate the template
         var updateLocationEnvelope = OracleSoapTemplates.UpdateLocation(location);
@@ -514,7 +514,7 @@ public class OracleService : IOracleService
             Country = oracleResult?.Country?.ToString()
         };
 
-        await LogAction(transaction, SalesforceTransactionAction.UpdateLocationInOracle, ActionObjectType.Address, StatusType.Started, locationResult.LocationId.ToString());
+        await LogAction(transaction, SalesforceTransactionAction.UpdateLocationInOracle, ActionObjectType.Address, StatusType.Successful, locationResult.LocationId.ToString());
 
         // return the simplified Location object
         return new Tuple<OracleLocationModel, string>(locationResult, string.Empty);

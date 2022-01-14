@@ -141,8 +141,10 @@ public class AddressBrokerService : IAddressBrokerService
             }
             else
             {
+                // acquire the Location returned from the search
+                var existingLocation = locationsResult.Item2.First();
                 // update the location
-                var updateLocationResult = await _oracleService.UpdateLocation(model, salesforceTransaction);
+                var updateLocationResult = await _oracleService.UpdateLocation(model, existingLocation, salesforceTransaction);
                 if (updateLocationResult.Item1 == null)
                 {
                     response.OracleStatus = StatusType.Error;
