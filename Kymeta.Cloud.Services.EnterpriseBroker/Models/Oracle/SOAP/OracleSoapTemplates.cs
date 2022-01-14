@@ -255,7 +255,7 @@ public static class OracleSoapTemplates
 
     #region Person
     /// <summary>
-    ///  A template for finding Persons in Oracle based on Enterprise Id.
+    /// A template for finding Persons in Oracle based on Enterprise Id.
     /// </summary>
     /// <returns>TBD</returns>
     public static string FindPersons(List<string> contactIds)

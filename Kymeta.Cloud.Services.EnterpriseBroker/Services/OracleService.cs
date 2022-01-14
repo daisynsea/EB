@@ -472,7 +472,7 @@ public class OracleService : IOracleService
             Country = oracleResult?.Country?.ToString()
         };
 
-        await LogAction(transaction, SalesforceTransactionAction.CreateLocationInOracle, ActionObjectType.Address, StatusType.Started, locationResult.LocationId.ToString());
+        await LogAction(transaction, SalesforceTransactionAction.CreateLocationInOracle, ActionObjectType.Address, StatusType.Successful, locationResult.LocationId.ToString());
 
         // return the simplified Location object
         return new Tuple<OracleLocationModel, string>(locationResult, string.Empty);
@@ -581,7 +581,11 @@ public class OracleService : IOracleService
         var oraclePersonsResult = (FindPersonsEnvelope)serializer.Deserialize(findPersonsResponse.Item1.CreateReader());
 
         var result = oraclePersonsResult.Body?.findPersonResponse?.result;
-        if (result == null || result.Count() == 0) return new Tuple<bool, IEnumerable<OraclePersonObject>, string>(true, null, $"Persons not found.");
+        if (result == null || result.Count() == 0)
+        {
+            await LogAction(transaction, SalesforceTransactionAction.GetPersonBySalesforceId, ActionObjectType.Contact, StatusType.Successful);
+            return new Tuple<bool, IEnumerable<OraclePersonObject>, string>(true, null, $"Persons not found.");
+        }
 
         // map the response model into our simplified C# List
         var oraclePersons = new List<OraclePersonObject>();
