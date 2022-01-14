@@ -1,4 +1,5 @@
-﻿using Kymeta.Cloud.Services.EnterpriseBroker.Models.OSS;
+﻿using Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle;
+using Kymeta.Cloud.Services.EnterpriseBroker.Models.OSS;
 using Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce;
 using Kymeta.Cloud.Services.EnterpriseBroker.Services;
 using Moq;
@@ -21,17 +22,49 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
         }
 
         [Fact]
-        [Trait("Category", "ContacBrokerTests")]
-        [Trait("Category", "ContacBrokerOssTests")]
-        public async void SyncToOracle_UpdateContact_ReturnsSuccess()
+        [Trait("Category", "ContactBrokerTests")]
+        [Trait("Category", "ContactBrokerOracleTests")]
+        public async void SyncToOracle_CreateContact_ReturnsSuccess()
         {
             // Arrange
-            var model = Helpers.BuildSalesforceContactModel(false, true);
+            var model = Helpers.BuildSalesforceContactModel(true, false);
             var transaction = Helpers.BuildSalesforceTransaction();
             Helpers.MockActionRepository(_fixture.ActionsRepository, transaction);
 
-            // TODO: Setup Oracle service
-            
+            // Get Org
+            var oracleOrg = Helpers.BuildOracleOrganization();
+            _fixture.OracleService
+                .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), It.IsAny<string>(), transaction))
+                .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(true, oracleOrg, "Explosions"));
+            // Get Customer Account
+            var customerAccount = Helpers.BuildOracleCustomerAccount();
+            _fixture.OracleService
+                .Setup(ors => ors.GetCustomerAccountBySalesforceAccountId(It.IsAny<string>(), transaction))
+                .ReturnsAsync(new Tuple<bool, OracleCustomerAccount, string>(true, customerAccount, "Explosions"));
+            // Get list of persons
+            var persons = new List<OraclePersonObject>
+            {
+                new OraclePersonObject
+                {
+                    IsPrimary = true,
+                    PartyId = 30001,
+                    OrigSystemReference = "con30001",
+                    RelationshipId = 40001
+                }
+            };
+            // Empty list
+            _fixture.OracleService
+                .Setup(ors => ors.GetPersonsBySalesforceContactId(It.IsAny<List<string>>(), transaction))
+                .ReturnsAsync(new Tuple<bool, IEnumerable<OraclePersonObject>, string>(true, null, string.Empty));
+            // Create the person
+            _fixture.OracleService
+                .Setup(ors => ors.CreatePerson(It.IsAny<SalesforceContactModel>(), It.IsAny<ulong>(), transaction))
+                .ReturnsAsync(new Tuple<OraclePersonObject, string>(persons.First(), string.Empty));
+            // Update the customer profile children
+            _fixture.OracleService
+                .Setup(ors => ors.UpdateCustomerAccountChildren(It.IsAny<OracleCustomerAccount>(), transaction, It.IsAny<List<OracleCustomerAccountSite>>(), It.IsAny<List<OracleCustomerAccountContact>>()))
+                .ReturnsAsync(new Tuple<OracleCustomerAccount, string>(customerAccount, string.Empty));
+
             // Act
             var svc = new ContactBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object);
             var result = await svc.ProcessContactAction(model);
@@ -41,8 +74,8 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             Assert.Equal(model.ObjectId, result.SalesforceObjectId);
             Assert.Equal(StatusType.Successful, result.OracleStatus);
             Assert.Equal(StatusType.Skipped, result.OSSStatus);
-            Assert.Null(result.OracleErrorMessage);
             Assert.Null(result.OSSErrorMessage);
+            Assert.Null(result.OracleErrorMessage);
         }
     }
 }

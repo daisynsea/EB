@@ -112,32 +112,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
             .Setup(oss => oss.UpdateAccount(It.IsAny<SalesforceAccountModel>(), It.IsAny<SalesforceActionTransaction>()))
             .ReturnsAsync(new Tuple<Account, string>(accountFromOss, string.Empty));
         // Mock Oracle portion of the request
-        var oracleOrg = new OracleOrganization { 
-            PartyId = 001, 
-            PartyNumber = "30001",
-            OrigSystemReference = "acc30001",
-            PartySites = new List<OraclePartySite>
-            {
-                new OraclePartySite
-                {
-                    OrigSystemReference = "add30001",
-                    LocationId = 30001
-                },
-                new OraclePartySite
-                {
-                    OrigSystemReference = "add30002",
-                    LocationId = 30002
-                }
-            },
-            Contacts = new List<OracleOrganizationContact>
-            {
-                new OracleOrganizationContact
-                {
-                    OrigSystemReference = "con30001",
-                    ContactPartyId = 30001
-                }
-            }
-        };
+        var oracleOrg = Helpers.BuildOracleOrganization();
         _fixture.OracleService
             .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), It.IsAny<string>(), transaction))
             .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(true, oracleOrg, string.Empty));

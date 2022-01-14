@@ -160,7 +160,8 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             {
                 CustomerAccountId = 30001,
                 PartyId = 30001,
-                OrigSystemReference = "acc30001"
+                OrigSystemReference = "acc30001",
+                Contacts = new List<OracleCustomerAccountContact>()
             };
         }
     }
