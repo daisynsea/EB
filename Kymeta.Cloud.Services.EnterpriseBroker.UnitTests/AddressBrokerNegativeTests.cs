@@ -341,7 +341,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                 .ReturnsAsync(new Tuple<bool, IEnumerable<OracleLocationModel>, string>(true, locations, string.Empty));
 
             _fixture.OracleService
-                .Setup(ors => ors.UpdateLocation(It.IsAny<SalesforceAddressModel>(), transaction))
+                .Setup(ors => ors.UpdateLocation(It.IsAny<SalesforceAddressModel>(), It.IsAny<OracleLocationModel>(), transaction))
                 .ReturnsAsync(new Tuple<OracleLocationModel, string>(null, "Explosions"));
 
             // Act
