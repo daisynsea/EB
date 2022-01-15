@@ -40,6 +40,7 @@ public class AddressBrokerService : IAddressBrokerService
             Id = Guid.NewGuid(),
             Object = ActionObjectType.Address,
             ObjectId = model.ObjectId,
+            ObjectName = model.SiteName,
             CreatedOn = DateTime.UtcNow,
             UserName = model.UserName,
             SerializedObjectValues = body,

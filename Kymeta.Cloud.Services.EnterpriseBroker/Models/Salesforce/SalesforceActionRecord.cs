@@ -32,6 +32,11 @@ public class SalesforceActionTransaction
     [JsonProperty("objectId")]
     public string? ObjectId { get; set; }
     /// <summary>
+    /// Name of the Salesforce Object
+    /// </summary>
+    [JsonProperty("objectName")]
+    public string? ObjectName { get; set; }
+    /// <summary>
     /// Datetime the EnterpriseAction record was last updated on
     /// </summary>
     [JsonProperty("lastUpdatedOn")]

@@ -10,6 +10,8 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Pages
         private JsonSerializerOptions _serializerOptions = new JsonSerializerOptions { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
         private IActionsRepository _actionsRepository;
         public SalesforceActionTransaction SalesforceActionTransaction { get; set; }
+        public SalesforceActionObject? SalesforceActionObject { get; set; }
+        public string TimePreference = "utc";
         public string SerializedTransaction
         {
             get
@@ -33,6 +35,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Pages
             }
         }
         public string SerializedResponse => JsonSerializer.Serialize(SalesforceActionTransaction.Response, _serializerOptions);
+        public string SalesforceUrl { get; set; }
 
         public DetailModel(IActionsRepository actionsRepository)
         {
@@ -42,7 +45,21 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Pages
 
         public async Task OnGet(Guid id, string objectType)
         {
-            SalesforceActionTransaction = await _actionsRepository.GetActionRecord(id, objectType);
+            TimePreference = HttpContext.Request.Cookies["timePreference"] ?? "utc";
+
+            SalesforceActionTransaction = await _actionsRepository.GetActionRecord(id, objectType); // Get the entire transaction record
+            // transform timestamps depending on preference
+            if (TimePreference == "local")
+            {
+                SalesforceActionTransaction.CreatedOn = SalesforceActionTransaction.CreatedOn.ToLocalTime();
+                foreach (var ac in SalesforceActionTransaction.TransactionLog)
+                {
+                    ac.Timestamp = ac.Timestamp.GetValueOrDefault().ToLocalTime();
+                }
+            }
+
+            SalesforceActionObject = JsonSerializer.Deserialize<SalesforceActionObject>(SalesforceActionTransaction.SerializedObjectValues); // Parse out just the incoming payload generic fields
+            SalesforceUrl = $"{SalesforceActionObject.EnterpriseOriginUri}/lightning/r/{SalesforceActionTransaction.Object}/{SalesforceActionTransaction.ObjectId}/view"; // Build the url
         }
     }
 }

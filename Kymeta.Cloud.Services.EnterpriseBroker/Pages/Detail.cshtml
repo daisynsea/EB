@@ -5,7 +5,11 @@
     <div class="container">
         <h4 title="Transaction Id" class="heading">@Model.SalesforceActionTransaction?.Id</h4>
         <h1 class="title">@Model.SalesforceActionTransaction?.Object?.ToString() Sync</h1>
-        <p>Initiated <strong>@Model.SalesforceActionTransaction?.CreatedOn.ToString("G")</strong> on object <strong>@Model.SalesforceActionTransaction?.ObjectId</strong> by <strong>@Model.SalesforceActionTransaction?.UserName</strong>.</p>
+        <p>Initiated 
+            <strong>@Model.SalesforceActionTransaction?.CreatedOn.ToString("G")</strong> 
+            on object <a href="@Model.SalesforceUrl" target="_blank"><strong>@Model.SalesforceActionTransaction?.ObjectId</strong> <i class="fa-regular fa-arrow-up-right-from-square"></i></a> 
+            by <strong>@Model.SalesforceActionTransaction?.UserName</strong>.
+        </p>
     </div>
     <hr />
     <div class="container">

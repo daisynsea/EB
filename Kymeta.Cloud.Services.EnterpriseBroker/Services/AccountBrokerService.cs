@@ -62,6 +62,7 @@ public class AccountBrokerService : IAccountBrokerService
             Id = Guid.NewGuid(),
             Object = ActionObjectType.Account,
             ObjectId = model.ObjectId,
+            ObjectName = model.Name,
             CreatedOn = DateTime.UtcNow,
             UserName = model.UserName,
             SerializedObjectValues = body,

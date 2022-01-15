@@ -38,6 +38,7 @@ public class ContactBrokerService : IContactBrokerService
             Id = Guid.NewGuid(),
             Object = ActionObjectType.Contact,
             ObjectId = model.ObjectId,
+            ObjectName = model.Name,
             CreatedOn = DateTime.UtcNow,
             UserName = model.UserName,
             SerializedObjectValues = JsonSerializer.Serialize(model),
