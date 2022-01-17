@@ -324,9 +324,6 @@ public class AccountBrokerService : IAccountBrokerService
                                 });
                             }
                         }
-
-                        // Attach addresses to the response
-                        response.Addresses = addressesForSalesforce;
                     }
 
                     // check to see if we need to create any PartySites for the Organization & Locations
@@ -426,9 +423,6 @@ public class AccountBrokerService : IAccountBrokerService
                             });
                         }
                     }
-
-                    // Attach the contacts to the response
-                    response.Contacts = contactsForSalesforce;
                 }
                 #endregion
 
@@ -530,6 +524,8 @@ public class AccountBrokerService : IAccountBrokerService
                 response.OracleCustomerAccountId = oracleCustomerAccountId;
                 response.OracleOrganizationId = oracleOrganizationId;
                 response.OracleCustomerProfileId = oracleCustomerAccountProfileId;
+                if (model.Addresses != null && model.Addresses.Count > 0) response.Contacts = contactsForSalesforce;
+                if (model.Contacts != null && model.Contacts.Count > 0) response.Addresses = addressesForSalesforce;
 
                 // Update OSS with Oracle Id if need be
                 if (syncToOss && !string.IsNullOrEmpty(oracleCustomerAccountId)) // TODO: Is the customer account Id actually what we want?
