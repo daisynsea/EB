@@ -36,11 +36,11 @@
             </div>
             <div id="mainNavbar" class="navbar-menu">
                 <div class="navbar-end">
-                    <div class="navbar-item">
+                    @*<div class="navbar-item">
                         <button class="button is-outlined" onclick="document.cookie = 'timePreference=@(timePreference == "utc" ? "local" : "utc"); path=/'; window.location.reload(true);" title="Change date timezone display">
                             <span>Dates in <strong class="has-text-uppercase">@timePreference</strong> format.</span>
                         </button>
-                    </div>
+                    </div>*@
                     <div class="navbar-item">
                         <a class="button is-light" asp-controller="Authentication" asp-action="Logout">
                             Sign Out
