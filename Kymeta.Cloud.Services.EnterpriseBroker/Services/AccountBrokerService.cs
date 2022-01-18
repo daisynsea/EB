@@ -489,7 +489,10 @@ public class AccountBrokerService : IAccountBrokerService
                     var updateCustomerAccountResult = await _oracleService.UpdateCustomerAccount(existingAccount, model, accountSites, accountContacts, salesforceTransaction);
                     if (updateCustomerAccountResult.Item1 == null)
                     {
-                        // TODO: error updating Customer Account
+                        // error updating the Customer Account.... indicate failure
+                        response.OracleStatus = StatusType.Error;
+                        response.OracleErrorMessage = updateCustomerAccountResult.Item2;
+                        return response;
                     }
                     customerAccount = updateCustomerAccountResult.Item1;
                     oracleCustomerAccountId = customerAccount?.CustomerAccountId?.ToString();

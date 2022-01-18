@@ -564,10 +564,11 @@ public static class OracleSoapTemplates
 					            <find:fetchSize>-1</find:fetchSize>
 					            <find:childAttrName>CustomerAccountContact</find:childAttrName>
 					            <find:findAttribute>OrigSystemReference</find:findAttribute>
-					            <find:findAttribute>CustomerAccountId</find:findAttribute>
-					            <find:findAttribute>PrimaryFlag</find:findAttribute>
-					            <find:findAttribute>RelationshipId</find:findAttribute>
 					            <find:findAttribute>ContactPersonId</find:findAttribute>
+					            <find:findAttribute>CustomerAccountId</find:findAttribute>
+					            <find:findAttribute>CustomerAccountRoleId</find:findAttribute>
+					            <find:findAttribute>RelationshipId</find:findAttribute>
+					            <find:findAttribute>PrimaryFlag</find:findAttribute>
 				            </find:childFindCriteria>
 			            </typ:findCriteria>
 			            <typ:findControl>
@@ -712,9 +713,11 @@ public static class OracleSoapTemplates
                 {
                     customerAccountEnvelope +=
                             "<cus:CustomerAccountContact>" +
+                                $"<cus:CustomerAccountId>{account.CustomerAccountId}</cus:CustomerAccountId>" +
+                                $"<cus:RelationshipId>{person.RelationshipId}</cus:RelationshipId>" +
+                                $"<cus:OrigSystemReference>{person.OrigSystemReference}</cus:OrigSystemReference>" +
                                 $"<cus:PrimaryFlag>{person.IsPrimary}</cus:PrimaryFlag>" +
                                 "<cus:CreatedByModule>HZ_WS</cus:CreatedByModule>" +
-                                $"<cus:RelationshipId>{person.RelationshipId}</cus:RelationshipId>" + // RelationshipId from the Person response
                                 "<cus:RoleType>CONTACT</cus:RoleType>" +
                                 "<cus:CustomerAccountContactRole>" +
                                     $"<cus:ResponsibilityType>{person.ResponsibilityType}</cus:ResponsibilityType>" +
