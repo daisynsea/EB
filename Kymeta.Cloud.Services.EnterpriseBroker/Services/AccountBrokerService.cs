@@ -201,7 +201,7 @@ public class AccountBrokerService : IAccountBrokerService
                         return response;
                     }
                     organization = addedOrganization.Item1;
-                    oracleOrganizationId = addedOrganization.Item1.PartyNumber;
+                    oracleOrganizationId = addedOrganization.Item1.PartyNumber.ToString();
                     response.OracleOrganizationId = oracleOrganizationId;
                 }
                 else // Otherwise, update it
@@ -216,7 +216,7 @@ public class AccountBrokerService : IAccountBrokerService
                         return response;
                     }
                     organization = updatedOrganization.Item1;
-                    oracleOrganizationId = organizationResult.Item2.PartyNumber;
+                    oracleOrganizationId = organizationResult.Item2.PartyNumber.ToString();
                     response.OracleOrganizationId = oracleOrganizationId;
                 }
                 #endregion

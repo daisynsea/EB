@@ -73,13 +73,14 @@ public class OracleService : IOracleService
         {
             OrganizationName = oracleResult.PartyName,
             PartyId = oracleResult.PartyId,
-            PartyNumber = oracleResult.PartyNumber.ToString(),
+            PartyNumber = oracleResult.PartyNumber,
             OrigSystemReference = oracleResult.OriginalSystemReference?.OrigSystemReference,
             // map the response object to our C# model for party sites
             PartySites = oracleResult.PartySite?
                 .Select(ps => new OraclePartySite
                 {
                     PartySiteId = ps.PartySiteId,
+                    PartySiteNumber = ps.PartySiteNumber,
                     OrigSystemReference = ps.OrigSystemReference,
                     LocationId = ps.LocationId
                 }).ToList(),
@@ -125,7 +126,7 @@ public class OracleService : IOracleService
     public async Task<Tuple<OracleOrganization, string>> UpdateOrganization(OracleOrganization existingOracleOrganization, SalesforceAccountModel model, SalesforceActionTransaction transaction)
     {
         var organization = RemapSalesforceAccountToUpdateOracleOrganization(model, existingOracleOrganization);
-        if (string.IsNullOrEmpty(existingOracleOrganization.PartyNumber)) return new Tuple<OracleOrganization, string>(null, $"oracleCustomerAccountId must be present to update the Oracle Account record.");
+        if (existingOracleOrganization?.PartyNumber == null) return new Tuple<OracleOrganization, string>(null, $"Oracle Party Number must be present to update the Oracle Organization record.");
         var updated = await _oracleClient.UpdateOrganization(organization, existingOracleOrganization.PartyNumber);
         if (!string.IsNullOrEmpty(updated.Item2)) return new Tuple<OracleOrganization, string>(null, $"There was an error updating the account in Oracle: {updated.Item2}");
 
@@ -134,7 +135,7 @@ public class OracleService : IOracleService
         {
             OrganizationName = updated.Item1.OrganizationName,
             PartyId = updated.Item1.PartyId,
-            PartyNumber = updated.Item1.PartyNumber,
+            PartyNumber = Convert.ToUInt64(updated.Item1.PartyNumber), // convert to ulong
             TaxpayerIdentificationNumber = updated.Item1.TaxpayerIdentificationNumber,
             OrigSystemReference = updated.Item1.SourceSystemReferenceValue,
             Type = updated.Item1.Type,
