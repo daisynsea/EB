@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 namespace Kymeta.Cloud.Services.EnterpriseBroker.Controllers;
 
 [ApiController]
@@ -21,7 +22,7 @@ public class BrokerContactController : ControllerBase
     /// </summary>
     /// <param name="model">Incoming Payload</param>
     /// <returns>Response model</returns>
-    [HttpPost]
+    [HttpPost, AllowAnonymous]
     public async Task<ActionResult<ContactResponse>> ProcessContact([FromBody] SalesforceContactModel model)
     {
         try

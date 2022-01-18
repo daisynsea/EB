@@ -14,7 +14,7 @@ public interface IAccountBrokerService
     /// </summary>
     /// <param name="model">Incoming payload</param>
     /// <returns>Processed action</returns>
-    Task<AccountResponse> ProcessAccountAction(SalesforceAccountModel model);
+    Task<UnifiedResponse> ProcessAccountAction(SalesforceAccountModel model);
 }
 
 public class AccountBrokerService : IAccountBrokerService
@@ -30,7 +30,7 @@ public class AccountBrokerService : IAccountBrokerService
         _ossService = ossService;
     }
 
-    public async Task<AccountResponse> ProcessAccountAction(SalesforceAccountModel model)
+    public async Task<UnifiedResponse> ProcessAccountAction(SalesforceAccountModel model)
     {
         /*
          * DETERMINE WHERE TO SYNC
@@ -42,7 +42,7 @@ public class AccountBrokerService : IAccountBrokerService
          * MARSHAL UP RESPONSE
          */
         #region Build initial response object
-        var response = new AccountResponse
+        var response = new UnifiedResponse
         {
             SalesforceObjectId = model.ObjectId,
             OracleStatus = syncToOracle ? StatusType.Started : StatusType.Skipped,

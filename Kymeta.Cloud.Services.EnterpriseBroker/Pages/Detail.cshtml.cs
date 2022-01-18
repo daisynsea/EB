@@ -7,7 +7,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Pages
 {
     public class DetailModel : PageModel
     {
-        private JsonSerializerOptions _serializerOptions = new JsonSerializerOptions { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+        private JsonSerializerOptions _serializerOptions = new JsonSerializerOptions { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
         private IActionsRepository _actionsRepository;
         public SalesforceActionTransaction SalesforceActionTransaction { get; set; }
         public SalesforceActionObject? SalesforceActionObject { get; set; }

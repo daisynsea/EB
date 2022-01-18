@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.Controllers;
@@ -22,8 +23,8 @@ public class BrokerAccountController : ControllerBase
     /// </summary>
     /// <param name="model">Incoming Payload</param>
     /// <returns>Response model</returns>
-    [HttpPost]
-    public async Task<ActionResult<AccountResponse>> ProcessAccount([FromBody] SalesforceAccountModel model)
+    [HttpPost, AllowAnonymous]
+    public async Task<ActionResult<UnifiedResponse>> ProcessAccount([FromBody] SalesforceAccountModel model)
     {
         try
         {
