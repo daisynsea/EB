@@ -1,5 +1,8 @@
 ﻿@page "/{objectType}/{id}"
 @model Kymeta.Cloud.Services.EnterpriseBroker.Pages.DetailModel
+@{
+    ViewBag.Title = $"{Model.SalesforceActionTransaction?.ObjectId} ({Model.SalesforceActionTransaction?.CreatedOn.ToString("G")}) - Enterprise Broker";
+}
 
 <div class="section">
     <div class="container">
