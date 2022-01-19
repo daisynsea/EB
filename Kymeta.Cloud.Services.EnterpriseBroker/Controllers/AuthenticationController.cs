@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.Controllers;
 
 [Route("Auth")]
+[ExcludeFromCodeCoverage]
 public class AuthenticationController : Controller
 {
     private ILogger<AuthenticationController> _logger;

@@ -51,8 +51,9 @@ public class OssServiceTests : IClassFixture<TestFixture>
     public async void UpdateAccount_WithValidInput_ReturnsUpdatedAccount()
     {
         var model = Helpers.BuildSalesforceAccountModel();
+        model.ParentId = "abc123";
         var transaction = Helpers.BuildSalesforceTransaction();
-        var account = new Account { Id = Guid.NewGuid() };
+        var account = new Account { Id = Guid.NewGuid(), ParentId = Guid.NewGuid() };
 
         // Arrange
         var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object);
@@ -69,6 +70,37 @@ public class OssServiceTests : IClassFixture<TestFixture>
 
         // Act
         var result = await ossService.Object.UpdateAccount(model, transaction);
+
+        // Assert
+        Assert.NotNull(result.Item1);
+        Assert.Equal(result.Item2, string.Empty);
+    }
+
+    [Fact]
+    [Trait("Category", "OssTests")]
+    [Trait("Category", "OssServiceTests")]
+    public async void UpdateAccountOracleId_WithValidInput_ReturnsUpdatedAccount()
+    {
+        var model = Helpers.BuildSalesforceAccountModel();
+        var transaction = Helpers.BuildSalesforceTransaction();
+        var account = new Account { Id = Guid.NewGuid() };
+        string newOracleId = "123";
+
+        // Arrange
+        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object);
+        ossService.CallBase = true;
+        ossService.Setup(x => x.GetAccountBySalesforceId(It.IsAny<string>())).ReturnsAsync(account);
+        ossService.Setup(x => x.LogAction(It.IsAny<SalesforceActionTransaction>(), It.IsAny<SalesforceTransactionAction>(), It.IsAny<ActionObjectType>(), It.IsAny<StatusType>(), It.IsAny<string>(), It.IsAny<string>()))
+            .Verifiable();
+        _fixture.UsersClient
+            .Setup(x => x.GetUserByEmail(It.IsAny<string>()))
+            .ReturnsAsync(new User { Email = "primary@email.com" });
+        _fixture.AccountsClient
+            .Setup(x => x.UpdateAccount(It.IsAny<Guid>(), It.IsAny<Account>()))
+            .ReturnsAsync(new Tuple<Account, string>(account, string.Empty));
+
+        // Act
+        var result = await ossService.Object.UpdateAccountOracleId(model, newOracleId, transaction);
 
         // Assert
         Assert.NotNull(result.Item1);

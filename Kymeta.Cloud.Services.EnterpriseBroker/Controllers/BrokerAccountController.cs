@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.Controllers;
 
@@ -7,6 +8,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Controllers;
 [ApiVersion("1")]
 [Produces("application/json")]
 [Route("api/v{version:apiVersion}/account")]
+[ExcludeFromCodeCoverage]
 public class BrokerAccountController : ControllerBase
 {
     private readonly ILogger<BrokerAccountController> _logger;
