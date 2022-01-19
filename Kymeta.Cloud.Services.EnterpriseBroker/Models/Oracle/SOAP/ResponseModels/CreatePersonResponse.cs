@@ -805,6 +805,10 @@ public partial class CreatePersonValueRelationship
             this.emailField = value;
         }
     }
+
+
+    [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+    public CreatePersonOrganizationContact OrganizationContact { get; set; }
 }
 
 /// <remarks/>
@@ -936,6 +940,8 @@ public partial class CreatePersonOrganizationContact
     private bool primaryCustomerFlagField;
 
     private CreatePersonOrganizationContactOrganizationContactRole organizationContactRoleField;
+
+    public ulong? ContactNumber { get; set; }
 
 }
 

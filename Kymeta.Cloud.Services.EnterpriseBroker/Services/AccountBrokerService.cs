@@ -314,14 +314,6 @@ public class AccountBrokerService : IAccountBrokerService
                                     OrigSystemReference = result.Item1.OrigSystemReference,
                                     SiteUses = siteUseTypes
                                 });
-
-                                // Add to response container
-                                addressesForSalesforce.Add(new AccountChildResponse
-                                {
-                                    OracleId = result.Item1.LocationId?.ToString(),
-                                    SalesforceId = result.Item1.OrigSystemReference,
-                                    OracleEntityType = "Location"
-                                });
                             }
                         }
                     }
@@ -349,6 +341,14 @@ public class AccountBrokerService : IAccountBrokerService
                                 }).ToList()
                             });
                             accountSites.AddRange(sites);
+
+                            // Add to response container
+                            addressesForSalesforce.AddRange(createPartySitesResult.Item1.Select(cpr => new AccountChildResponse
+                            {
+                                OracleId = cpr.PartySiteNumber?.ToString(),
+                                SalesforceId = cpr.OrigSystemReference,
+                                OracleEntityType = "Location"
+                            }).ToList());
                         }
                     }
                 }
@@ -403,7 +403,7 @@ public class AccountBrokerService : IAccountBrokerService
 
                                 contactsForSalesforce.Add(new AccountChildResponse
                                 {
-                                    OracleId = addedPersonResult.Item1.PartyId?.ToString(),
+                                    OracleId = addedPersonResult.Item1.ContactNumber?.ToString(),
                                     SalesforceId = addedPersonResult.Item1.OrigSystemReference,
                                     OracleEntityType = "Person"
                                 });
@@ -451,7 +451,7 @@ public class AccountBrokerService : IAccountBrokerService
                         return response;
                     }
                     customerAccount = addedCustomerAccount.Item1;
-                    oracleCustomerAccountId = addedCustomerAccount.Item1.CustomerAccountId.ToString();
+                    oracleCustomerAccountId = addedCustomerAccount.Item1.AccountNumber.ToString();
                 } 
                 else // Otherwise, update it
                 {
@@ -495,7 +495,7 @@ public class AccountBrokerService : IAccountBrokerService
                         return response;
                     }
                     customerAccount = updateCustomerAccountResult.Item1;
-                    oracleCustomerAccountId = customerAccount?.CustomerAccountId?.ToString();
+                    oracleCustomerAccountId = customerAccount?.AccountNumber?.ToString();
                 }
                 #endregion
 

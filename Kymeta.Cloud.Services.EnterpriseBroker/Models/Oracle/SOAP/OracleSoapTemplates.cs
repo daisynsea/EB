@@ -194,6 +194,7 @@ public static class OracleSoapTemplates
 						    <find:fetchSize>-1</find:fetchSize>
 						    <find:childAttrName>OrganizationContact</find:childAttrName>
 						    <find:findAttribute>ContactPartyId</find:findAttribute>
+						    <find:findAttribute>ContactNumber</find:findAttribute>
 						    <find:findAttribute>PersonFirstName</find:findAttribute>
 						    <find:findAttribute>PersonLastName</find:findAttribute>
 						    <find:findAttribute>OrigSystemReference</find:findAttribute>	

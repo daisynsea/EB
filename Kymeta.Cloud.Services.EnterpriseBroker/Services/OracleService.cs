@@ -79,16 +79,17 @@ public class OracleService : IOracleService
             PartySites = oracleResult.PartySite?
                 .Select(ps => new OraclePartySite
                 {
+                    OrigSystemReference = ps.OrigSystemReference,
                     PartySiteId = ps.PartySiteId,
                     PartySiteNumber = ps.PartySiteNumber,
-                    OrigSystemReference = ps.OrigSystemReference,
                     LocationId = ps.LocationId
                 }).ToList(),
             Contacts = oracleResult.Relationship?
                 .Select(r => new OracleOrganizationContact
                 {
-                    ContactPartyId = r.OrganizationContact.ContactPartyId,
                     OrigSystemReference = r.OrganizationContact.OrigSystemReference,
+                    ContactPartyId = r.OrganizationContact.ContactPartyId,
+                    ContactPartyNumber = r.OrganizationContact.ContactPartyNumber,
                     PersonFirstName = r.OrganizationContact.PersonFirstName,
                     PersonLastName = r.OrganizationContact.PersonLastName
                 }).ToList()
@@ -547,6 +548,7 @@ public class OracleService : IOracleService
             .Select(ps => new OraclePartySite
             {
                 PartySiteId = ps.PartySiteId,
+                PartySiteNumber = ps.PartySiteNumber,
                 LocationId = ps.LocationId,
                 OrigSystemReference = ps.OrigSystemReference,
                 SiteUses = ps.PartySiteUse?.Select(psu => new OraclePartySiteUse
@@ -664,24 +666,33 @@ public class OracleService : IOracleService
             LastName = oracleResult?.PersonLastName
         };
 
-        // check for Phone number metadata
-        if (oracleResult?.Relationship != null && oracleResult?.Relationship?.Phone != null)
+        if (oracleResult?.Relationship != null)
         {
-            // append the existing metadata to the person
-            oraclePerson.PhoneNumbers = new List<OraclePersonPhoneModel> { new OraclePersonPhoneModel {
-                ContactPointId = oracleResult?.Relationship?.Phone.ContactPointId,
-                PhoneNumber = oracleResult?.Relationship?.Phone.PhoneNumber
-            }};
-        }
+            // acquire the ContactNumber so we can include it in the response to Salesforce
+            if (oracleResult.Relationship.OrganizationContact?.ContactNumber != null)
+            {
+                oraclePerson.ContactNumber = oracleResult.Relationship.OrganizationContact?.ContactNumber;
+            }
 
-        // check for email address metadata
-        if (oracleResult?.Relationship != null && oracleResult?.Relationship?.Email != null)
-        {
-            // append the existing metadata to the person
-            oraclePerson.EmailAddresses = new List<OraclePersonEmailModel> { new OraclePersonEmailModel {
-                ContactPointId = oracleResult?.Relationship?.Email.ContactPointId,
-                EmailAddress = oracleResult?.Relationship?.Email.EmailAddress
-            }};
+            // check for Phone number metadata
+            if (oracleResult.Relationship.Phone != null)
+            {
+                // append the existing metadata to the person
+                oraclePerson.PhoneNumbers = new List<OraclePersonPhoneModel> { new OraclePersonPhoneModel {
+                    ContactPointId = oracleResult?.Relationship?.Phone.ContactPointId,
+                    PhoneNumber = oracleResult?.Relationship?.Phone.PhoneNumber
+                }};
+            }
+
+            // check for email address metadata
+            if (oracleResult.Relationship.Email != null)
+            {
+                // append the existing metadata to the person
+                oraclePerson.EmailAddresses = new List<OraclePersonEmailModel> { new OraclePersonEmailModel {
+                    ContactPointId = oracleResult?.Relationship?.Email.ContactPointId,
+                    EmailAddress = oracleResult?.Relationship?.Email.EmailAddress
+                }};
+            }
         }
 
         await LogAction(transaction, SalesforceTransactionAction.CreatePersonInOracle, ActionObjectType.Contact, StatusType.Successful, oraclePerson.PartyId.ToString());

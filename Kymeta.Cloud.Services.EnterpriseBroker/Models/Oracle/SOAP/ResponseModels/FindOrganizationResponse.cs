@@ -151,6 +151,9 @@ public class FindOrganizationOrganizationContact
     public ulong ContactPartyId { get; set; }
 
     /// <remarks/>
+    public ulong ContactPartyNumber { get; set; }
+
+    /// <remarks/>
     public string PersonFirstName { get; set; }
 
     /// <remarks/>

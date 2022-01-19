@@ -33,6 +33,7 @@ public class OracleOrganizationContact
 {
     public string OrigSystemReference { get; set; }
     public ulong ContactPartyId { get; set; }
+    public ulong ContactPartyNumber { get; set; }
     public string PersonFirstName { get; set; }
     public string PersonLastName { get; set; }
 }
