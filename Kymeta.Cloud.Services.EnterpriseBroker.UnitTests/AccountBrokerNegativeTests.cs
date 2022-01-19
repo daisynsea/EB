@@ -143,7 +143,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             var oracleOrg = new OracleOrganization
             {
                 PartyId = 001,
-                PartyNumber = "30001",
+                PartyNumber = 30001,
                 OrigSystemReference = "acc30001",
                 PartySites = new List<OraclePartySite>
                 {
@@ -207,7 +207,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             var oracleOrg = new OracleOrganization
             {
                 PartyId = 001,
-                PartyNumber = "30001",
+                PartyNumber = 30001,
                 OrigSystemReference = "acc30001",
                 PartySites = new List<OraclePartySite>
                 {
@@ -272,7 +272,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             var oracleOrg = new OracleOrganization
             {
                 PartyId = 001,
-                PartyNumber = "30001",
+                PartyNumber = 30001,
                 OrigSystemReference = "acc30001",
                 PartySites = new List<OraclePartySite>
                 {

@@ -3,7 +3,7 @@
 public class OracleOrganization
 {
     public ulong PartyId { get; set; }
-    public string PartyNumber { get; set; }
+    public ulong PartyNumber { get; set; }
     public string OrganizationName { get; set; }
     public string Type { get; set; }
     public string SourceSystem { get; set; }
@@ -18,6 +18,7 @@ public class OraclePartySite
 {
     public ulong? LocationId { get; set; }
     public ulong? PartySiteId { get; set; }
+    public ulong? PartySiteNumber { get; set; }
     public string OrigSystemReference { get; set; }
     public List<OraclePartySiteUse>? SiteUses { get; set; }
 }

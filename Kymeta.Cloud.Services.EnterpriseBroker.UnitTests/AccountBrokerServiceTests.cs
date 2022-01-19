@@ -196,7 +196,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
         var oracleOrg = new OracleOrganization
         {
             PartyId = 001,
-            PartyNumber = "30001",
+            PartyNumber = 30001,
             OrigSystemReference = "acc30001",
             PartySites = new List<OraclePartySite>
             {
@@ -333,7 +333,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
         var oracleOrg = new OracleOrganization
         {
             PartyId = 001,
-            PartyNumber = "30001",
+            PartyNumber = 30001,
             OrigSystemReference = "acc30001",
             PartySites = new List<OraclePartySite>
             {
@@ -452,7 +452,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
         var oracleOrg = new OracleOrganization
         {
             PartyId = 001,
-            PartyNumber = "30001",
+            PartyNumber = 30001,
             OrigSystemReference = "acc30001",
             PartySites = new List<OraclePartySite>
             {

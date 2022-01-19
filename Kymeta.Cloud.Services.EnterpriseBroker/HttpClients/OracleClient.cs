@@ -13,7 +13,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.HttpClients;
 public interface IOracleClient
 {
     Task<Tuple<OracleOrganization, string>> CreateOrganization(CreateOracleOrganizationModel model);
-    Task<Tuple<OracleOrganizationUpdateResponse, string>> UpdateOrganization(UpdateOracleOrganizationModel model, string partyNumber);
+    Task<Tuple<OracleOrganizationUpdateResponse, string>> UpdateOrganization(UpdateOracleOrganizationModel model, ulong partyNumber);
     Task<Tuple<OracleAddressObject, string>> CreateAddress(string accountNumber, CreateOracleAddressViewModel model);
     Task<Tuple<OracleAddressObject, string>> UpdateAddress(string accountNumber, CreateOracleAddressViewModel model, string partyNumber);
     Task<Tuple<XDocument, string, string>> SendSoapRequest(string soapEnvelope, string oracleServiceUrl);
@@ -143,7 +143,7 @@ public class OracleClient : IOracleClient
         return new Tuple<OracleAddressObject, string>(deserializedObject, null);
     }
 
-    public async Task<Tuple<OracleOrganizationUpdateResponse, string>> UpdateOrganization(UpdateOracleOrganizationModel model, string partyNumber)
+    public async Task<Tuple<OracleOrganizationUpdateResponse, string>> UpdateOrganization(UpdateOracleOrganizationModel model, ulong partyNumber)
     {
         var serialized = JsonSerializer.Serialize(model, new JsonSerializerOptions { PropertyNameCaseInsensitive = false });
         var content = new StringContent(serialized, Encoding.UTF8, "application/json");

@@ -180,6 +180,7 @@ public static class OracleSoapTemplates
                         <find:fetchSize>-1</find:fetchSize>
                         <find:childAttrName>PartySite</find:childAttrName>
 					    <find:findAttribute>PartySiteId</find:findAttribute>
+                        <find:findAttribute>PartySiteNumber</find:findAttribute>
 					    <find:findAttribute>OrigSystemReference</find:findAttribute>
 					    <find:findAttribute>LocationId</find:findAttribute>
                     </find:childFindCriteria>				
