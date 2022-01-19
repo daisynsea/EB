@@ -137,6 +137,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
         var customerAccount = new OracleCustomerAccount
         {
             CustomerAccountId = 30001,
+            AccountNumber = 30001,
             PartyId = 30001,
             OrigSystemReference = "acc30001"
         };
@@ -203,12 +204,14 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
                 new OraclePartySite
                 {
                     OrigSystemReference = "add30001",
-                    LocationId = 30001
+                    LocationId = 30001,
+                    PartySiteNumber = 30001
                 },
                 new OraclePartySite
                 {
                     OrigSystemReference = "add30002",
-                    LocationId = 30002
+                    LocationId = 30002,
+                    PartySiteNumber = 30002
                 }
             },
             Contacts = new List<OracleOrganizationContact>
@@ -243,7 +246,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
         // also have to mock out create party sites
         var partySites = new List<OraclePartySite>
         {
-            new OraclePartySite { PartySiteId = 30001, OrigSystemReference = "add30001", LocationId = 30001, 
+            new OraclePartySite { PartySiteId = 30001, OrigSystemReference = "add30001", LocationId = 30001, PartySiteNumber = 30001,
                 SiteUses = new List<OraclePartySiteUse> 
                 { 
                     new OraclePartySiteUse { PartySiteUseId = 20001, SiteUseType = "Billing" } 
