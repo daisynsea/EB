@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.Pages
 {
     [Authorize]
+    [ExcludeFromCodeCoverage]
     public class IndexModel : PageModel
     {
         private IActionsRepository _actionsRepository;

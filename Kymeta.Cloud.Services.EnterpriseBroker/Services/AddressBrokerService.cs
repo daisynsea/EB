@@ -10,13 +10,11 @@ public interface IAddressBrokerService
 public class AddressBrokerService : IAddressBrokerService
 {
     private readonly IActionsRepository _actionsRepository;
-    private readonly IOssService _ossService;
     private readonly IOracleService _oracleService;
 
-    public AddressBrokerService(IActionsRepository actionsRepository, IOssService ossService, IOracleService oracleService)
+    public AddressBrokerService(IActionsRepository actionsRepository, IOracleService oracleService)
     {
         _actionsRepository = actionsRepository;
-        _ossService = ossService;
         _oracleService = oracleService;
     }
 
@@ -61,23 +59,6 @@ public class AddressBrokerService : IAddressBrokerService
             OracleStatus = syncToOracle ? StatusType.Started : StatusType.Skipped,
             OSSStatus = syncToOss ? StatusType.Started : StatusType.Skipped
         };
-        #endregion
-
-        #region Send to OSS
-        if (syncToOss)
-        {
-            var ossAddressUpdate = new UpdateAddressModel { ParentAccountId = model.ParentAccountId, Address1 = model.Address1, Address2 = model.Address2, Country = model.Country };
-            var addedAddressTuple = await _ossService.UpdateAccountAddress(ossAddressUpdate, salesforceTransaction);
-            if (string.IsNullOrEmpty(addedAddressTuple.Item2)) // No error!
-            {
-                response.OSSStatus = StatusType.Successful;
-            }
-            else // Is error, do not EXIT..
-            {
-                response.OSSStatus = StatusType.Error;
-                response.OSSErrorMessage = addedAddressTuple.Item2;
-            }
-        }
         #endregion
 
         #region Send to Oracle

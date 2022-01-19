@@ -18,13 +18,6 @@ public interface IOssService
     /// <returns></returns>
     Task<Tuple<Account, string>> UpdateAccount(SalesforceAccountModel model, SalesforceActionTransaction transaction);
     /// <summary>
-    /// Update an existing account's address
-    /// </summary>
-    /// <param name="model"></param>
-    /// <param name="transaction"></param>
-    /// <returns></returns>
-    Task<Tuple<Account, string>> UpdateAccountAddress(UpdateAddressModel model, SalesforceActionTransaction transaction);
-    /// <summary>
     /// Update an existing account's oracle id
     /// </summary>
     /// <param name="salesforceId"></param>
@@ -138,47 +131,6 @@ public class OssService : IOssService
         {
             error = $"There was an error calling the OSS Accounts service: {ex.Message}";
             await LogAction(transaction, SalesforceTransactionAction.UpdateAccountInOss, ActionObjectType.Account, StatusType.Error, null, error);
-            return new Tuple<Account, string>(null, error);
-        }
-    }
-
-    public async Task<Tuple<Account, string>> UpdateAccountAddress(UpdateAddressModel model, SalesforceActionTransaction transaction)
-    {
-        await LogAction(transaction, SalesforceTransactionAction.UpdateAddressInOss, ActionObjectType.Account, StatusType.Started);
-        string error = null;
-
-        var existingAccount = await GetAccountBySalesforceId(model.ParentAccountId);
-        if (existingAccount == null) // Account doesn't exist, return from this action with an error
-        {
-            error = $"Account with Salesforce ID {model.ParentAccountId} does not exist in OSS.";
-            await LogAction(transaction, SalesforceTransactionAction.UpdateAddressInOss, ActionObjectType.Account, StatusType.Error, null, error);
-            return new Tuple<Account, string>(null, error);
-        }
-        // Get the user from OSS system
-        User existingUser = null;
-        if (!string.IsNullOrEmpty(model.UserName))
-        {
-            existingUser = await _usersClient.GetUserByEmail(model.UserName);
-        }
-        if (existingUser == null) existingUser = _systemUser;
-
-        var account = RemapSalesforceAddressToOssAccount(model.Address1, model.Address2, model.Country, existingUser.Id);
-        try
-        {
-            var updated = await _accountsClient.UpdateAccount(existingAccount.Id.GetValueOrDefault(), account);
-            if (!string.IsNullOrEmpty(updated.Item2))
-            {
-                error = $"There was an error updating the account in OSS: {updated.Item2}";
-                await LogAction(transaction, SalesforceTransactionAction.UpdateAddressInOss, ActionObjectType.Account, StatusType.Error, null, error);
-                return new Tuple<Account, string>(null, error);
-            }
-            await LogAction(transaction, SalesforceTransactionAction.UpdateAddressInOss, ActionObjectType.Account, StatusType.Successful, updated.Item1.Id.ToString());
-            return new Tuple<Account, string>(updated.Item1, string.Empty);
-        }
-        catch (Exception ex)
-        {
-            error = $"There was an error calling the OSS Accounts service: {ex.Message}";
-            await LogAction(transaction, SalesforceTransactionAction.UpdateAddressInOss, ActionObjectType.Account, StatusType.Error, null, error);
             return new Tuple<Account, string>(null, error);
         }
     }

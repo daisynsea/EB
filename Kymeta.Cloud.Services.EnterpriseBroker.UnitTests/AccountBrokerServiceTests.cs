@@ -316,7 +316,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
         Assert.Equal("30001", result.OracleOrganizationId);
         Assert.Equal("30001", result.OracleCustomerProfileId);
         Assert.Equal("30001", result.OracleCustomerAccountId);
-        Assert.Equal(2, result.Addresses?.Count());
+        Assert.Equal(1, result.Addresses?.Count());
         Assert.Contains("30001", result.Addresses?.Select(a => a.OracleId));
         Assert.Equal(1, result.Contacts?.Count());
     }

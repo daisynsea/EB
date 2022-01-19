@@ -23,34 +23,6 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
 
         [Fact]
         [Trait("Category", "AddressBrokerTests")]
-        [Trait("Category", "AddressBrokerOssTests")]
-        public async void SyncToOSS_UpdateAccountAddress_ReturnsSuccess()
-        {
-            // Arrange
-            var model = Helpers.BuildSalesforceAddressModel(false, true);
-            var transaction = Helpers.BuildSalesforceTransaction();
-            Helpers.MockActionRepository(_fixture.ActionsRepository, transaction);
-
-            var accountFromOss = new Account();
-            _fixture.OssService
-                .Setup(oss => oss.UpdateAccountAddress(It.IsAny<UpdateAddressModel>(), transaction))
-                .ReturnsAsync(new Tuple<Account, string>(accountFromOss, string.Empty));
-
-            // Act
-            var svc = new AddressBrokerService(_fixture.ActionsRepository.Object, _fixture.OssService.Object, _fixture.OracleService.Object);
-            var result = await svc.ProcessAddressAction(model);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(model.ObjectId, result.SalesforceObjectId);
-            Assert.Equal(StatusType.Skipped, result.OracleStatus);
-            Assert.Equal(StatusType.Successful, result.OSSStatus);
-            Assert.Null(result.OracleErrorMessage);
-            Assert.Null(result.OSSErrorMessage);
-        }
-
-        [Fact]
-        [Trait("Category", "AddressBrokerTests")]
         [Trait("Category", "AddressBrokerOracleTests")]
         public async void SyncToOracle_LocationAndSiteNotExists_ReturnsSuccess()
         {
@@ -100,7 +72,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                 .ReturnsAsync(new Tuple<OracleCustomerAccount, string>(new OracleCustomerAccount(), string.Empty));
 
             // Act
-            var svc = new AddressBrokerService(_fixture.ActionsRepository.Object, _fixture.OssService.Object, _fixture.OracleService.Object);
+            var svc = new AddressBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object);
             var result = await svc.ProcessAddressAction(model);
 
             // Assert
@@ -165,7 +137,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                 .ReturnsAsync(new Tuple<OracleCustomerAccount, string>(new OracleCustomerAccount(), string.Empty));
 
             // Act
-            var svc = new AddressBrokerService(_fixture.ActionsRepository.Object, _fixture.OssService.Object, _fixture.OracleService.Object);
+            var svc = new AddressBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object);
             var result = await svc.ProcessAddressAction(model);
 
             // Assert
@@ -231,7 +203,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                 .ReturnsAsync(new Tuple<OracleCustomerAccount, string>(new OracleCustomerAccount(), string.Empty));
 
             // Act
-            var svc = new AddressBrokerService(_fixture.ActionsRepository.Object, _fixture.OssService.Object, _fixture.OracleService.Object);
+            var svc = new AddressBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object);
             var result = await svc.ProcessAddressAction(model);
 
             // Assert
