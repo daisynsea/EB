@@ -180,7 +180,7 @@ public class AccountBrokerService : IAccountBrokerService
             {
                 #region Organization
                 // We have to create 5 entities in Oracle: Organization, Location(s), PartySite, CustomerAccount, CustomerAccountProfile
-                var organizationResult = await _oracleService.GetOrganizationBySalesforceAccountId(model.Name, model.ObjectId, salesforceTransaction);
+                var organizationResult = await _oracleService.GetOrganizationBySalesforceAccountId(model.OriginalName ?? model.Name, model.ObjectId, salesforceTransaction);
                 if (!organizationResult.Item1)
                 {
                     // TODO: fatal error occurred when sending request to oracle... return badRequest here?
@@ -263,6 +263,7 @@ public class AccountBrokerService : IAccountBrokerService
                                 partySitesToCreate.Add(new OraclePartySite
                                 {
                                     LocationId = existingLocation.LocationId,
+                                    PartySiteName = address.SiteName,
                                     OrigSystemReference = existingLocation.OrigSystemReference,
                                     SiteUses = siteUseTypes
                                 });
@@ -311,6 +312,7 @@ public class AccountBrokerService : IAccountBrokerService
                                 partySitesToCreate.Add(new OraclePartySite
                                 {
                                     LocationId = result.Item1.LocationId,
+                                    PartySiteName = address.SiteName,
                                     OrigSystemReference = result.Item1.OrigSystemReference,
                                     SiteUses = siteUseTypes
                                 });

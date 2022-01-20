@@ -230,6 +230,7 @@ public static class OracleSoapTemplates
                             "<ns2:PartySite xmlns:ns3=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/\">" +
                                 $"<ns3:LocationId>{ps.LocationId}</ns3:LocationId>" +
                                 $"<ns3:OrigSystemReference>{ps.OrigSystemReference}</ns3:OrigSystemReference>" +
+                                $"<ns3:PartySiteName>{ps.PartySiteName}</ns3:PartySiteName>" +
                                 "<ns3:CreatedByModule>HZ_WS</ns3:CreatedByModule>";
             if (ps.SiteUses != null)
             {
@@ -700,6 +701,7 @@ public static class OracleSoapTemplates
                         "<typ:customerAccount>" +
                             $"<cus:CustomerAccountId>{account.CustomerAccountId}</cus:CustomerAccountId>" +
                             $"<cus:PartyId>{account.PartyId}</cus:PartyId>" +
+                            $"<cus:AccountName>{account.AccountName} Acc</cus:AccountName>" +
                             $"<cus:CustomerType>{account.AccountType}</cus:CustomerType>" +
                             "<cus:CustAcctInformation>" +
                                 $"<cus6:salesforceId>{account.SalesforceId}</cus6:salesforceId>" +

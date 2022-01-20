@@ -19,6 +19,7 @@ public class OraclePartySite
     public ulong? LocationId { get; set; }
     public ulong? PartySiteId { get; set; }
     public ulong? PartySiteNumber { get; set; }
+    public string? PartySiteName { get; set; }
     public string OrigSystemReference { get; set; }
     public List<OraclePartySiteUse>? SiteUses { get; set; }
 }

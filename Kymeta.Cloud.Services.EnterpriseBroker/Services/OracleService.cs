@@ -539,8 +539,6 @@ public class OracleService : IOracleService
     {
         await LogAction(transaction, SalesforceTransactionAction.CreatePartySiteInOracle, ActionObjectType.Account, StatusType.Started);
 
-        // TODO: remap partySiteUse to list
-
         // populate the template
         var orgPartySiteEnvelope = OracleSoapTemplates.CreateOrganizationPartySites(organizationPartyId, partySites);
 
