@@ -26,7 +26,7 @@ public class BrokerAddressController : ControllerBase
     /// <param name="model">Incoming Payload</param>
     /// <returns>Response model</returns>
     [HttpPost, AllowAnonymous]
-    public async Task<ActionResult<AddressResponse>> ProcessAddress([FromBody] SalesforceAddressModel model)
+    public async Task<ActionResult<UnifiedResponse>> ProcessAddress([FromBody] SalesforceAddressModel model)
     {
         try
         {

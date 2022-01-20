@@ -5,7 +5,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 public interface IContactBrokerService
 {
-    Task<ContactResponse> ProcessContactAction(SalesforceContactModel model);
+    Task<UnifiedResponse> ProcessContactAction(SalesforceContactModel model);
 }
 
 public class ContactBrokerService : IContactBrokerService
@@ -19,7 +19,7 @@ public class ContactBrokerService : IContactBrokerService
         _oracleService = oracleService;
     }
 
-    public async Task<ContactResponse> ProcessContactAction(SalesforceContactModel model)
+    public async Task<UnifiedResponse> ProcessContactAction(SalesforceContactModel model)
     {
         /*
         * WHERE TO SYNC
@@ -53,7 +53,7 @@ public class ContactBrokerService : IContactBrokerService
          * MARSHAL UP RESPONSE
          */
         #region Build initial response object
-        var response = new ContactResponse
+        var response = new UnifiedResponse
         {
             SalesforceObjectId = model.ObjectId,
             OracleStatus = syncToOracle ? StatusType.Started : StatusType.Skipped,
@@ -170,6 +170,12 @@ public class ContactBrokerService : IContactBrokerService
             response.OracleStatus = StatusType.Successful;
         }
         #endregion
+
+        response.CompletedOn = DateTime.UtcNow;
+
+        // Attach the response to the action log item
+        salesforceTransaction.Response = response;
+        await _actionsRepository.UpdateActionRecord(salesforceTransaction);
 
         return response;
     }

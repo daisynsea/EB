@@ -26,7 +26,7 @@ public class BrokerContactController : ControllerBase
     /// <param name="model">Incoming Payload</param>
     /// <returns>Response model</returns>
     [HttpPost, AllowAnonymous]
-    public async Task<ActionResult<ContactResponse>> ProcessContact([FromBody] SalesforceContactModel model)
+    public async Task<ActionResult<UnifiedResponse>> ProcessContact([FromBody] SalesforceContactModel model)
     {
         try
         {

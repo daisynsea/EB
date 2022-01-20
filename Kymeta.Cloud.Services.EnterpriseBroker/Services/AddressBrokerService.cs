@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 public interface IAddressBrokerService
 {
-    Task<AddressResponse> ProcessAddressAction(SalesforceAddressModel model);
+    Task<UnifiedResponse> ProcessAddressAction(SalesforceAddressModel model);
 }
 
 public class AddressBrokerService : IAddressBrokerService
@@ -18,7 +18,7 @@ public class AddressBrokerService : IAddressBrokerService
         _oracleService = oracleService;
     }
 
-    public async Task<AddressResponse> ProcessAddressAction(SalesforceAddressModel model)
+    public async Task<UnifiedResponse> ProcessAddressAction(SalesforceAddressModel model)
     {
         /*
         * WHERE TO SYNC
@@ -53,7 +53,7 @@ public class AddressBrokerService : IAddressBrokerService
          * MARSHAL UP RESPONSE
          */
         #region Build initial response object
-        var response = new AddressResponse
+        var response = new UnifiedResponse
         {
             SalesforceObjectId = model.ObjectId,
             OracleStatus = syncToOracle ? StatusType.Started : StatusType.Skipped,
@@ -209,6 +209,12 @@ public class AddressBrokerService : IAddressBrokerService
             response.OracleStatus = StatusType.Successful;
         }
         #endregion
+
+        response.CompletedOn = DateTime.UtcNow;
+
+        // Attach the response to the action log item
+        salesforceTransaction.Response = response;
+        await _actionsRepository.UpdateActionRecord(salesforceTransaction);
 
         return response;
     }
