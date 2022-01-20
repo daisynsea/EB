@@ -118,10 +118,23 @@ public class OracleService : IOracleService
             return new Tuple<OracleOrganization, string>(null, $"There was an error adding the account to Oracle: {organizationResult.Item2}");
         }
 
-        await LogAction(transaction, SalesforceTransactionAction.CreateOrganizationInOracle, ActionObjectType.Account, StatusType.Successful, organizationResult.Item1.PartyId.ToString());
+        // map response model to our simplified OracleOrganization
+        var oracleOrganization = new OracleOrganization
+        {
+            OrganizationName = organizationResult.Item1.OrganizationName,
+            PartyId = organizationResult.Item1.PartyId,
+            PartyNumber = Convert.ToUInt64(organizationResult.Item1.PartyNumber), // convert to ulong
+            TaxpayerIdentificationNumber = organizationResult.Item1.TaxpayerIdentificationNumber,
+            OrigSystemReference = organizationResult.Item1.SourceSystemReferenceValue,
+            Type = organizationResult.Item1.Type,
+            SourceSystem = organizationResult.Item1.SourceSystem,
+            SourceSystemReferenceValue = organizationResult.Item1.SourceSystemReferenceValue
+        };
+
+        await LogAction(transaction, SalesforceTransactionAction.CreateOrganizationInOracle, ActionObjectType.Account, StatusType.Successful, oracleOrganization.PartyId.ToString());
 
         // return the Oracle Organization
-        return new Tuple<OracleOrganization, string>(organizationResult.Item1, String.Empty);
+        return new Tuple<OracleOrganization, string>(oracleOrganization, String.Empty);
     }
 
     public async Task<Tuple<OracleOrganization, string>> UpdateOrganization(OracleOrganization existingOracleOrganization, SalesforceAccountModel model, SalesforceActionTransaction transaction)
