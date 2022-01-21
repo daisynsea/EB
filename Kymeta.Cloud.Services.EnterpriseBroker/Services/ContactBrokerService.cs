@@ -71,8 +71,8 @@ public class ContactBrokerService : IContactBrokerService
                 return response;
             }
             // Get Organization by Salesforce Account Id
-            var organizationResult = await _oracleService.GetOrganizationBySalesforceAccountId(model.ParentAccountName, model.ParentAccountId, salesforceTransaction);
-            if (!organizationResult.Item1)
+            var organizationResult = await _oracleService.GetOrganizationBySalesforceAccountId(model.ParentAccountId, salesforceTransaction);
+            if (!organizationResult.Item1 || organizationResult.Item2 == null)
             {
                 response.OracleStatus = StatusType.Error;
                 response.OracleErrorMessage = $"Error syncing Contact to Oracle: Organization object with SF reference Id {model.ParentAccountId} was not found.";
@@ -82,7 +82,7 @@ public class ContactBrokerService : IContactBrokerService
 
             // Get customer account by Salesforce Account Id
             var customerAccountResult = await _oracleService.GetCustomerAccountBySalesforceAccountId(model.ParentAccountId, salesforceTransaction);
-            if (!customerAccountResult.Item1)
+            if (!customerAccountResult.Item1 || customerAccountResult.Item2 == null)
             {
                 response.OracleStatus = StatusType.Error;
                 response.OracleErrorMessage = $"Error syncing Contact to Oracle: Customer Account object with SF reference Id {model.ParentAccountId} was not found.";

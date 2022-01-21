@@ -178,9 +178,8 @@ public class AccountBrokerService : IAccountBrokerService
             // There is a plethora of possible exceptions in this flow, so we're going to catch any of them and ensure the logs are written
             try
             {
-                #region Organization
                 // We have to create 5 entities in Oracle: Organization, Location(s), PartySite, CustomerAccount, CustomerAccountProfile
-                var organizationResult = await _oracleService.GetOrganizationBySalesforceAccountId(model.OriginalName ?? model.Name, model.ObjectId, salesforceTransaction);
+                var organizationResult = await _oracleService.GetOrganizationBySalesforceAccountId(model.ObjectId, salesforceTransaction);
                 if (!organizationResult.Item1)
                 {
                     // TODO: fatal error occurred when sending request to oracle... return badRequest here?
@@ -188,43 +187,16 @@ public class AccountBrokerService : IAccountBrokerService
                     response.OracleErrorMessage = organizationResult.Item3;
                     return response;
                 }
-                var organization = new OracleOrganization();
-                // If Organization does not exist, create it
-                if (organizationResult.Item2 == null)
-                {
-                    var addedOrganization = await _oracleService.CreateOrganization(model, salesforceTransaction);
-                    if (addedOrganization.Item1 == null)
-                    {
-                        // fatal error occurred
-                        response.OracleStatus = StatusType.Error;
-                        response.OracleErrorMessage = addedOrganization.Item2;
-                        return response;
-                    }
-                    organization = addedOrganization.Item1;
-                    oracleOrganizationId = addedOrganization.Item1.PartyNumber.ToString();
-                    response.OracleOrganizationId = oracleOrganizationId;
-                }
-                else // Otherwise, update it
-                {
-                    // TODO: Party Number here?
-                    var updatedOrganization = await _oracleService.UpdateOrganization(organizationResult.Item2, model, salesforceTransaction);
-                    if (updatedOrganization.Item1 == null)
-                    {
-                        // fatal error occurred
-                        response.OracleStatus = StatusType.Error;
-                        response.OracleErrorMessage = updatedOrganization.Item2;
-                        return response;
-                    }
-                    organization = updatedOrganization.Item1;
-                    oracleOrganizationId = organizationResult.Item2.PartyNumber.ToString();
-                    response.OracleOrganizationId = oracleOrganizationId;
-                }
-                #endregion
 
-                #region Location & OrgPartySite
+                OracleOrganization? organization = null;
+                var partySitesToCreate = new List<OraclePartySite>();
                 var accountSites = new List<OracleCustomerAccountSite>();
+                var accountContacts = new List<OracleCustomerAccountContact>();
 
-                // verify we have addresses
+                if (organizationResult.Item2 != null) organization = organizationResult.Item2;
+
+                #region Location & PartySite
+                // check to see if Locations exist
                 if (model.Addresses != null && model.Addresses.Count > 0)
                 {
                     // find locations by Enterprise Id
@@ -238,7 +210,7 @@ public class AccountBrokerService : IAccountBrokerService
                         return response;
                     }
 
-                    var partySitesToCreate = new List<OraclePartySite>();
+                    // init a List of tasks to create multiple Locations in parallel
                     List<Task<Tuple<OracleLocationModel, string>>> createLocationTasks = new();
                     // create a Location for each address
                     foreach (var address in model.Addresses)
@@ -254,7 +226,7 @@ public class AccountBrokerService : IAccountBrokerService
                         {
                             // check the Organization PartySites with the address to see if the PartySite has been created
                             // if not, add it to the list to create along with any other new Locations
-                            var orgPartySite = organization.PartySites?.FirstOrDefault(s => s.OrigSystemReference == address.ObjectId);
+                            var orgPartySite = organization?.PartySites?.FirstOrDefault(s => s.OrigSystemReference == address.ObjectId);
                             if (orgPartySite == null)
                             {
                                 // re-map Salesforce values to Oracle models
@@ -271,7 +243,8 @@ public class AccountBrokerService : IAccountBrokerService
                             else
                             {
                                 // append to the list of accountSites so we can verify the Customer Account has the necessary objects for the Location(s)
-                                accountSites.Add(new OracleCustomerAccountSite {
+                                accountSites.Add(new OracleCustomerAccountSite
+                                {
                                     OrigSystemReference = orgPartySite.OrigSystemReference,
                                     PartySiteId = orgPartySite.PartySiteId,
                                     SiteUses = orgPartySite.SiteUses?.Select(su => new OracleCustomerAccountSiteUse
@@ -319,9 +292,59 @@ public class AccountBrokerService : IAccountBrokerService
                             }
                         }
                     }
+                }
+                #endregion
+
+                #region Organization
+                // If Organization does not exist, create it
+                if (organization == null)
+                {
+                    // create the Organization in Oracle (include PartySites here because they can be created in the same request with the Organization)
+                    var addedOrganization = await _oracleService.CreateOrganization(model, partySitesToCreate, salesforceTransaction);
+                    if (addedOrganization.Item1 == null)
+                    {
+                        // fatal error occurred
+                        response.OracleStatus = StatusType.Error;
+                        response.OracleErrorMessage = addedOrganization.Item2;
+                        return response;
+                    }
+                    organization = addedOrganization.Item1;
+                    oracleOrganizationId = addedOrganization.Item1.PartyNumber.ToString();
+                    response.OracleOrganizationId = oracleOrganizationId;
+
+
+                    // get response PartySites to append to accountSite list
+                    if (organization.PartySites != null && organization.PartySites.Count > 0)
+                    {
+                        // append to the list of accountSites so we can verify the Customer Account has the necessary objects for the Location(s)
+                        accountSites.AddRange(organization.PartySites.Select(ps => new OracleCustomerAccountSite
+                        {
+                            OrigSystemReference = ps.OrigSystemReference,
+                            PartySiteId = ps.PartySiteId,
+                            SiteUses = ps.SiteUses?.Select(su => new OracleCustomerAccountSiteUse
+                            {
+                                SiteUseCode = su.SiteUseType
+                            }).ToList()
+                        }));
+                    }
+                }
+                else // Otherwise, update it
+                {
+                    // update the Organization
+                    var updatedOrganization = await _oracleService.UpdateOrganization(organizationResult.Item2, model, salesforceTransaction);
+                    if (updatedOrganization.Item1 == null)
+                    {
+                        // fatal error occurred
+                        response.OracleStatus = StatusType.Error;
+                        response.OracleErrorMessage = updatedOrganization.Item2;
+                        return response;
+                    }
+                    organization = updatedOrganization.Item1;
+                    oracleOrganizationId = organization.PartyNumber.ToString();
+                    response.OracleOrganizationId = oracleOrganizationId;
 
                     // check to see if we need to create any PartySites for the Organization & Locations
-                    if (partySitesToCreate.Count > 0) 
+                    if (partySitesToCreate.Count > 0)
                     {
                         // create Organization PartySite (batched into a single request for all Locations)
                         var createPartySitesResult = await _oracleService.CreateOrganizationPartySites(organization.PartyId, partySitesToCreate, salesforceTransaction);
@@ -357,9 +380,6 @@ public class AccountBrokerService : IAccountBrokerService
                 #endregion
 
                 #region Person
-                // create empty list of persons to track new additions
-                var accountContacts = new List<OracleCustomerAccountContact>();
-
                 // verify we have contacts
                 if (model.Contacts != null && model.Contacts.Count > 0)
                 {
