@@ -906,7 +906,7 @@ public class OracleService : IOracleService
         return person;
     }
 
-    private async Task LogAction(SalesforceActionTransaction transaction, SalesforceTransactionAction action, ActionObjectType objectType, StatusType status, string? entityId = null, string? errorMessage = null)
+    public async virtual Task LogAction(SalesforceActionTransaction transaction, SalesforceTransactionAction action, ActionObjectType objectType, StatusType status, string? entityId = null, string? errorMessage = null)
     {
         var actionRecord = new SalesforceActionRecord
         {
