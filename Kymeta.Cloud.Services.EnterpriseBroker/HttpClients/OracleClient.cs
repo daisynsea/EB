@@ -12,8 +12,8 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.HttpClients;
 
 public interface IOracleClient
 {
-    Task<Tuple<OracleOrganization, string>> CreateOrganization(CreateOracleOrganizationModel model);
-    Task<Tuple<OracleOrganizationUpdateResponse, string>> UpdateOrganization(UpdateOracleOrganizationModel model, ulong partyNumber);
+    Task<Tuple<OracleOrganizationResponse, string>> CreateOrganization(CreateOracleOrganizationModel model);
+    Task<Tuple<OracleOrganizationResponse, string>> UpdateOrganization(UpdateOracleOrganizationModel model, ulong partyNumber);
     Task<Tuple<OracleAddressObject, string>> CreateAddress(string accountNumber, CreateOracleAddressViewModel model);
     Task<Tuple<OracleAddressObject, string>> UpdateAddress(string accountNumber, CreateOracleAddressViewModel model, string partyNumber);
     Task<Tuple<XDocument, string, string>> SendSoapRequest(string soapEnvelope, string oracleServiceUrl);
@@ -113,7 +113,7 @@ public class OracleClient : IOracleClient
         }
     }
 
-    public async Task<Tuple<OracleOrganization, string>> CreateOrganization(CreateOracleOrganizationModel model)
+    public async Task<Tuple<OracleOrganizationResponse, string>> CreateOrganization(CreateOracleOrganizationModel model)
     {
         var response = await _client.PostAsJsonAsync($"crmRestApi/resources/latest/accounts", model, new JsonSerializerOptions { PropertyNameCaseInsensitive = false });
         string data = await response.Content.ReadAsStringAsync();
@@ -121,11 +121,11 @@ public class OracleClient : IOracleClient
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogCritical($"Failed CreateOrganization Oracle HTTP call: {(int)response.StatusCode} | {data} | Model sent: {JsonSerializer.Serialize(model)}");
-            return new Tuple<OracleOrganization, string>(null, data);
+            return new Tuple<OracleOrganizationResponse, string>(null, data);
         }
 
-        var deserializedObject = JsonSerializer.Deserialize<OracleOrganization>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-        return new Tuple<OracleOrganization, string>(deserializedObject, null);
+        var deserializedObject = JsonSerializer.Deserialize<OracleOrganizationResponse>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        return new Tuple<OracleOrganizationResponse, string>(deserializedObject, null);
     }
 
     public async Task<Tuple<OracleAddressObject, string>> CreateAddress(string accountNumber, CreateOracleAddressViewModel model)
@@ -143,7 +143,7 @@ public class OracleClient : IOracleClient
         return new Tuple<OracleAddressObject, string>(deserializedObject, null);
     }
 
-    public async Task<Tuple<OracleOrganizationUpdateResponse, string>> UpdateOrganization(UpdateOracleOrganizationModel model, ulong partyNumber)
+    public async Task<Tuple<OracleOrganizationResponse, string>> UpdateOrganization(UpdateOracleOrganizationModel model, ulong partyNumber)
     {
         var serialized = JsonSerializer.Serialize(model, new JsonSerializerOptions { PropertyNameCaseInsensitive = false });
         var content = new StringContent(serialized, Encoding.UTF8, "application/json");
@@ -155,11 +155,11 @@ public class OracleClient : IOracleClient
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogCritical($"Failed UpdateAccount Oracle HTTP call: {(int)response.StatusCode} | {data} | Model sent: {JsonSerializer.Serialize(model)}");
-            return new Tuple<OracleOrganizationUpdateResponse, string>(null, data);
+            return new Tuple<OracleOrganizationResponse, string>(null, data);
         }
 
-        var deserializedObject = JsonSerializer.Deserialize<OracleOrganizationUpdateResponse>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-        return new Tuple<OracleOrganizationUpdateResponse, string>(deserializedObject, null);
+        var deserializedObject = JsonSerializer.Deserialize<OracleOrganizationResponse>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        return new Tuple<OracleOrganizationResponse, string>(deserializedObject, null);
     }
 
     public async Task<Tuple<OracleAddressObject, string>> UpdateAddress(string accountNumber, CreateOracleAddressViewModel model, string partyNumber)

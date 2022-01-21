@@ -3,6 +3,7 @@
     public class SalesforceAccountModel : SalesforceActionObject
     {
         public string? Name { get; set; }
+        public string? OriginalName { get; set; }
         public string? ParentId { get; set; }
         public string? SubType { get; set; } // Used in SOAP request
         public string? TaxId { get; set; } // Used in SOAP request

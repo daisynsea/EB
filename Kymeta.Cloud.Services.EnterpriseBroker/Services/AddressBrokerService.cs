@@ -117,6 +117,7 @@ public class AddressBrokerService : IAddressBrokerService
                 partySitesToCreate.Add(new OraclePartySite
                 {
                     LocationId = createLocationResult.Item1.LocationId,
+                    PartySiteName = model.SiteName,
                     OrigSystemReference = createLocationResult.Item1.OrigSystemReference,
                     SiteUses = siteUseTypes
                 });
@@ -143,6 +144,7 @@ public class AddressBrokerService : IAddressBrokerService
                     partySitesToCreate.Add(new OraclePartySite
                     {
                         LocationId = updatedLocation.LocationId,
+                        PartySiteName = model.SiteName,
                         OrigSystemReference = updatedLocation.OrigSystemReference,
                         SiteUses = siteUseTypes
                     });
