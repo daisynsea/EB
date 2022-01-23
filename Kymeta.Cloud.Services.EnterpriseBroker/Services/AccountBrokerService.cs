@@ -326,6 +326,14 @@ public class AccountBrokerService : IAccountBrokerService
                                 SiteUseCode = su.SiteUseType
                             }).ToList()
                         }));
+
+                        // Add to response container
+                        addressesForSalesforce.AddRange(organization.PartySites.Select(cpr => new AccountChildResponse
+                        {
+                            OracleId = cpr.PartySiteNumber?.ToString(),
+                            SalesforceId = cpr.OrigSystemReference,
+                            OracleEntityType = "Location"
+                        }).ToList());
                     }
                 }
                 else // Otherwise, update it
