@@ -117,7 +117,7 @@ public static class OracleSoapTemplates
     ///  A template for creating an Organization Party Site object in Oracle.
     /// </summary>
     /// <returns>TBD</returns>
-    public static string FindOrganization(string organizationName, string originSystemReference)
+    public static string FindOrganization(string originSystemReference)
     {
         var locationEnvelope = 
             $@"<soap:Envelope xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
@@ -134,47 +134,19 @@ public static class OracleSoapTemplates
                         <find:item>
                             <find:conjunction/>
                             <find:upperCaseCompare>false</find:upperCaseCompare>
-                            <find:attribute>PartyName</find:attribute>
+                            <find:attribute>OrigSystemReference</find:attribute>
                             <find:operator>=</find:operator>
-                            <find:value>{organizationName}</find:value>
+                            <find:value>{originSystemReference}</find:value>
                         </find:item>
                         </find:group>
                     </find:filter>
                     <find:findAttribute>PartyId</find:findAttribute>
                     <find:findAttribute>PartyName</find:findAttribute>
                     <find:findAttribute>PartyNumber</find:findAttribute>
-                    <find:findAttribute>OriginalSystemReference</find:findAttribute>
+                    <find:findAttribute>OrigSystemReference</find:findAttribute>
 				    <find:findAttribute>PartySite</find:findAttribute>
 				    <find:findAttribute>Relationship</find:findAttribute>
                     <find:excludeAttribute>false</find:excludeAttribute>
-                    <find:childFindCriteria>
-                        <find:fetchStart>0</find:fetchStart>
-                        <find:fetchSize>-1</find:fetchSize>
-                        <find:filter>
-                        <find:conjunction>And</find:conjunction>
-                        <find:group>
-                            <find:conjunction>And</find:conjunction>
-                            <find:upperCaseCompare>false</find:upperCaseCompare>
-                            <find:item>
-                                <find:conjunction>And</find:conjunction>
-                                <find:upperCaseCompare>false</find:upperCaseCompare>
-                                <find:attribute>OrigSystemReference</find:attribute>
-                                <find:operator>=</find:operator>
-                                <find:value>{originSystemReference}</find:value>
-                            </find:item>
-                            <find:item>
-                                <find:conjunction>And</find:conjunction>
-                                <find:upperCaseCompare>false</find:upperCaseCompare>
-                                <find:attribute>OrigSystem</find:attribute>
-                                <find:operator>=</find:operator>
-                                <find:value>SFDC</find:value>
-                            </find:item>
-                        </find:group>
-                        </find:filter>
-                        <find:excludeAttribute>false</find:excludeAttribute>
-					    <find:findAttribute>OrigSystemReference</find:findAttribute>					
-                        <find:childAttrName>OriginalSystemReference</find:childAttrName>
-                    </find:childFindCriteria>
 				    <find:childFindCriteria>
                         <find:fetchStart>0</find:fetchStart>
                         <find:fetchSize>-1</find:fetchSize>
@@ -209,6 +181,75 @@ public static class OracleSoapTemplates
                 </soap:Body>
             </soap:Envelope>";
         return locationEnvelope;
+    }
+
+    /// <summary>
+    /// A template for creating an Organization object in Oracle (with PartySites)
+    /// </summary>
+    /// <param name="organization"></param>
+    /// <param name="partySites"></param>
+    /// <returns></returns>
+    public static string CreateOrganization(CreateOracleOrganizationModel organization, List<OraclePartySite>? partySites)
+    {
+        var organizationEnvelope =
+            $@"<soap:Envelope
+	            xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/""
+	            xmlns:typ=""http://xmlns.oracle.com/apps/cdm/foundation/parties/organizationService/applicationModule/types/""
+	            xmlns:org=""http://xmlns.oracle.com/apps/cdm/foundation/parties/organizationService/""
+	            xmlns:par=""http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/"">
+	            <soap:Body>
+		            <typ:createOrganization>
+			            <typ:organizationParty>
+				            <org:CreatedByModule>HZ_WS</org:CreatedByModule>
+				            <org:OrganizationProfile>
+					            <org:OrganizationName>{organization.OrganizationName}</org:OrganizationName>
+					            <org:OrigSystemReference>{organization.SourceSystemReferenceValue}</org:OrigSystemReference>
+					            <org:TaxpayerIdentificationNumber>{organization.TaxpayerIdentificationNumber}</org:TaxpayerIdentificationNumber>
+					            <org:CreatedByModule>HZ_WS</org:CreatedByModule>
+				            </org:OrganizationProfile>
+				            <org:PartyUsageAssignment>
+					            <par:PartyUsageCode>CUSTOMER</par:PartyUsageCode>
+					            <par:CreatedByModule>HZ_WS</par:CreatedByModule>
+				            </org:PartyUsageAssignment>
+				            <org:PartyUsageAssignment>
+					            <par:PartyUsageCode>SALES_ACCOUNT</par:PartyUsageCode>
+					            <par:CreatedByModule>HZ_WS</par:CreatedByModule>
+				            </org:PartyUsageAssignment>";
+        // check for PartySites
+        if (partySites != null && partySites.Count > 0)
+        {
+            // include all the PartySite additions
+            foreach (var ps in partySites)
+            {
+                organizationEnvelope +=
+                                "<org:PartySite>" +
+                                    $"<par:LocationId>{ps.LocationId}</par:LocationId>" +
+                                    $"<par:OrigSystemReference>{ps.OrigSystemReference}</par:OrigSystemReference>" +
+                                    $"<par:PartySiteName>{ps.PartySiteName}</par:PartySiteName>" +
+                                    "<par:CreatedByModule>HZ_WS</par:CreatedByModule>";                
+                // append the Site Uses (there can be one or many)
+                if (ps.SiteUses != null)
+                {
+                    foreach (var siteUse in ps.SiteUses)
+                    {
+                        organizationEnvelope +=
+                                        "<par:PartySiteUse>" +
+                                            $"<par:SiteUseType>{siteUse.SiteUseType}</par:SiteUseType>" +
+                                            "<par:CreatedByModule>HZ_WS</par:CreatedByModule>" +
+                                        "</par:PartySiteUse>";
+                    }
+                }
+                organizationEnvelope +=
+                                "</org:PartySite>";
+            }
+        }
+
+        organizationEnvelope +=
+                        $@"</typ:organizationParty>
+		            </typ:createOrganization>
+	            </soap:Body>
+            </soap:Envelope>";
+        return organizationEnvelope;
     }
 
     /// <summary>

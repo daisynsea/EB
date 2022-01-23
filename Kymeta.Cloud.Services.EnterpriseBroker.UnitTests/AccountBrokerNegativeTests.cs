@@ -236,7 +236,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                 .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), It.IsAny<string>(), transaction))
                 .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(true, null, string.Empty));
             _fixture.OracleService
-                .Setup(ors => ors.CreateOrganization(It.IsAny<SalesforceAccountModel>(), transaction))
+                .Setup(ors => ors.CreateOrganization(It.IsAny<SalesforceAccountModel>(), It.IsAny<List<OraclePartySite>>(), transaction))
                 .ReturnsAsync(new Tuple<OracleOrganization, string>(null, "There was an error adding the account to Oracle: Epic Fail"));
 
             // Act
@@ -300,7 +300,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                 .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), It.IsAny<string>(), transaction))
                 .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(true, null, string.Empty));
             _fixture.OracleService
-                .Setup(ors => ors.CreateOrganization(It.IsAny<SalesforceAccountModel>(), transaction))
+                .Setup(ors => ors.CreateOrganization(It.IsAny<SalesforceAccountModel>(), It.IsAny<List<OraclePartySite>>(), transaction))
                 .ReturnsAsync(new Tuple<OracleOrganization, string>(oracleOrg, string.Empty));
             _fixture.OracleService
                 .Setup(ors => ors.GetLocationsBySalesforceAddressId(It.IsAny<List<string>>(), transaction))
