@@ -662,11 +662,19 @@ public static class OracleSoapTemplates
                             "<cus:CreatedByModule>HZ_WS</cus:CreatedByModule>" +
                             "<cus:SetId>300000001127004</cus:SetId>" +
                             "<cus:OrigSystem>SFDC</cus:OrigSystem>" +
-                            $"<cus:OrigSystemReference>{site.OrigSystemReference}</cus:OrigSystemReference>" +
-                            "<cus:CustomerAccountSiteUse>" +
-                                "<cus:SiteUseCode>BILL_TO</cus:SiteUseCode>" +
-                                "<cus:CreatedByModule>HZ_WS</cus:CreatedByModule>" +
-                            "</cus:CustomerAccountSiteUse>" +
+                            $"<cus:OrigSystemReference>{site.OrigSystemReference}</cus:OrigSystemReference>";
+                if (site.SiteUses != null)
+                {
+                    foreach (var siteUse in site.SiteUses)
+                    {
+                        customerAccountEnvelope +=
+                            @$"<cus:CustomerAccountSiteUse>
+								<cus:SiteUseCode>{siteUse.SiteUseCode}</cus:SiteUseCode>
+								<cus:CreatedByModule>HZ_WS</cus:CreatedByModule>
+							</cus:CustomerAccountSiteUse>";
+                    }
+                }
+                customerAccountEnvelope +=
                         "</cus:CustomerAccountSite>";
             }
         }

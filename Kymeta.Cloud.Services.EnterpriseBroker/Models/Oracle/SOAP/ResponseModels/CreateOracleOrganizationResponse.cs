@@ -142,4 +142,27 @@ public partial class CreateOrganizationValuePartySite
     /// <remarks/>
     [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/", IsNullable = true)]
     public string PartySiteName { get; set; }
+
+    /// <remarks/>
+    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/", IsNullable = true)]
+    public CreateOrganizationValuePartySiteUse[] PartySiteUse { get; set; }
+}
+
+/// <remarks/>
+[Serializable]
+[DesignerCategory("code")]
+[XmlType(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/organizationService/")]
+public partial class CreateOrganizationValuePartySiteUse
+{
+    /// <remarks/>
+    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/")]
+    public ulong PartySiteUseId { get; set; }
+
+    /// <remarks/>
+    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/")]
+    public ulong PartySiteId { get; set; }
+
+    /// <remarks/>
+    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/")]
+    public string SiteUseType { get; set; }
 }

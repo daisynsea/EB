@@ -147,7 +147,12 @@ public class OracleService : IOracleService
                 OrigSystemReference = ps.OrigSystemReference,
                 PartySiteId = ps.PartySiteId,
                 PartySiteName = ps.PartySiteName,
-                PartySiteNumber = ps.PartySiteNumber
+                PartySiteNumber = ps.PartySiteNumber,
+                SiteUses = ps.PartySiteUse?.Select(psu => new OraclePartySiteUse
+                {
+                    PartySiteUseId = psu.PartySiteUseId,
+                    SiteUseType = psu.SiteUseType
+                }).ToList()
 
             }).ToList()
         };
