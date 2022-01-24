@@ -107,7 +107,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
 
             // Mock Oracle portion of the request
             _fixture.OracleService
-                .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), It.IsAny<string>(), transaction))
+                .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), transaction))
                 .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(false, null, $"There was an error finding the Organization in Oracle: Epic Fail."));      
 
             // Act

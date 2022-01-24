@@ -1,4 +1,5 @@
 ﻿using Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle;
+using Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.REST;
 using Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce;
 using Kymeta.Cloud.Services.EnterpriseBroker.Services;
 using Moq;
@@ -31,11 +32,12 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
         public async void CreateOrganization_ClientError_ReturnsError()
         {
             var account = Helpers.BuildSalesforceAccountModel();
+            var partySitesToCreate
             var transaction = Helpers.BuildSalesforceTransaction();
 
             var oracleOrganization = new OracleOrganization();
             _fixture.OracleClient.Setup(x => x.CreateOrganization(It.IsAny<CreateOracleOrganizationModel>()))
-                .ReturnsAsync(new Tuple<OracleOrganization, string>(null, "Explosions"));
+                .ReturnsAsync(new Tuple<OracleOrganizationResponse, string>(null, "Explosions"));
 
             var response = await _oracleService.Object.CreateOrganization(account, transaction);
 

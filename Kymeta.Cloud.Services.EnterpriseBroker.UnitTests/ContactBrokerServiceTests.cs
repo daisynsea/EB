@@ -34,7 +34,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             // Get Org
             var oracleOrg = Helpers.BuildOracleOrganization();
             _fixture.OracleService
-                .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), It.IsAny<string>(), transaction))
+                .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), transaction))
                 .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(true, oracleOrg, "Explosions"));
             // Get Customer Account
             var customerAccount = Helpers.BuildOracleCustomerAccount();

@@ -33,7 +33,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             Helpers.MockActionRepository(_fixture.ActionsRepository, transaction);
 
             _fixture.OracleService
-                .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), It.IsAny<string>(), transaction))
+                .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), transaction))
                 .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(false, null, string.Empty));
 
             // Act
@@ -63,7 +63,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             // The organization exists
             var oracleOrg = Helpers.BuildOracleOrganization();
             _fixture.OracleService
-                .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), It.IsAny<string>(), transaction))
+                .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), transaction))
                 .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(true, oracleOrg, string.Empty));
             // The customer account fails to come back
             _fixture.OracleService
@@ -97,7 +97,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             // The organization exists
             var oracleOrg = Helpers.BuildOracleOrganization();
             _fixture.OracleService
-                .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), It.IsAny<string>(), transaction))
+                .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), transaction))
                 .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(true, oracleOrg, string.Empty));
             // The customer account exists
             var customerAccount = Helpers.BuildOracleCustomerAccount();
@@ -136,7 +136,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             // The organization exists
             var oracleOrg = Helpers.BuildOracleOrganization();
             _fixture.OracleService
-                .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), It.IsAny<string>(), transaction))
+                .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), transaction))
                 .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(true, oracleOrg, string.Empty));
             // The customer account exists
             var customerAccount = Helpers.BuildOracleCustomerAccount();
@@ -179,7 +179,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             // The organization exists
             var oracleOrg = Helpers.BuildOracleOrganization();
             _fixture.OracleService
-                .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), It.IsAny<string>(), transaction))
+                .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), transaction))
                 .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(true, oracleOrg, string.Empty));
             // The customer account exists
             var customerAccount = Helpers.BuildOracleCustomerAccount();
@@ -230,7 +230,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             // The organization exists
             var oracleOrg = Helpers.BuildOracleOrganization();
             _fixture.OracleService
-                .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), It.IsAny<string>(), transaction))
+                .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), transaction))
                 .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(true, oracleOrg, string.Empty));
             // The customer account exists
             var customerAccount = Helpers.BuildOracleCustomerAccount();
@@ -294,7 +294,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             // The organization exists
             var oracleOrg = Helpers.BuildOracleOrganization();
             _fixture.OracleService
-                .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), It.IsAny<string>(), transaction))
+                .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), transaction))
                 .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(true, oracleOrg, string.Empty));
             // The customer account exists
             var customerAccount = Helpers.BuildOracleCustomerAccount();

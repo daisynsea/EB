@@ -114,7 +114,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
         // Mock Oracle portion of the request
         var oracleOrg = Helpers.BuildOracleOrganization();
         _fixture.OracleService
-            .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), It.IsAny<string>(), transaction))
+            .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), transaction))
             .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(true, oracleOrg, string.Empty));
         _fixture.OracleService
             .Setup(ors => ors.UpdateOrganization(It.IsAny<OracleOrganization>(), It.IsAny<SalesforceAccountModel>(), transaction))
@@ -225,7 +225,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
         };
         // finding organization returns a null so...
         _fixture.OracleService
-            .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), It.IsAny<string>(), transaction))
+            .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), transaction))
             .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(true, null, string.Empty));
         // we have to mock a create organization call
         _fixture.OracleService
@@ -352,7 +352,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
                 }
         };
         _fixture.OracleService
-            .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), It.IsAny<string>(), transaction))
+            .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), transaction))
             .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(true, oracleOrg, string.Empty));
         _fixture.OracleService
             .Setup(ors => ors.UpdateOrganization(It.IsAny<OracleOrganization>(), It.IsAny<SalesforceAccountModel>(), transaction))
@@ -489,7 +489,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
                 }
         };
         _fixture.OracleService
-            .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), It.IsAny<string>(), transaction))
+            .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), transaction))
             .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(true, oracleOrg, string.Empty));
         _fixture.OracleService
             .Setup(ors => ors.UpdateOrganization(It.IsAny<OracleOrganization>(), It.IsAny<SalesforceAccountModel>(), transaction))
