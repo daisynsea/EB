@@ -39,12 +39,11 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             // simulate XML response object with sample XML
             XDocument xDoc = XDocument.Load("TestFiles\\create-organization-soap-response.xml");
 
-            var oracleOrganization = new OracleOrganization();
             _fixture.OracleClient
                 .Setup(oc => oc.SendSoapRequest(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(new Tuple<XDocument, string, string>(xDoc, null, null));
             _fixture.OracleService.Setup(os => os.CreateOrganization(It.IsAny<SalesforceAccountModel>(), It.IsAny<List<OraclePartySite>>(), transaction))
-                .ReturnsAsync(new Tuple<OracleOrganization, string>(oracleOrganization, string.Empty));
+                .ReturnsAsync(new Tuple<OracleOrganization, string>(organization, string.Empty));
 
             var response = await _oracleService.Object.CreateOrganization(account, partySites, transaction);
 
