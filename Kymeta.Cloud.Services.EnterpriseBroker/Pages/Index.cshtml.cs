@@ -41,6 +41,8 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Pages
 
         public async Task OnGet([FromQuery]int page = 1, [FromQuery]int pageSize = 20)
         {
+            if (page < 1) page = 1;
+
             PageIndex = page;
             PageSize = pageSize;
             TimePreference = HttpContext.Request.Cookies["timePreference"] ?? "utc";

@@ -11,6 +11,7 @@
             <thead>
                 <tr>
                     <th style="width: 100px">Object</th>
+                    <th style="width: 150px">User</th>
                     <th style="width: 225px">Last Updated</th>
                     <th style="width: 225px">SF ID</th>
                     <th>SF Name</th>
@@ -45,6 +46,7 @@
                                 @log.Object
                             </a>
                         </td>
+                        <td>@log.UserName?.Split('@')?.First()</td>
                         <td>@(log.LastUpdatedOn.HasValue ? @log.LastUpdatedOn.Value.ToString("G") : @log.CreatedOn.ToString("G"))</td>
                         <td>@log.ObjectId</td>
                         <td>@log.ObjectName</td>
