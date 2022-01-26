@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Xunit;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
@@ -24,8 +25,6 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             _oracleService.CallBase = true;
             _oracleService.Setup(x => x.LogAction(It.IsAny<SalesforceActionTransaction>(), It.IsAny<SalesforceTransactionAction>(), It.IsAny<ActionObjectType>(), It.IsAny<StatusType>(), It.IsAny<string>(), It.IsAny<string>()))
                           .Verifiable();
-
-
         }
 
         [Fact]
@@ -34,16 +33,30 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
         {
             var account = Helpers.BuildSalesforceAccountModel();
             var transaction = Helpers.BuildSalesforceTransaction();
+            var organization = Helpers.BuildOracleOrganization();
+            var partySites = organization.PartySites;
+
+            // simulate XML response object with sample XML
+            XDocument xDoc = XDocument.Load("TestFiles\\create-organization-soap-response.xml");
 
             var oracleOrganization = new OracleOrganization();
-            _fixture.OracleClient.Setup(x => x.CreateOrganization(It.IsAny<CreateOracleOrganizationModel>()))
+            _fixture.OracleClient
+                .Setup(oc => oc.SendSoapRequest(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new Tuple<XDocument, string, string>(xDoc, null, null));
+            _fixture.OracleService.Setup(os => os.CreateOrganization(It.IsAny<SalesforceAccountModel>(), It.IsAny<List<OraclePartySite>>(), transaction))
                 .ReturnsAsync(new Tuple<OracleOrganization, string>(oracleOrganization, string.Empty));
 
-            var response = await _oracleService.Object.CreateOrganization(account, transaction);
+            var response = await _oracleService.Object.CreateOrganization(account, partySites, transaction);
 
             Assert.NotNull(response);
             Assert.NotNull(response.Item1);
             Assert.Equal(string.Empty, response.Item2);
+            Assert.Equal("Unit Test Alpha", response.Item1.OrganizationName);
+            Assert.Equal("300001", response.Item1.PartyNumber.ToString());
+            Assert.Equal("UNIT_TEST_REF", response.Item1.OrigSystemReference);
+            Assert.NotNull(response.Item1.PartySites);
+            Assert.NotEmpty(response.Item1.PartySites);
+            Assert.Equal(1, response.Item1.PartySites.Count());
         }
 
         [Fact]
@@ -53,15 +66,15 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             var account = Helpers.BuildSalesforceAccountModel();
             var transaction = Helpers.BuildSalesforceTransaction();
 
-            var oracleOrganizationResponse = new OracleOrganizationUpdateResponse
+            var oracleOrganizationResponse = new OracleOrganizationResponse
             {
                 PartyNumber = "123",
                 PartyId = 456
             };
-            var oracleOrganization = new OracleOrganization();
             _fixture.OracleClient.Setup(x => x.UpdateOrganization(It.IsAny<UpdateOracleOrganizationModel>(), It.IsAny<ulong>()))
-                .ReturnsAsync(new Tuple<OracleOrganizationUpdateResponse, string>(oracleOrganizationResponse, string.Empty));
+                .ReturnsAsync(new Tuple<OracleOrganizationResponse, string>(oracleOrganizationResponse, string.Empty));
 
+            var oracleOrganization = new OracleOrganization();
             var response = await _oracleService.Object.UpdateOrganization(oracleOrganization, account, transaction);
 
             Assert.NotNull(response);

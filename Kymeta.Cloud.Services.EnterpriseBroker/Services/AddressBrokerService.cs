@@ -111,7 +111,6 @@ public class AddressBrokerService : IAddressBrokerService
                     return response;
                 }
                 var createdLocation = createLocationResult.Item1;
-                response.OracleAddressId = createdLocation.LocationId?.ToString();
 
                 // Location was created successfully... so add to the list so we can create a Party Site record for it
                 partySitesToCreate.Add(new OraclePartySite
@@ -135,7 +134,6 @@ public class AddressBrokerService : IAddressBrokerService
                     return response;
                 }
                 var updatedLocation = updateLocationResult.Item1;
-                response.OracleAddressId = updatedLocation.LocationId?.ToString();
 
                 // validate the that PartySite exists for the Organization (if not, create)
                 var orgPartySite = organization.PartySites.FirstOrDefault(ps => ps.OrigSystemReference == model.ObjectId);
@@ -151,6 +149,9 @@ public class AddressBrokerService : IAddressBrokerService
                 } 
                 else
                 {
+                    // set the response Id
+                    response.OracleAddressId = orgPartySite.PartySiteNumber?.ToString();
+
                     // append to the list of accountSites so we can verify the Customer Account has the necessary objects for the Location(s)
                     accountSites.Add(new OracleCustomerAccountSite
                     {
@@ -178,8 +179,11 @@ public class AddressBrokerService : IAddressBrokerService
                 }
                 else
                 {
+                    // set the response Id (we should only have one partySite created as this is a solo operation for one Address)
+                    response.OracleAddressId = createPartySitesResult.Item1?.FirstOrDefault()?.PartySiteNumber?.ToString();
+
                     // map created PartySites to list of OracleCustomerAccountSites to create below
-                    var sites = createPartySitesResult.Item1.Select(cpr => new OracleCustomerAccountSite
+                    var sites = createPartySitesResult.Item1?.Select(cpr => new OracleCustomerAccountSite
                     {
                         PartySiteId = cpr.PartySiteId,
                         OrigSystemReference = cpr.OrigSystemReference,

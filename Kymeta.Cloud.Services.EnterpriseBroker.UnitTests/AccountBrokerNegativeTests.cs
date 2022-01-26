@@ -167,8 +167,15 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                     }
                 }
             };
+            var locations = new List<OracleLocationModel> {
+                new OracleLocationModel { LocationId = 30001, OrigSystemReference = "add30001" },
+                new OracleLocationModel { LocationId = 30002, OrigSystemReference = "add30002" }
+            };
             _fixture.OracleService
-                .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), It.IsAny<string>(), transaction))
+                .Setup(ors => ors.GetLocationsBySalesforceAddressId(It.IsAny<List<string>>(), transaction))
+                .ReturnsAsync(new Tuple<bool, IEnumerable<OracleLocationModel>, string>(true, locations, string.Empty));
+            _fixture.OracleService
+                .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), transaction))
                 .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(true, oracleOrg, string.Empty));
             _fixture.OracleService
                 .Setup(ors => ors.UpdateOrganization(It.IsAny<OracleOrganization>(), It.IsAny<SalesforceAccountModel>(), transaction))
@@ -201,6 +208,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             // Arrange
             var model = Helpers.BuildSalesforceAccountModel(true, false);
             var transaction = Helpers.BuildSalesforceTransaction();
+            //var locations = Helpers.Lo
             Helpers.MockActionRepository(_fixture.ActionsRepository, transaction);
 
             // Mock Oracle portion of the request
@@ -231,10 +239,19 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                     }
                 }
             };
+            var locations = new List<OracleLocationModel>
+            {
+                new OracleLocationModel { LocationId = 30001, OrigSystemReference = "add30001" },
+                new OracleLocationModel { LocationId = 30002, OrigSystemReference = "add30002" }
+            };
+
             // returns null here, means create
             _fixture.OracleService
-                .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), It.IsAny<string>(), transaction))
+                .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), transaction))
                 .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(true, null, string.Empty));
+            _fixture.OracleService
+                .Setup(ors => ors.GetLocationsBySalesforceAddressId(It.IsAny<List<string>>(), transaction))
+                .ReturnsAsync(new Tuple<bool, IEnumerable<OracleLocationModel>, string>(true, locations, string.Empty));
             _fixture.OracleService
                 .Setup(ors => ors.CreateOrganization(It.IsAny<SalesforceAccountModel>(), It.IsAny<List<OraclePartySite>>(), transaction))
                 .ReturnsAsync(new Tuple<OracleOrganization, string>(null, "There was an error adding the account to Oracle: Epic Fail"));
@@ -297,7 +314,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                 }
             };
             _fixture.OracleService
-                .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), It.IsAny<string>(), transaction))
+                .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), transaction))
                 .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(true, null, string.Empty));
             _fixture.OracleService
                 .Setup(ors => ors.CreateOrganization(It.IsAny<SalesforceAccountModel>(), It.IsAny<List<OraclePartySite>>(), transaction))
@@ -318,7 +335,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             Assert.Equal($"There was an error finding the Locations in Oracle: Epic Fail.", result.OracleErrorMessage);
             Assert.Null(result.OSSErrorMessage);
             Assert.Null(result.OssAccountId);
-            Assert.Equal("30001", result.OracleOrganizationId); // we created the org, so we should have the Id for it
+            Assert.Null(result.OracleOrganizationId);
             Assert.Null(result.OracleCustomerProfileId);
             Assert.Null(result.OracleCustomerAccountId);
         }
@@ -364,7 +381,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             Helpers.MockActionRepository(_fixture.ActionsRepository, transaction);
 
             _fixture.OracleService
-                .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), It.IsAny<string>(), transaction))
+                .Setup(ors => ors.GetOrganizationBySalesforceAccountId(It.IsAny<string>(), transaction))
                 .ThrowsAsync(new Exception("Explosions!"));
 
             // Act

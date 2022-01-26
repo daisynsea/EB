@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Xunit;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
@@ -32,18 +33,20 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
         public async void CreateOrganization_ClientError_ReturnsError()
         {
             var account = Helpers.BuildSalesforceAccountModel();
-            var partySitesToCreate
             var transaction = Helpers.BuildSalesforceTransaction();
+            var organization = Helpers.BuildOracleOrganization();
+            var partySites = organization.PartySites;
 
             var oracleOrganization = new OracleOrganization();
-            _fixture.OracleClient.Setup(x => x.CreateOrganization(It.IsAny<CreateOracleOrganizationModel>()))
-                .ReturnsAsync(new Tuple<OracleOrganizationResponse, string>(null, "Explosions"));
+            _fixture.OracleClient
+                .Setup(oc => oc.SendSoapRequest(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new Tuple<XDocument, string, string>(null, "Explosions", null));
 
-            var response = await _oracleService.Object.CreateOrganization(account, transaction);
+            var response = await _oracleService.Object.CreateOrganization(account, partySites, transaction);
 
             Assert.NotNull(response);
             Assert.Null(response.Item1);
-            Assert.Equal($"There was an error adding the account to Oracle: Explosions", response.Item2);
+            Assert.Equal($"There was an error creating the Organization in Oracle: Explosions.", response.Item2);
         }
     }
 }

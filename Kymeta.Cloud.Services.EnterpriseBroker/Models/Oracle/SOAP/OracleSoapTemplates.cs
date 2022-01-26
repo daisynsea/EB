@@ -995,7 +995,8 @@ public static class OracleSoapTemplates
     // TODO: must create a full dictionary to match values from Salesforce
     public static readonly Dictionary<string, string> CountryShortcodes = new()
     {
-        { "United States", "US" }
+        { "United States", "US" },
+
     };
 
     // acceptable value map for Account Type
@@ -1015,7 +1016,7 @@ public static class OracleSoapTemplates
         { "Other", "OTHER" }
     };
 
-    // TODO: must create a full dictionary to match values from Salesforce
+    // must create a full dictionary to match values from Salesforce
     public static string GetResponsibilityType(string role)
     {
         if (string.IsNullOrEmpty(role)) return null;

@@ -29,4 +29,10 @@
     <ProjectReference Include="..\Kymeta.Cloud.Services.EnterpriseBroker\Kymeta.Cloud.Services.EnterpriseBroker.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="TestFiles\create-organization-soap-response.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
