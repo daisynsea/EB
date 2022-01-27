@@ -999,7 +999,6 @@ public static class OracleSoapTemplates
         { "kgs", "300000001127004" }
     };
 
-    // TODO: must create a full dictionary to match values from Salesforce
     public static readonly Dictionary<string, string> CountryShortcodes = new()
     {
         { "Afghanistan", "AF" },
