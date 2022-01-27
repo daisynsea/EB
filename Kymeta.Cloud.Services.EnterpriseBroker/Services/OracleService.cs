@@ -638,6 +638,12 @@ public class OracleService : IOracleService
                 LastName = person.PersonLastName
             };
 
+            // acquire the ContactNumber so we can include it in the response to Salesforce
+            if (person.Relationship?.OrganizationContact?.ContactNumber != null)
+            {
+                oraclePerson.ContactNumber = person.Relationship.OrganizationContact.ContactNumber;
+            }
+
             // check to see if the Person has an Email Address
             if (person.Email != null)
             {
@@ -762,6 +768,7 @@ public class OracleService : IOracleService
         var oracleResult = res?.Body?.updatePersonResponse?.result?.Value;
         var oraclePerson = new OraclePersonObject
         {
+            ContactNumber = person.ContactNumber,
             PartyId = oracleResult?.PartyId,
             OrigSystemReference = oracleResult?.OrigSystemReference,
             RelationshipId = existingPerson?.RelationshipId,
@@ -922,6 +929,7 @@ public class OracleService : IOracleService
         if (existingPerson != null)
         {
             person.PartyId = existingPerson.PartyId;
+            person.ContactNumber = existingPerson.ContactNumber;
 
             // map ContactPointId for Email and Phone #
             var existingEmail = existingPerson.EmailAddresses?.FirstOrDefault();

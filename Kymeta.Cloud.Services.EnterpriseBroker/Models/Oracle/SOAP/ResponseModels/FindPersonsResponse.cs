@@ -135,5 +135,16 @@ public partial class FindPersonsValueRelationship
 
     /// <remarks/>
     [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
-    public string ObjectType { get; set; }
+    public FindPersonOrganizationContact OrganizationContact { get; set; }
+}
+
+/// <remarks/>
+[Serializable]
+[DesignerCategory("code")]
+[XmlType(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/")]
+[XmlRoot(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/relationshipService/", IsNullable = false)]
+public partial class FindPersonOrganizationContact
+{
+    public ulong? ContactNumber { get; set; }
+
 }

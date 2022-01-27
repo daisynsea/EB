@@ -364,7 +364,14 @@ public static class OracleSoapTemplates
 					            <find:childAttrName>Relationship</find:childAttrName>
 					            <find:findAttribute>RelationshipId</find:findAttribute>
 					            <find:findAttribute>ObjectId</find:findAttribute>
-					            <find:findAttribute>ObjectType</find:findAttribute>
+					            <find:findAttribute>ObjectType</find:findAttribute>					
+					            <find:findAttribute>OrganizationContact</find:findAttribute>
+					            <find:childFindCriteria>
+						            <find:fetchStart>0</find:fetchStart>
+						            <find:fetchSize>-1</find:fetchSize>
+						            <find:childAttrName>OrganizationContact</find:childAttrName>
+						            <find:findAttribute>ContactNumber</find:findAttribute>
+					            </find:childFindCriteria>
 				            </find:childFindCriteria>
 				            <find:excludeAttribute>false</find:excludeAttribute>
 			            </typ:findCriteria>
@@ -1022,7 +1029,7 @@ public static class OracleSoapTemplates
         { "Bermuda", "BM" },
         { "Bhutan", "BT" },
         { "Bolivia, Plurinational State of", "BO" },
-        //{ "Bonaire, Sint Eustatius and Saba", "" },
+        { "Bonaire, Sint Eustatius and Saba", "BQ" },
         { "Bosnia and Herzegovina", "BA" },
         { "Botswana", "BW" },
         { "Bouvet Island", "BV" },
@@ -1036,7 +1043,7 @@ public static class OracleSoapTemplates
         { "Cambodia", "KH" },
         { "Cameroon", "CM" },
         { "Canada", "CA" },
-        //{ "Cape Verde", "" },
+        { "Cape Verde", "CV" },
         //{ "", "BQ" },
         { "Cayman Islands", "KY" },
         { "Central African Republic", "CF" },
@@ -1131,7 +1138,7 @@ public static class OracleSoapTemplates
         { "Lithuania", "LT" },
         { "Luxembourg", "LU" },
         { "Macao", "MO" },
-        { "Macedonia, the former Yugoslav Republic of", "" },
+        { "Macedonia, the former Yugoslav Republic of", "MK" },
         { "Madagascar", "MG" },
         { "Malawi", "MW" },
         { "Malaysia", "MY" },
@@ -1215,7 +1222,7 @@ public static class OracleSoapTemplates
         { "Sudan", "SD" },
         { "Suriname", "SR" },
         { "Svalbard and Jan Mayen", "SJ" },
-        //{ "Swaziland", "" },
+        { "Swaziland", "SZ" },
         { "Sweden", "SE" },
         { "Switzerland", "CH" },
         { "Syrian Arab Republic", "SY" },
