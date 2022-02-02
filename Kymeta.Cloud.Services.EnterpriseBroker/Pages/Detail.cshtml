@@ -69,4 +69,19 @@
             </div>
         </div>
     </div>
+    @if (Model.SalesforceActionTransaction.Object == ActionObjectType.Account)
+    {
+        <hr />
+    <div class="container">
+        <h3 class="is-size-3 mb-3">Account in Salesforce</h3>
+        <pre>
+            @if (!string.IsNullOrEmpty(Model.SerializedAccount))
+            {
+                        
+                @Model.SerializedAccount;
+            }
+        </pre>
+    </div>
+    }
+    
 </div>

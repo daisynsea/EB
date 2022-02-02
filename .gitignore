@@ -3,6 +3,8 @@
 
 # Dev environment
 appsettings.Development.json
+.config
+*.arm.json
 
 # Coverlet Test Results
 TestResults/

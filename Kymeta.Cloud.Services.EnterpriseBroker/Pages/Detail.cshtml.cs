@@ -1,3 +1,4 @@
+using Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce.External;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -13,8 +14,12 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Pages
     {
         private JsonSerializerOptions _serializerOptions = new JsonSerializerOptions { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
         private IActionsRepository _actionsRepository;
+        private ISalesforceClient _salesforceClient;
+
         public SalesforceActionTransaction SalesforceActionTransaction { get; set; }
         public SalesforceActionObject? SalesforceActionObject { get; set; }
+        public SalesforceAccountObjectModel SalesforceAccount { get; set; }
+        public string SerializedAccount => JsonSerializer.Serialize(SalesforceAccount, _serializerOptions);
         public string TimePreference = "utc";
         public string SerializedTransaction
         {
@@ -41,10 +46,11 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Pages
         public string SerializedResponse => JsonSerializer.Serialize(SalesforceActionTransaction.Response, _serializerOptions);
         public string SalesforceUrl { get; set; }
 
-        public DetailModel(IActionsRepository actionsRepository)
+        public DetailModel(IActionsRepository actionsRepository, ISalesforceClient salesforceClient)
         {
             _serializerOptions.Converters.Add(new JsonStringEnumConverter());
             _actionsRepository = actionsRepository;
+            _salesforceClient = salesforceClient;
         }
 
         public async Task OnGet(Guid id, string objectType)
@@ -64,6 +70,11 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Pages
 
             SalesforceActionObject = JsonSerializer.Deserialize<SalesforceActionObject>(SalesforceActionTransaction.SerializedObjectValues); // Parse out just the incoming payload generic fields
             SalesforceUrl = $"{SalesforceActionObject.EnterpriseOriginUri}/lightning/r/{SalesforceActionTransaction.Object}/{SalesforceActionTransaction.ObjectId}/view"; // Build the url
+
+            if (objectType == "Account")
+            {
+                SalesforceAccount = await _salesforceClient.GetAccountFromSalesforce(SalesforceActionObject?.ObjectId);
+            }
         }
     }
 }

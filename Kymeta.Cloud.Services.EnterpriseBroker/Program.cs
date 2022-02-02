@@ -1,6 +1,7 @@
 using Kymeta.Cloud.Commons.AspNet.ApiVersion;
 using Kymeta.Cloud.Commons.AspNet.DistributedConfig;
 using Kymeta.Cloud.Commons.AspNet.Health;
+using Kymeta.Cloud.Commons.Databases.Redis;
 using Kymeta.Cloud.Logging;
 using Kymeta.Cloud.Services.EnterpriseBroker;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -48,6 +49,11 @@ builder.Services.AddScoped<IAccountBrokerService, AccountBrokerService>();
 builder.Services.AddScoped<IAddressBrokerService, AddressBrokerService>();
 builder.Services.AddScoped<IContactBrokerService, ContactBrokerService>();
 builder.Services.AddScoped<IOracleService, OracleService>();
+builder.Services.AddRedisClient(new RedisClientOptions
+{
+    ConnectionString = builder.Configuration.GetConnectionString("RedisCache")
+});
+builder.Services.AddHttpClient<ISalesforceClient, SalesforceClient>();
 
 builder.Services.AddAuthorization();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
