@@ -699,13 +699,15 @@ public static class OracleSoapTemplates
                             $"<cus:RelationshipId>{contact.RelationshipId}</cus:RelationshipId>" +
                             "<cus:OrigSystem>SFDC</cus:OrigSystem>" +
                             $"<cus:OrigSystemReference>{contact.OrigSystemReference}</cus:OrigSystemReference>";
-
-                if (contact.ResponsibilityType != null)
+                if (contact.ResponsibilityTypes != null && contact.ResponsibilityTypes.Count > 0)
                 {
-                    customerAccountEnvelope +=
-                            "<cus:CustomerAccountContactRole>" +
-                                $"<cus:ResponsibilityType>{contact.ResponsibilityType}</cus:ResponsibilityType>" +
-                            "</cus:CustomerAccountContactRole>";
+                    foreach (var rType in contact.ResponsibilityTypes)
+                    {
+                        customerAccountEnvelope +=
+                                "<cus:CustomerAccountContactRole>" +
+                                    $"<cus:ResponsibilityType>{rType}</cus:ResponsibilityType>" +
+                                "</cus:CustomerAccountContactRole>";
+                    }
                 }
                 customerAccountEnvelope +=
                         "</cus:CustomerAccountContact>";
@@ -778,11 +780,18 @@ public static class OracleSoapTemplates
                                 $"<cus:OrigSystemReference>{person.OrigSystemReference}</cus:OrigSystemReference>" +
                                 $"<cus:PrimaryFlag>{person.IsPrimary}</cus:PrimaryFlag>" +
                                 "<cus:CreatedByModule>HZ_WS</cus:CreatedByModule>" +
-                                "<cus:RoleType>CONTACT</cus:RoleType>" +
+                                "<cus:RoleType>CONTACT</cus:RoleType>";
+                    if (person.ResponsibilityTypes != null && person.ResponsibilityTypes.Count > 0)
+                    {
+                        foreach (var rType in person.ResponsibilityTypes)
+                        {
+                            customerAccountEnvelope +=
                                 "<cus:CustomerAccountContactRole>" +
-                                    $"<cus:ResponsibilityType>{person.ResponsibilityType}</cus:ResponsibilityType>" +
-                                    $"<cus:PrimaryFlag>{person.IsPrimary ?? false}</cus:PrimaryFlag>" +
-                                "</cus:CustomerAccountContactRole>" +
+                                    $"<cus:ResponsibilityType>{rType}</cus:ResponsibilityType>" +
+                                "</cus:CustomerAccountContactRole>";
+                        }
+                    }
+                    customerAccountEnvelope +=
                             "</cus:CustomerAccountContact>";
                 }
             }
@@ -793,8 +802,6 @@ public static class OracleSoapTemplates
         {
             foreach (var site in accountSites)
             {
-                // TODO: invesitgate SetId and how it should flow to here... there are two options AFAIK (Kymeta, KGS)
-                // TODO: see how critical it is to differentiate
                 customerAccountEnvelope +=
                             $@"<cus:CustomerAccountSite>
 								<cus:PartySiteId>{site.PartySiteId}</cus:PartySiteId>
@@ -860,8 +867,9 @@ public static class OracleSoapTemplates
                 "<soapenv:Body>" +
                     "<typ:mergeCustomerAccount>" +
                         "<typ:customerAccount>" +
-                            $"<cus:CustomerAccountId>{account.CustomerAccountId}</cus:CustomerAccountId>" +
-                            $"<cus:PartyId>{account.PartyId}</cus:PartyId>";
+                            $"<cus:PartyId>{account.PartyId}</cus:PartyId>" +
+                            "<cus:CreatedByModule>HZ_WS</cus:CreatedByModule>" +
+                            $"<cus:OrigSystemReference>{account.OrigSystemReference}</cus:OrigSystemReference>";
 
         // update Customer Account Contacts
         if (accountContacts != null && accountContacts.Count > 0)
@@ -872,14 +880,22 @@ public static class OracleSoapTemplates
                 {
                     customerAccountEnvelope +=
                             "<cus:CustomerAccountContact>" +
-                                $"<cus:PrimaryFlag>{person.IsPrimary}</cus:PrimaryFlag>" +
                                 "<cus:CreatedByModule>HZ_WS</cus:CreatedByModule>" +
                                 $"<cus:RelationshipId>{person.RelationshipId}</cus:RelationshipId>" + // RelationshipId from the Person response
-                                "<cus:RoleType>CONTACT</cus:RoleType>" +
+                                $"<cus:OrigSystemReference>{person.OrigSystemReference}</cus:OrigSystemReference>" +
+                                "<cus:RoleType>CONTACT</cus:RoleType>";
+
+                    if (person.ResponsibilityTypes != null && person.ResponsibilityTypes.Count > 0)
+                    {
+                        foreach (var rType in person.ResponsibilityTypes)
+                        {
+                            customerAccountEnvelope +=
                                 "<cus:CustomerAccountContactRole>" +
-                                    $"<cus:ResponsibilityType>{person.ResponsibilityType}</cus:ResponsibilityType>" +
-                                    $"<cus:PrimaryFlag>{person.IsPrimary ?? false}</cus:PrimaryFlag>" +
-                                "</cus:CustomerAccountContactRole>" +
+                                    $"<cus:ResponsibilityType>{rType}</cus:ResponsibilityType>" +
+                                "</cus:CustomerAccountContactRole>";
+                        }
+                    }
+                    customerAccountEnvelope +=
                             "</cus:CustomerAccountContact>";
                 }
             }
@@ -1278,14 +1294,15 @@ public static class OracleSoapTemplates
     };
 
     // must create a full dictionary to match values from Salesforce
-    public static string GetResponsibilityType(string role)
+    public static List<string> GetResponsibilityType(string role)
     {
-        if (string.IsNullOrEmpty(role)) return null;
+        List<string> responsibilityTypes = new();
+        if (string.IsNullOrEmpty(role)) return responsibilityTypes;
         role = role.ToLower();
-        if (role.Contains("primary")) return "SFDCPRIMARY";
-        if (role.Contains("bill")) return "BILL_TO";
-        if (role.Contains("ship")) return "SHIP_TO";
-        return null;
+        if (role.Contains("primary")) responsibilityTypes.Add("SFDCPRIMARY");
+        if (role.Contains("bill")) responsibilityTypes.Add("BILL_TO");
+        if (role.Contains("ship")) responsibilityTypes.Add("SHIP_TO");
+        return responsibilityTypes;
     }
 
     public static string DecodeEncodedNonAsciiCharacters(string value)

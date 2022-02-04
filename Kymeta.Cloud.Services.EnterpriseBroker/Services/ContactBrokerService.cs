@@ -70,6 +70,14 @@ public class ContactBrokerService : IContactBrokerService
                 response.OracleErrorMessage = $"Error syncing Contact to Oracle: Contact with SF reference Id {model.ObjectId} does not have a Contact Role assigned.";
                 return response;
             }
+            var role = model.Role.ToLower();
+            if (!role.Contains("primary") && !role.Contains("bill") && !role.Contains("ship"))
+            {
+                // no Contact found that meets acceptable criteria
+                response.OracleStatus = StatusType.Error;
+                response.OracleErrorMessage = "Contact must be assigned at least one of the following roles: Primary, Bill To, or Ship To.";
+                return response;
+            }
             // Get Organization by Salesforce Account Id
             var organizationResult = await _oracleService.GetOrganizationBySalesforceAccountId(model.ParentAccountId, salesforceTransaction);
             if (!organizationResult.Item1 || organizationResult.Item2 == null)
@@ -102,7 +110,7 @@ public class ContactBrokerService : IContactBrokerService
                 return response;
             }
 
-            var responsibilityType = OracleSoapTemplates.GetResponsibilityType(model.Role);
+            var responsibilityTypes = OracleSoapTemplates.GetResponsibilityType(model.Role);
             if (personsResult.Item2 == null || personsResult.Item2?.Count() == 0)
             {
                 // Person does not exist, so create them
@@ -122,7 +130,7 @@ public class ContactBrokerService : IContactBrokerService
                 {
                     ContactPersonId = createdPerson.PartyId,
                     OrigSystemReference = createdPerson.OrigSystemReference,
-                    ResponsibilityType = responsibilityType,
+                    ResponsibilityTypes = responsibilityTypes,
                     RelationshipId = createdPerson.RelationshipId,
                     IsPrimary = createdPerson.IsPrimary ?? false
                 });
@@ -147,7 +155,7 @@ public class ContactBrokerService : IContactBrokerService
                 {
                     ContactPersonId = updatedPerson.PartyId,
                     OrigSystemReference = updatedPerson.OrigSystemReference,
-                    ResponsibilityType = responsibilityType,
+                    ResponsibilityTypes = responsibilityTypes,
                     RelationshipId = updatedPerson.RelationshipId,
                     IsPrimary = updatedPerson.IsPrimary ?? false
                 });

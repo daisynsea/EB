@@ -391,6 +391,20 @@ public class AccountBrokerService : IAccountBrokerService
                 // verify we have contacts
                 if (model.Contacts != null && model.Contacts.Count > 0)
                 {
+                    // verify we have at least one valid Contact record (Contact with a role set to: Primary, Bill To, or Ship To)
+                    var contactsWithProperRoles = model.Contacts.Where(c => {
+                        var role = c.Role?.ToLower();
+                        if (role == null) return false;
+                        return role.Contains("primary") || role.Contains("bill") || role.Contains("ship");
+                    });
+                    if (contactsWithProperRoles.Count() == 0)
+                    {
+                        // no Contacts found that meet acceptable criteria
+                        response.OracleStatus = StatusType.Error;
+                        response.OracleErrorMessage = "You must have at least one Contact with a role set to: Primary, Bill To, or Ship To.";
+                        return response;
+                    }
+
                     // find Persons by Enterprise Id
                     var contactIds = model.Contacts?.Select(a => a.ObjectId);
                     var personsResult = await _oracleService.GetPersonsBySalesforceContactId(contactIds.ToList(), salesforceTransaction);
@@ -405,7 +419,12 @@ public class AccountBrokerService : IAccountBrokerService
                     // create a Person for each contact
                     foreach (var contact in model.Contacts)
                     {
-                        var responsibilityType = OracleSoapTemplates.GetResponsibilityType(contact.Role);
+                        var responsibilityTypes = OracleSoapTemplates.GetResponsibilityType(contact.Role);
+                        if (responsibilityTypes == null || responsibilityTypes.Count == 0)
+                        {
+                            // if the Contact Role was not recognized, ignore the Contact
+                            continue;
+                        }
                         // check the found Persons with the contact to see if they have been created already
                         var existingContact = personsResult.Item2?.FirstOrDefault(l => l.OrigSystemReference == contact.ObjectId);
                         if (existingContact == null)
@@ -427,7 +446,7 @@ public class AccountBrokerService : IAccountBrokerService
                                     ContactPersonId = addedPersonResult.Item1.PartyId,
                                     OrigSystemReference = contact.ObjectId,
                                     RelationshipId = addedPersonResult.Item1.RelationshipId,
-                                    ResponsibilityType = responsibilityType,
+                                    ResponsibilityTypes = responsibilityTypes,
                                     IsPrimary = contact.IsPrimary
                                 });
 
@@ -448,7 +467,7 @@ public class AccountBrokerService : IAccountBrokerService
                                 ContactPersonId = existingContact.PartyId,
                                 OrigSystemReference = existingContact.OrigSystemReference,
                                 RelationshipId = existingContact.RelationshipId,
-                                ResponsibilityType = responsibilityType,
+                                ResponsibilityTypes = responsibilityTypes,
                                 IsPrimary = contact.IsPrimary
                             });
                         }

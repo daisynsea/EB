@@ -7,6 +7,7 @@ public class OracleCustomerAccountContact
     public string? OrigSystemReference { get; set; }
     public ulong? ContactPersonId { get; set; }
     public ulong? RelationshipId { get; set; }
-    public string? ResponsibilityType { get; set; }
+    public List<string>? ResponsibilityTypes { get; set; }
     public bool? IsPrimary { get; set; }
+    public ulong? CustomerAccountRoleId { get; set; }
 }
