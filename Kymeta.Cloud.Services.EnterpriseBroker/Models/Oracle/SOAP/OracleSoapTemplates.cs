@@ -410,6 +410,7 @@ public static class OracleSoapTemplates
                             <per:PersonProfile>
                                 <per:PersonFirstName>{person.FirstName}</per:PersonFirstName>
                                 <per:PersonLastName>{person.LastName}</per:PersonLastName>
+                                <per:PersonTitle>{person.Title}</per:PersonTitle>
                                 <per:CreatedByModule>HZ_WS</per:CreatedByModule>
                                 <per:OrigSystemReference>{person.OrigSystemReference}</per:OrigSystemReference>
                             </per:PersonProfile>
@@ -504,6 +505,7 @@ public static class OracleSoapTemplates
 				            <per:PersonProfile>
 					            <per:PersonFirstName>{person.FirstName}</per:PersonFirstName>
 					            <per:PersonLastName>{person.LastName}</per:PersonLastName>
+                                <per:PersonTitle>{person.Title}</per:PersonTitle>
 				            </per:PersonProfile>";
         // verify we have Phone metadata
         if (person.PhoneNumbers != null && person.PhoneNumbers.Count > 0)

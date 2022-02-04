@@ -9,6 +9,7 @@ public class OraclePersonObject
     public string LastName { get; set; }
     //public string PhoneNumber { get; set; }
     public bool? IsPrimary { get; set; }
+    public string? Title { get; set; }
     public List<OraclePersonEmailModel>? EmailAddresses{ get; set; }
     public List<OraclePersonPhoneModel>? PhoneNumbers{ get; set; }
 }

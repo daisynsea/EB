@@ -918,7 +918,8 @@ public class OracleService : IOracleService
         {
             OrigSystemReference = model.ObjectId,
             FirstName = model.FirstName,
-            LastName = model.LastName
+            LastName = model.LastName,
+            Title = model.Title
         };
 
         // map email address into simplified oracle model

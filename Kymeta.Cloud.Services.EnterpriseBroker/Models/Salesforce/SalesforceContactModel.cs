@@ -11,5 +11,6 @@
         public string? LastName => Name?.Split(' ')?.LastOrDefault();
         public bool? IsPrimary { get; set; }
         public string? Role { get; set; }
+        public string? Title { get; set; }
     }
 }
