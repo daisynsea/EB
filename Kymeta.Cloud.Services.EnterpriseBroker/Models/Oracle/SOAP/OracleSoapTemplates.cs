@@ -870,6 +870,7 @@ public static class OracleSoapTemplates
                     "<typ:mergeCustomerAccount>" +
                         "<typ:customerAccount>" +
                             $"<cus:PartyId>{account.PartyId}</cus:PartyId>" +
+                            $"<cus:CustomerAccountId>{account.CustomerAccountId}</cus:CustomerAccountId>" +
                             "<cus:CreatedByModule>HZ_WS</cus:CreatedByModule>" +
                             $"<cus:OrigSystemReference>{account.OrigSystemReference}</cus:OrigSystemReference>";
 
