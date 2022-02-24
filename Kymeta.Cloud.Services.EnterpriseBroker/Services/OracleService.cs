@@ -138,7 +138,7 @@ public class OracleService : IOracleService
             OrganizationName = oracleResult.PartyName,
             PartyId = oracleResult.PartyId,
             PartyNumber = Convert.ToUInt64(oracleResult.PartyNumber), // convert to ulong
-            //TaxpayerIdentificationNumber = oracleResult.tax,
+            TaxpayerIdentificationNumber = model.TaxId,
             OrigSystemReference = oracleResult.OrigSystemReference,
             Type = oracleResult.PartyType,
             PartySites = oracleResult.PartySite.Select(ps => new OraclePartySite

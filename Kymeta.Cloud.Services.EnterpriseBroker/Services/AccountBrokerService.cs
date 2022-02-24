@@ -312,6 +312,15 @@ public class AccountBrokerService : IAccountBrokerService
                     oracleOrganizationId = addedOrganization.Item1.PartyNumber.ToString();
                     response.OracleOrganizationId = oracleOrganizationId;
 
+                    // call to REST service to Update the Organization... so we can set the TaxIdentificationNumber... yes...it is very dumb but there is now known alternative.
+                    var updatedOrganization = await _oracleService.UpdateOrganization(organization, model, salesforceTransaction);
+                    if (updatedOrganization.Item1 == null)
+                    {
+                        // fatal error occurred
+                        response.OracleStatus = StatusType.Error;
+                        response.OracleErrorMessage = updatedOrganization.Item2;
+                        return response;
+                    }
 
                     // get response PartySites to append to accountSite list
                     if (organization.PartySites != null && organization.PartySites.Count > 0)
