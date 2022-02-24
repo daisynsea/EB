@@ -460,7 +460,7 @@ public class AccountBrokerService : IAccountBrokerService
                         }
                         else
                         {
-                            // TODO: update Person? do nothing? We may not need to do anything here because the edit Contact action in the ContactBroker will handle updating a Contact
+                            // we do not need to update the Contact here because the edit Contact action in the ContactBroker will handle updating a Contact
                             // add to `persons` list so we can check Customer Account to ensure the Customer Account Contact exists (or create it)
                             accountContacts.Add(new OracleCustomerAccountContact
                             {

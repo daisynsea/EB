@@ -78,6 +78,7 @@ public static class OracleSoapTemplates
                             <loc:Address1>{location.Address1}</loc:Address1>
                             <loc:Address2>{location.Address2}</loc:Address2>
                             <loc:City>{location.City}</loc:City>
+                            <loc:State>{location.State}</loc:State>
                             <loc:PostalCode>{location.PostalCode}</loc:PostalCode>
                             <loc:Country>{location.Country}</loc:Country>
                         </typ:location>
@@ -1288,6 +1289,7 @@ public static class OracleSoapTemplates
         { "Internal", "I" },
         { "Internal Dept", "INTERNALDEPT" },
         { "Partner", "PARTNER" },
+        { "Partner-Terminated", "PARTNERTERMED" },
         { "Partner Affiliate", "PARTNERAFFILIATE" },
         { "Prospect", "PROSPECT" },
         { "Regulatory Organization", "REGULATORY" },
