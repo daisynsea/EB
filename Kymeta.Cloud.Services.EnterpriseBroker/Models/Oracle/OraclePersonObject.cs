@@ -26,4 +26,5 @@ public class OraclePersonEmailModel : OracleContactPointModel
 public class OraclePersonPhoneModel : OracleContactPointModel
 {
     public string? PhoneNumber { get; set; }
+    public string? PhoneLineType { get; set; }
 }

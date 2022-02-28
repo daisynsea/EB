@@ -655,13 +655,19 @@ public class OracleService : IOracleService
             }
 
             // check to see if the Person has a Phone Number
-            if (person.Phone != null)
+            if (person.Phone != null && person.Phone.Count() > 0)
             {
-                // append the existing metadata to the person
-                oraclePerson.PhoneNumbers = new List<OraclePersonPhoneModel> { new OraclePersonPhoneModel {
-                    ContactPointId = person.Phone.ContactPointId,
-                    PhoneNumber = person.Phone.PhoneNumber
-                }};
+                // initialize list of Phone numbers
+                oraclePerson.PhoneNumbers = new List<OraclePersonPhoneModel>();
+                person.Phone.ToList().ForEach(p =>
+                {
+                    // append the phone number to the Person (existing metadata included)
+                    oraclePerson.PhoneNumbers.Add(new OraclePersonPhoneModel {
+                        ContactPointId = p.ContactPointId,
+                        PhoneNumber = p.PhoneNumber,
+                        PhoneLineType = p.PhoneLineType
+                    });
+                });
             }
             // add the person to the list
             oraclePersons.Add(oraclePerson);
@@ -924,8 +930,21 @@ public class OracleService : IOracleService
 
         // map email address into simplified oracle model
         if (model.Email != null) person.EmailAddresses = new List<OraclePersonEmailModel> { new OraclePersonEmailModel { EmailAddress = model.Email } };
-        // map email address into simplified oracle model
-        if (model.Phone != null) person.PhoneNumbers = new List<OraclePersonPhoneModel> { new OraclePersonPhoneModel { PhoneNumber = model.Phone } };// accept full # that has country code and area code together
+        // map phone numbers into simplified oracle model
+        if (model.Phone != null) person.PhoneNumbers = new List<OraclePersonPhoneModel> { new OraclePersonPhoneModel { PhoneNumber = model.Phone, PhoneLineType = "GEN" } };// accept full # that has country code and area code together
+        if (model.Mobile != null)
+        {
+            // check to see if Phone was already added
+            if (person.PhoneNumbers != null && person.PhoneNumbers.Count > 0)
+            {
+                // add to existing list of Phone Numbers
+                person.PhoneNumbers.Add(new OraclePersonPhoneModel { PhoneNumber = model.Mobile, PhoneLineType = "MOBILE" });
+            } else
+            {
+                // establish new List of Phone Numbers
+                person.PhoneNumbers = new List<OraclePersonPhoneModel> { new OraclePersonPhoneModel { PhoneNumber = model.Mobile, PhoneLineType = "MOBILE" } };
+            }
+        }
 
         if (existingPerson != null)
         {
@@ -938,11 +957,17 @@ public class OracleService : IOracleService
             // if an email address is present - provide the ContactPointId for it
             if (email != null) email.ContactPointId = existingEmail?.ContactPointId;
 
-            var existingPhone = existingPerson.PhoneNumbers?.FirstOrDefault();
-            var phone = person.PhoneNumbers?.FirstOrDefault();
-            // if a phone number is present - provide the ContactPointId for it
-            if (phone != null) phone.ContactPointId = existingPhone?.ContactPointId;
-
+            // do we have any phone numbers to consider?
+            if (person.PhoneNumbers != null && person.PhoneNumbers?.Count > 0)
+            {
+                // iterate the phone numbers present to check for existing matches
+                person.PhoneNumbers.ForEach(pn =>
+                {
+                    // if a phone number is present - provide the ContactPointId for it
+                    var existingPhoneMatch = existingPerson.PhoneNumbers?.FirstOrDefault(p => p.PhoneLineType == pn.PhoneLineType);
+                    pn.ContactPointId = existingPhoneMatch?.ContactPointId;
+                });
+            }
         }
 
         return person;

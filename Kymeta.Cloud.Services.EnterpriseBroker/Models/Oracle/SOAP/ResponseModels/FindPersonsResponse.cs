@@ -60,7 +60,9 @@ public partial class FindPersonsValue
 
     /// <remarks/>
     public FindPersonsEmailValue Email { get; set; }
-    public FindPersonsPhoneValue Phone { get; set; }
+    
+    [XmlElement("Phone")]
+    public FindPersonsPhoneValue[] Phone { get; set; }
 
     /// <remarks/>
     public FindPersonsValueRelationship Relationship { get; set; }
@@ -117,6 +119,10 @@ public partial class FindPersonsPhoneValue
     /// <remarks/>
     [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
     public string? PhoneNumber { get; set; }
+
+    /// <remarks/>
+    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/contactPointService/")]
+    public string? PhoneLineType { get; set; }
 }
 
 /// <remarks/>

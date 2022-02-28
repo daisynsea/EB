@@ -357,6 +357,7 @@ public static class OracleSoapTemplates
 					            <find:childAttrName>Phone</find:childAttrName>
 					            <find:findAttribute>ContactPointId</find:findAttribute>
 					            <find:findAttribute>PhoneNumber</find:findAttribute>
+                                <find:findAttribute>PhoneLineType</find:findAttribute>
 				            </find:childFindCriteria>				
  				            <find:findAttribute>Relationship</find:findAttribute>
 				            <find:childFindCriteria>
@@ -437,17 +438,16 @@ public static class OracleSoapTemplates
         // verify we have Phone metadata
         if (person.PhoneNumbers != null && person.PhoneNumbers.Count > 0)
         {
-            var phone = person.PhoneNumbers.FirstOrDefault();
-            if (phone != null)
+            person.PhoneNumbers.ForEach(phone =>
             {
                 personEnvelope +=
                                 $@"<rel:Phone>
                                     <con:OwnerTableName>HZ_PARTIES</con:OwnerTableName>
                                     <con:CreatedByModule>HZ_WS</con:CreatedByModule>
                                     <con:PhoneNumber>{phone.PhoneNumber}</con:PhoneNumber>
-                                    <con:PhoneLineType>MOBILE</con:PhoneLineType> 
+                                    <con:PhoneLineType>{phone.PhoneLineType}</con:PhoneLineType> 
                                 </rel:Phone>";
-            }
+            });
         }
 
         // verify we have Email metadata
@@ -650,7 +650,7 @@ public static class OracleSoapTemplates
                   "<typ:createCustomerAccount>" +
                      "<typ:customerAccount xmlns:cus=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/\">" +
                         $"<cus:PartyId>{organizationPartyId}</cus:PartyId>" + // acquired from the create Organization response (via REST)
-                        $"<cus:AccountName>{model.AccountName} Acc</cus:AccountName>" + // description for the Customer Account
+                        $"<cus:AccountName>{model.AccountName}</cus:AccountName>" + // description for the Customer Account
                         $"<cus:CustomerType>{model.AccountType}</cus:CustomerType>" +
                         $"<cus:CustomerClassCode>{model.AccountSubType}</cus:CustomerClassCode>" +
                         $"<cus:OrigSystemReference>{model.SalesforceId}</cus:OrigSystemReference>" +
@@ -762,7 +762,7 @@ public static class OracleSoapTemplates
                         "<typ:customerAccount>" +
                             $"<cus:CustomerAccountId>{account.CustomerAccountId}</cus:CustomerAccountId>" +
                             $"<cus:PartyId>{account.PartyId}</cus:PartyId>" +
-                            $"<cus:AccountName>{account.AccountName} Acc</cus:AccountName>" +
+                            $"<cus:AccountName>{account.AccountName}</cus:AccountName>" +
                             $"<cus:CustomerType>{account.AccountType}</cus:CustomerType>" +
                             "<cus:CustAcctInformation>" +
                                 $"<cus6:salesforceId>{account.SalesforceId}</cus6:salesforceId>" +
