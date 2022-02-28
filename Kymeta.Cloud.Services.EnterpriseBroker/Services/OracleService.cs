@@ -10,6 +10,7 @@ public interface IOracleService
     Task<Tuple<OracleOrganization, string>> CreateOrganization(SalesforceAccountModel model, List<OraclePartySite>? partySitesToCreate, SalesforceActionTransaction transaction);
     Task<Tuple<OracleOrganization, string>> UpdateOrganization(OracleOrganization existingOracleOrganization, SalesforceAccountModel model, SalesforceActionTransaction transaction);
     Task<Tuple<List<OraclePartySite>, string>> CreateOrganizationPartySites(ulong organizationPartyId, List<OraclePartySite> partySites, SalesforceActionTransaction transaction);
+    Task<Tuple<List<OraclePartySite>, string>> UpdateOrganizationPartySites(ulong organizationPartyId, List<OraclePartySite> partySites, SalesforceActionTransaction transaction);
     Task<Tuple<OracleCustomerAccount, string>> CreateCustomerAccount(ulong organizationPartyId, SalesforceAccountModel model, List<OracleCustomerAccountSite> accountSites, List<OracleCustomerAccountContact> accountContacts, SalesforceActionTransaction transaction);
     Task<Tuple<OracleCustomerAccountProfile, string>> CreateCustomerAccountProfile(ulong? customerAccountId, uint customerAccountNumber, SalesforceActionTransaction transaction);
     Task<Tuple<OracleCustomerAccount, string>> UpdateCustomerAccount(OracleCustomerAccount existingCustomerAccount, SalesforceAccountModel model, List<OracleCustomerAccountSite> accountSites, List<OracleCustomerAccountContact> accountContacts, SalesforceActionTransaction transaction);
@@ -79,10 +80,12 @@ public class OracleService : IOracleService
             PartySites = oracleResult.PartySite?
                 .Select(ps => new OraclePartySite
                 {
-                    OrigSystemReference = ps.OrigSystemReference,
+                    PartyId = ps.PartyId,
                     PartySiteId = ps.PartySiteId,
                     PartySiteNumber = ps.PartySiteNumber,
-                    LocationId = ps.LocationId
+                    PartySiteName = ps.PartySiteName,
+                    LocationId = ps.LocationId,
+                    OrigSystemReference = ps.OrigSystemReference
                 }).ToList(),
             Contacts = oracleResult.Relationship?
                 .Select(r => new OracleOrganizationContact
@@ -582,8 +585,10 @@ public class OracleService : IOracleService
         var partySitesResults = oraclePartySites?.Body?.mergeOrganizationResponse?.result?.Value?.PartySite
             .Select(ps => new OraclePartySite
             {
+                PartyId = ps.PartyId,
                 PartySiteId = ps.PartySiteId,
                 PartySiteNumber = ps.PartySiteNumber,
+                PartySiteName = ps.PartySiteName,
                 LocationId = ps.LocationId,
                 OrigSystemReference = ps.OrigSystemReference,
                 SiteUses = ps.PartySiteUse?.Select(psu => new OraclePartySiteUse
@@ -594,6 +599,48 @@ public class OracleService : IOracleService
             }).ToList();
 
         await LogAction(transaction, SalesforceTransactionAction.CreatePartySiteInOracle, ActionObjectType.Account, StatusType.Successful, organizationPartyId.ToString());
+
+        // return the Oracle PartySites
+        return new Tuple<List<OraclePartySite>, string>(partySitesResults, string.Empty);
+    }
+
+    public async Task<Tuple<List<OraclePartySite>, string>> UpdateOrganizationPartySites(ulong organizationPartyId, List<OraclePartySite> partySites, SalesforceActionTransaction transaction)
+    {
+        await LogAction(transaction, SalesforceTransactionAction.UpdatePartySiteInOracle, ActionObjectType.Account, StatusType.Started);
+
+        // populate the template
+        var orgPartySiteEnvelope = OracleSoapTemplates.UpdateOrganizationPartySites(organizationPartyId, partySites);
+
+        // update the Party Sites via SOAP service
+        var partySiteResponse = await _oracleClient.SendSoapRequest(orgPartySiteEnvelope, $"{_config["Oracle:Endpoint"]}/{_config["Oracle:Services:Organization"]}");
+        if (!string.IsNullOrEmpty(partySiteResponse.Item2))
+        {
+            await LogAction(transaction, SalesforceTransactionAction.UpdatePartySiteInOracle, ActionObjectType.Account, StatusType.Error, organizationPartyId.ToString(), partySiteResponse.Item2);
+            return new Tuple<List<OraclePartySite>, string>(null, $"There was an error Updating the Party Site for Organization '{organizationPartyId}' in Oracle: {partySiteResponse.Item2}.");
+        }
+
+        // deserialize the xml response envelope
+        XmlSerializer serializer = new(typeof(PartySiteEnvelope));
+        var oraclePartySites = (PartySiteEnvelope)serializer.Deserialize(partySiteResponse.Item1.CreateReader());
+
+        // map to a list of our simplified OraclePartySite model
+        var partySitesResults = oraclePartySites?.Body?.mergeOrganizationResponse?.result?.Value?.PartySite
+            .Select(ps => new OraclePartySite
+            {
+                PartyId = ps.PartyId,
+                PartySiteId = ps.PartySiteId,
+                PartySiteNumber = ps.PartySiteNumber,
+                PartySiteName = ps.PartySiteName,
+                LocationId = ps.LocationId,
+                OrigSystemReference = ps.OrigSystemReference,
+                SiteUses = ps.PartySiteUse?.Select(psu => new OraclePartySiteUse
+                {
+                    PartySiteUseId = psu.PartySiteUseId,
+                    SiteUseType = psu.SiteUseType
+                }).ToList()
+            }).ToList();
+
+        await LogAction(transaction, SalesforceTransactionAction.UpdatePartySiteInOracle, ActionObjectType.Account, StatusType.Successful, organizationPartyId.ToString());
 
         // return the Oracle PartySites
         return new Tuple<List<OraclePartySite>, string>(partySitesResults, string.Empty);

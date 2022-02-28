@@ -89,6 +89,7 @@ public class AddressBrokerService : IAddressBrokerService
             var siteUseTypes = Helpers.RemapAddressTypeToOracleSiteUse(model);
             // for the Organization
             var partySitesToCreate = new List<OraclePartySite>();
+            var partySitesToUpdate = new List<OraclePartySite>();
             // for the Customer Account
             var accountSites = new List<OracleCustomerAccountSite>();
 
@@ -136,7 +137,7 @@ public class AddressBrokerService : IAddressBrokerService
                 var updatedLocation = updateLocationResult.Item1;
 
                 // validate the that PartySite exists for the Organization (if not, create)
-                var orgPartySite = organization.PartySites.FirstOrDefault(ps => ps.OrigSystemReference == model.ObjectId);
+                var orgPartySite = organization.PartySites?.FirstOrDefault(ps => ps.OrigSystemReference == model.ObjectId);
                 if (orgPartySite == null)
                 {
                     partySitesToCreate.Add(new OraclePartySite
@@ -149,6 +150,10 @@ public class AddressBrokerService : IAddressBrokerService
                 } 
                 else
                 {
+                    // update PartySite
+                    orgPartySite.PartySiteName = model.SiteName;
+                    partySitesToUpdate.Add(orgPartySite);
+
                     // set the response Id
                     response.OracleAddressId = orgPartySite.PartySiteNumber?.ToString();
 
@@ -193,6 +198,20 @@ public class AddressBrokerService : IAddressBrokerService
                         }).ToList()
                     });
                     accountSites.AddRange(sites);
+                }
+            }
+
+            // check to see if we need to update any PartySite records for the Organization & Locations
+            if (partySitesToUpdate.Count > 0)
+            {
+                // update Organization PartySite (batched into a single request for all Locations)
+                var updatePartySitesResult = await _oracleService.UpdateOrganizationPartySites(organization.PartyId, partySitesToUpdate, salesforceTransaction);
+                if (updatePartySitesResult.Item1 == null)
+                {
+                    // create PartySites failed for some reason
+                    response.OracleStatus = StatusType.Error;
+                    response.OracleErrorMessage = $"Error syncing Address to Oracle: Failed to update Organization Party Sites: {updatePartySitesResult.Item2}.";
+                    return response;
                 }
             }
 

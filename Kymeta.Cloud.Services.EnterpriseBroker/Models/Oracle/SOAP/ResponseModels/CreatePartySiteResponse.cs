@@ -116,6 +116,10 @@ public class PartySiteValuePartySite
 
     /// <remarks/>
     [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/")]
+    public string? PartySiteName { get; set; }
+
+    /// <remarks/>
+    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/")]
     public string OrigSystemReference { get; set; }
 
     /// <remarks/>

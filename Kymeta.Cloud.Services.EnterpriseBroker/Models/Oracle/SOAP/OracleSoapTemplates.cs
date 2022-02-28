@@ -152,8 +152,10 @@ public static class OracleSoapTemplates
                         <find:fetchStart>0</find:fetchStart>
                         <find:fetchSize>-1</find:fetchSize>
                         <find:childAttrName>PartySite</find:childAttrName>
+                        <find:findAttribute>PartyId</find:findAttribute>
 					    <find:findAttribute>PartySiteId</find:findAttribute>
                         <find:findAttribute>PartySiteNumber</find:findAttribute>
+                        <find:findAttribute>PartySiteName</find:findAttribute>
 					    <find:findAttribute>OrigSystemReference</find:findAttribute>
 					    <find:findAttribute>LocationId</find:findAttribute>
                     </find:childFindCriteria>				
@@ -292,6 +294,53 @@ public static class OracleSoapTemplates
         locationEnvelope +=
                         "</ns1:organizationParty>" +
 	                "</ns1:mergeOrganization>" +
+                "</soap:Body>" +
+                "</soap:Envelope>";
+        return locationEnvelope;
+    }
+
+    /// <summary>
+    ///  A template for creating an Organization Party Site object in Oracle.
+    /// </summary>
+    /// <returns>TBD</returns>
+    public static string UpdateOrganizationPartySites(ulong organizationPartyId, List<OraclePartySite> partySites)
+    {
+        var locationEnvelope =
+            $"<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">" +
+                "<soap:Body>" +
+                    "<ns1:mergeOrganization xmlns:ns1=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/organizationService/applicationModule/types/\">" +
+                        "<ns1:organizationParty xmlns:ns2=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/organizationService/\">" +
+                            $"<ns2:PartyId>{organizationPartyId}</ns2:PartyId>";
+        // include all the PartySite additions
+        foreach (var ps in partySites)
+        {
+            locationEnvelope +=
+                            "<ns2:PartySite xmlns:ns3=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/\">" +
+                                $"<ns3:PartyId>{ps.PartyId}</ns3:PartyId>" +
+                                $"<ns3:PartySiteId>{ps.PartySiteId}</ns3:PartySiteId>" +
+                                $"<ns3:LocationId>{ps.LocationId}</ns3:LocationId>" +
+                                $"<ns3:OrigSystemReference>{ps.OrigSystemReference}</ns3:OrigSystemReference>" +
+                                $"<ns3:PartySiteName>{ps.PartySiteName}</ns3:PartySiteName>" +
+                                "<ns3:CreatedByModule>HZ_WS</ns3:CreatedByModule>";
+            // TODO: figure out why Oracle prevents us from updating these PartySiteUse objects... current errors on conflicting Site Use values instead of accepting what is provided
+            //if (ps.SiteUses != null)
+            //{
+            //    foreach (var siteUse in ps.SiteUses)
+            //    {
+            //        locationEnvelope +=
+            //                        "<ns3:PartySiteUse>" +
+            //                            $"<ns3:SiteUseType>{siteUse.SiteUseType}</ns3:SiteUseType>" +
+            //                            "<ns3:CreatedByModule>HZ_WS</ns3:CreatedByModule>" +
+            //                        "</ns3:PartySiteUse>";
+            //    }
+            //}
+            locationEnvelope +=
+                            "</ns2:PartySite>";
+        }
+
+        locationEnvelope +=
+                        "</ns1:organizationParty>" +
+                    "</ns1:mergeOrganization>" +
                 "</soap:Body>" +
                 "</soap:Envelope>";
         return locationEnvelope;

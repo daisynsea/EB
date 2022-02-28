@@ -14,11 +14,13 @@ public class OracleOrganization
 
 public class OraclePartySite
 {
+    public ulong? PartyId { get; set; }
     public ulong? LocationId { get; set; }
     public ulong? PartySiteId { get; set; }
     public ulong? PartySiteNumber { get; set; }
     public string? PartySiteName { get; set; }
     public string OrigSystemReference { get; set; }
+    public string? Comments { get; set; }
     public List<OraclePartySiteUse>? SiteUses { get; set; }
 }
 

@@ -103,11 +103,19 @@ public class FindOrganizationValuePartySite
 {
     /// <remarks/>
     [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/")]
+    public ulong PartyId { get; set; }
+
+    /// <remarks/>
+    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/")]
     public ulong PartySiteId { get; set; }
 
     /// <remarks/>
     [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/")]
     public ulong PartySiteNumber { get; set; }
+
+    /// <remarks/>
+    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/", IsNullable = false)]
+    public string? PartySiteName { get; set; }
 
     /// <remarks/>
     [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/")]
@@ -116,6 +124,10 @@ public class FindOrganizationValuePartySite
     /// <remarks/>
     [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/")]
     public string OrigSystemReference { get; set; }
+
+    /// <remarks/>
+    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/", IsNullable = false)]
+    public string? Comments { get; set; }
 }
 
 /// <remarks/>

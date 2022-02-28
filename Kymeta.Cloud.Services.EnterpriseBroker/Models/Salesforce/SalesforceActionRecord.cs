@@ -105,6 +105,7 @@ public enum SalesforceTransactionAction
     // Create Address
     CreateLocationInOracle,
     CreatePartySiteInOracle,
+    UpdatePartySiteInOracle,
     CreateCustomerAccountSiteInOracle,
     // Update Account
     UpdateAccountInOss,
