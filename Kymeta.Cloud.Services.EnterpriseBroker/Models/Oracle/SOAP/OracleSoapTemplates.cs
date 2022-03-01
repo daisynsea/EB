@@ -719,7 +719,7 @@ public static class OracleSoapTemplates
                         "<cus:CustomerAccountSite>" +
                             $"<cus:PartySiteId>{site.PartySiteId}</cus:PartySiteId>" +
                             "<cus:CreatedByModule>HZ_WS</cus:CreatedByModule>" +
-                            "<cus:SetId>300000001127004</cus:SetId>" +
+                            $"<cus:SetId>{site.SetId}</cus:SetId>" +
                             "<cus:OrigSystem>SFDC</cus:OrigSystem>" +
                             $"<cus:OrigSystemReference>{site.OrigSystemReference}</cus:OrigSystemReference>";
                 if (site.SiteUses != null)
@@ -1055,17 +1055,19 @@ public static class OracleSoapTemplates
         SHIP_TO
     }
 
-    public static readonly Dictionary<string, string> SiteUseTypes = new()
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum BusinessUnit
     {
-        { "Billing & Shipping", "300000001127004" },
-        { "Billing", "300000001127004" },
-        { "Shipping", "300000001127004" }
-    };
+        KYMETA,
+        KGS,
+        KYMETAKGS
+    }
 
     public static readonly Dictionary<string, string> AddressSetIds = new()
     {
         { "kymeta", "300000001127004" },
-        { "kgs", "300000001127004" }
+        { "kgs", "300000001127005" },
+        { "kymetakgs", "300000099575380" }
     };
 
     public static readonly Dictionary<string, string> CountryShortcodes = new()

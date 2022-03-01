@@ -887,38 +887,6 @@ public class OracleService : IOracleService
 
         return organization;
     }
-    private OracleOrganization RemapSalesforceAccountToOracleOrganization(SalesforceAccountModel model, OracleOrganization? existingOrganization = null)
-    {
-        var organization = new OracleOrganization
-        {
-            OrganizationName = model.Name,
-            OrigSystemReference = model.ObjectId,
-            TaxpayerIdentificationNumber = model.TaxId
-        };
-
-        // populate the 
-        if (existingOrganization != null)
-        {
-            organization.PartyId = existingOrganization.PartyId;
-            organization.PartyNumber = existingOrganization.PartyNumber;
-        }
-
-        return organization;
-    }
-
-    private OracleCustomerAccount RemapOrganizationToCustomerAccount(SalesforceAccountModel model)
-    {
-        var account = new OracleCustomerAccount
-        {
-            SalesforceId = model.ObjectId,
-            AccountName = model.Name,
-        };
-        // check for accountType
-        var accountType = model.AccountType;
-        if (!string.IsNullOrEmpty(accountType)) account.AccountType = OracleSoapTemplates.CustomerTypeMap.GetValue(accountType);
-        
-        return account;
-    }
 
     private OracleCustomerAccount RemapSalesforceAccountToOracleCustomerAccount(SalesforceAccountModel model, OracleCustomerAccount? existingCustomerAccount = null)
     {

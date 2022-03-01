@@ -7,6 +7,7 @@
         public string? SubType { get; set; } // Used in SOAP request
         public string? TaxId { get; set; } // Used in SOAP request
         public string? AccountType { get; set; } // Used in SOAP request
+        public string? BusinessUnit { get; set; } // Used in SOAP request
         public string? OssId { get; set; }
         public List<SalesforceAddressModel>? Addresses { get; set; }
         public List<SalesforceContactModel>? Contacts { get; set; }

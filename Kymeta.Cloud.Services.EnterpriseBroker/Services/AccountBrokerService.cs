@@ -187,6 +187,15 @@ public class AccountBrokerService : IAccountBrokerService
                     response.OracleErrorMessage = organizationResult.Item3;
                     return response;
                 }
+                // remap Salesforce Business Unit value to Oracle Address Set
+                var addressSetId = Helpers.RemapBusinessUnitToOracleSiteAddressSet(model.BusinessUnit);
+                if (addressSetId == null)
+                {
+                    // fatal error occurred when sending request to oracle... return badRequest here?
+                    response.OracleStatus = StatusType.Error;
+                    response.OracleErrorMessage = $"Business Unit not recognized.";
+                    return response;
+                }
 
                 OracleOrganization? organization = null;
                 var partySitesToCreate = new List<OraclePartySite>();
@@ -247,6 +256,7 @@ public class AccountBrokerService : IAccountBrokerService
                                 {
                                     OrigSystemReference = orgPartySite.OrigSystemReference,
                                     PartySiteId = orgPartySite.PartySiteId,
+                                    SetId = addressSetId,
                                     SiteUses = orgPartySite.SiteUses?.Select(su => new OracleCustomerAccountSiteUse
                                     {
                                         SiteUseCode = su.SiteUseType
@@ -330,6 +340,7 @@ public class AccountBrokerService : IAccountBrokerService
                         {
                             OrigSystemReference = ps.OrigSystemReference,
                             PartySiteId = ps.PartySiteId,
+                            SetId = addressSetId,
                             SiteUses = ps.SiteUses?.Select(su => new OracleCustomerAccountSiteUse
                             {
                                 SiteUseCode = su.SiteUseType
@@ -377,6 +388,7 @@ public class AccountBrokerService : IAccountBrokerService
                             {
                                 PartySiteId = cpr.PartySiteId,
                                 OrigSystemReference = cpr.OrigSystemReference,
+                                SetId = addressSetId,
                                 SiteUses = cpr.SiteUses?.Select(su => new OracleCustomerAccountSiteUse
                                 {
                                     SiteUseCode = su.SiteUseType
