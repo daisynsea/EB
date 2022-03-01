@@ -824,6 +824,7 @@ public class OracleService : IOracleService
         {
             ContactNumber = person.ContactNumber,
             PartyId = oracleResult?.PartyId,
+            PartyNumber = oracleResult?.PartyNumber,
             OrigSystemReference = oracleResult?.OrigSystemReference,
             RelationshipId = existingPerson?.RelationshipId,
             FirstName = oracleResult?.PersonFirstName,
