@@ -473,7 +473,7 @@ public class AccountBrokerService : IAccountBrokerService
 
                                 contactsForSalesforce.Add(new AccountChildResponse
                                 {
-                                    OracleId = addedPersonResult.Item1.ContactNumber?.ToString(),
+                                    OracleId = addedPersonResult.Item1.PartyNumber?.ToString(),
                                     SalesforceId = addedPersonResult.Item1.OrigSystemReference,
                                     OracleEntityType = "Person"
                                 });

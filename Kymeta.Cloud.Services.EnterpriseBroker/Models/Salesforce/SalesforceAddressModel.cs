@@ -7,9 +7,9 @@ public class SalesforceAddressModel : SalesforceActionObject
     /// </summary>
     public string? ParentAccountId { get; set; }
     /// <summary>
-    /// Parent Account Name
+    /// Parent Account Business Unit
     /// </summary>
-    public string? ParentAccountName { get; set; }
+    public string? ParentAccountBusinessUnit { get; set; }
     /// <summary>
     /// This is required to link the site to the customer account?
     /// </summary>

@@ -123,7 +123,7 @@ public class ContactBrokerService : IContactBrokerService
                     return response;
                 }
                 var createdPerson = createPersonResult.Item1;
-                response.OraclePersonId = createdPerson.ContactNumber.ToString();
+                response.OraclePersonId = createdPerson.PartyNumber.ToString();
 
                 // append to list for Account Contacts
                 accountContacts.Add(new OracleCustomerAccountContact
@@ -148,7 +148,7 @@ public class ContactBrokerService : IContactBrokerService
                     return response;
                 }
                 var updatedPerson = updatePersonResult.Item1;
-                response.OraclePersonId = updatedPerson.ContactNumber.ToString();
+                response.OraclePersonId = updatedPerson.PartyNumber.ToString();
 
                 // append to list for Account Contacts
                 accountContacts.Add(new OracleCustomerAccountContact

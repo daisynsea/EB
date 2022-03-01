@@ -165,7 +165,7 @@ public partial class CreatePersonValue
 
     private ulong partyIdField;
 
-    private ulong partyNumberField;
+    private uint partyNumberField;
 
     private string partyNameField;
 
@@ -323,6 +323,19 @@ public partial class CreatePersonValue
         set
         {
             this.partyIdField = value;
+        }
+    }
+
+    /// <remarks/>
+    public uint PartyNumber
+    {
+        get
+        {
+            return this.partyNumberField;
+        }
+        set
+        {
+            this.partyNumberField = value;
         }
     }
 

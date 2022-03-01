@@ -84,6 +84,16 @@ public class AddressBrokerService : IAddressBrokerService
             }
             var customerAccount = customerAccountResult.Item2;
 
+            // remap Salesforce Business Unit value to Oracle Address Set
+            var addressSetId = Helpers.RemapBusinessUnitToOracleSiteAddressSet(model.ParentAccountBusinessUnit);
+            if (addressSetId == null)
+            {
+                // fatal error occurred when sending request to oracle... return badRequest here?
+                response.OracleStatus = StatusType.Error;
+                response.OracleErrorMessage = $"Business Unit not recognized.";
+                return response;
+            }
+
 
             // re-map Salesforce values to Oracle models
             var siteUseTypes = Helpers.RemapAddressTypeToOracleSiteUse(model);
@@ -147,7 +157,7 @@ public class AddressBrokerService : IAddressBrokerService
                         OrigSystemReference = updatedLocation.OrigSystemReference,
                         SiteUses = siteUseTypes
                     });
-                } 
+                }
                 else
                 {
                     // update PartySite
@@ -162,6 +172,7 @@ public class AddressBrokerService : IAddressBrokerService
                     {
                         OrigSystemReference = orgPartySite.OrigSystemReference,
                         PartySiteId = orgPartySite.PartySiteId,
+                        SetId = addressSetId,
                         SiteUses = orgPartySite.SiteUses?.Select(su => new OracleCustomerAccountSiteUse
                         {
                             SiteUseCode = su.SiteUseType
@@ -192,6 +203,7 @@ public class AddressBrokerService : IAddressBrokerService
                     {
                         PartySiteId = cpr.PartySiteId,
                         OrigSystemReference = cpr.OrigSystemReference,
+                        SetId = addressSetId,
                         SiteUses = cpr.SiteUses?.Select(su => new OracleCustomerAccountSiteUse
                         {
                             SiteUseCode = su.SiteUseType

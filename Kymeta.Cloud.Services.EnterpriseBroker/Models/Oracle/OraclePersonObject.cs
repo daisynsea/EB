@@ -4,6 +4,7 @@ public class OraclePersonObject
     public ulong? PartyId { get; set; }
     public ulong? RelationshipId { get; set; }
     public ulong? ContactNumber { get; set; }
+    public ulong? PartyNumber { get; set; }
     public string OrigSystemReference { get; set; }
     public string FirstName { get; set; }
     public string LastName { get; set; }

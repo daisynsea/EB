@@ -754,6 +754,7 @@ public class OracleService : IOracleService
         var oraclePerson = new OraclePersonObject
         {
             PartyId = oracleResult?.PartyId,
+            PartyNumber = oracleResult?.PartyNumber,
             OrigSystemReference = oracleResult?.OrigSystemReference,
             RelationshipId = oracleResult?.Relationship.RelationshipId,
             FirstName = oracleResult?.PersonFirstName,

@@ -78,7 +78,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                 UserName = "Unit McTester",
                 ObjectId = "add30001",
                 ParentAccountId = "acc30001",
-                ParentAccountName = "Trident Ltd",
+                ParentAccountBusinessUnit = "Commercial",
                 City = "Redmond",
                 Country = "US",
                 PostalCode = "98052",
