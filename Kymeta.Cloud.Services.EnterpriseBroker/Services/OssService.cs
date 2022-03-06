@@ -74,7 +74,7 @@ public class OssService : IOssService
         if (existingUser == null) existingUser = _systemUser;
 
         var billingAddress = model.Addresses?.FirstOrDefault(a => a.Type == "Billing & Shipping"); // This string is a picklist value in SF
-        var account = await RemapSalesforceAccountToOssAccount(model.Name, model.ObjectId, existingUser.Id, null, model.ParentId, billingAddress);
+        var account = await RemapSalesforceAccountToOssAccount(model.Name, model.ObjectId, existingUser.Id, null, model.ParentId, model.Pricebook, model.VolumeTier);
         try
         {
             var added = await _accountsClient.AddAccount(account);
@@ -194,7 +194,9 @@ public class OssService : IOssService
         Guid userId,
         string? oracleAccountId = null,
         string? salesforceParentId = null,
-        SalesforceAddressModel? billingAddress = null)
+        string? priceBook = null,
+        string? volumeTier = null
+        )
     {
         var account = new Account
         {
@@ -206,12 +208,9 @@ public class OssService : IOssService
             ModifiedById = userId,
             OracleAccountId = oracleAccountId,
             ParentId = _config.GetValue<Guid>("KymetaAccountId"),
-            BillingAddressLine1 = billingAddress?.Address1,
-            BillingAddressLine2 = billingAddress?.Address2,
-            BillingCity = billingAddress?.City,
-            BillingPostalCode = billingAddress?.PostalCode,
-            BillingState = billingAddress?.StateProvince,
-            BillingCountryCode = billingAddress?.Country,
+            CommercialPriceBook = priceBook?.Contains("CPB"),
+            MilitaryPriceBook = priceBook?.Contains("MPB"),
+            DiscountTier = GetDiscountTierFromSalesforceAPIValue(volumeTier)
         };
         // Overwrite the default Kymeta ID if the parent Id is present
         if (!string.IsNullOrEmpty(salesforceParentId))
@@ -223,22 +222,15 @@ public class OssService : IOssService
         return account;
     }
 
-    private Account RemapSalesforceAddressToOssAccount(
-        string address1,
-        string address2,
-        string country,
-        Guid userId
-        )
+    public int? GetDiscountTierFromSalesforceAPIValue(string? salesforceApiValue)
     {
-        var account = new Account
-        {
-            ModifiedById = userId,
-            BillingAddressLine1 = address1,
-            BillingAddressLine2 = address2,
-            BillingCountryCode = country
-        };
-
-        return account;
+        if (string.IsNullOrEmpty(salesforceApiValue)) return 1;
+        if (!salesforceApiValue.Contains("(")) return 1;
+        string firstPartOfValue = salesforceApiValue.Split('(')[0];
+        if (firstPartOfValue == null) return 1;
+        var justTheDigit = new string(firstPartOfValue.Where(char.IsDigit).ToArray());
+        if (justTheDigit.Length == 0) return 1;
+        return Convert.ToInt32(justTheDigit);
     }
 
     public async virtual Task LogAction(SalesforceActionTransaction transaction, SalesforceTransactionAction action, ActionObjectType objectType, StatusType status, string? entityId = null, string? errorMessage = null)

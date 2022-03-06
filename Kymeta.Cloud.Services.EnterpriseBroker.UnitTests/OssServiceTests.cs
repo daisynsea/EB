@@ -106,4 +106,44 @@ public class OssServiceTests : IClassFixture<TestFixture>
         Assert.NotNull(result.Item1);
         Assert.Equal(result.Item2, string.Empty);
     }
+
+
+    [Fact]
+    [Trait("Category", "OssTests")]
+    [Trait("Category", "OssServiceTests")]
+    public void GetDiscountTierFromSalesforceAPIValue_ReturnsCorrectValue_WithCorrectInput()
+    {
+        // Arrange
+        string validInput = "Tier 3(101-250)";
+        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object);
+
+        // Act
+        var result = ossService.Object.GetDiscountTierFromSalesforceAPIValue(validInput);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(3, result);
+    }
+
+    [Fact]
+    [Trait("Category", "OssTests")]
+    [Trait("Category", "OssServiceTests")]
+    public void GetDiscountTierFromSalesforceAPIValue_Returns1_WithInvalidInput()
+    {
+        // Arrange
+        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object);
+
+        // Act
+        var result1 = ossService.Object.GetDiscountTierFromSalesforceAPIValue("Tier 3)101-250)");
+        var result2 = ossService.Object.GetDiscountTierFromSalesforceAPIValue(null);
+        var result3 = ossService.Object.GetDiscountTierFromSalesforceAPIValue("abcdefg");
+        // Assert
+        Assert.NotNull(result1);
+        Assert.NotNull(result2);
+        Assert.NotNull(result3);
+
+        Assert.Equal(1, result1);
+        Assert.Equal(1, result2);
+        Assert.Equal(1, result3);
+    }
 }
