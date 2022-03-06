@@ -5,9 +5,9 @@ public class OraclePersonObject
     public ulong? RelationshipId { get; set; }
     public ulong? ContactNumber { get; set; }
     public ulong? PartyNumber { get; set; }
-    public string OrigSystemReference { get; set; }
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
+    public string? OrigSystemReference { get; set; }
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
     //public string PhoneNumber { get; set; }
     public bool? IsPrimary { get; set; }
     public string? Title { get; set; }
