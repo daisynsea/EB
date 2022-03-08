@@ -34,6 +34,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                 SyncToOss = syncOss,
                 UserName = "Unit McTester",
                 ObjectId = "acc30001",
+                BusinessUnit = "Commercial",
                 AccountType = "Marine",
                 Name = name,
                 SubType = "Coast Goard",

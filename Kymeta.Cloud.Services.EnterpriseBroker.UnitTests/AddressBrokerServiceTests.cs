@@ -135,6 +135,9 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             _fixture.OracleService
                 .Setup(ors => ors.UpdateCustomerAccountChildren(It.IsAny<OracleCustomerAccount>(), transaction, It.IsAny<List<OracleCustomerAccountSite>>(), It.IsAny<List<OracleCustomerAccountContact>>()))
                 .ReturnsAsync(new Tuple<OracleCustomerAccount, string>(new OracleCustomerAccount(), string.Empty));
+            _fixture.OracleService
+                .Setup(ors => ors.UpdateOrganizationPartySites(It.IsAny<ulong>(), It.IsAny<List<OraclePartySite>>(), transaction))
+                .ReturnsAsync(new Tuple<List<OraclePartySite>, string>(partySites, string.Empty));
 
             // Act
             var svc = new AddressBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object);
