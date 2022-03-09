@@ -231,6 +231,10 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
         _fixture.OracleService
             .Setup(ors => ors.CreateOrganization(It.IsAny<SalesforceAccountModel>(), It.IsAny<List<OraclePartySite>>(), transaction))
             .ReturnsAsync(new Tuple<OracleOrganization, string>(oracleOrg, string.Empty));
+        // we have to mock a create organization call
+        _fixture.OracleService
+            .Setup(ors => ors.UpdateOrganization(It.IsAny<OracleOrganization>(), It.IsAny<SalesforceAccountModel>(), transaction))
+            .ReturnsAsync(new Tuple<OracleOrganization, string>(oracleOrg, string.Empty));
         // locations return null, too
         _fixture.OracleService
             .Setup(ors => ors.GetLocationsBySalesforceAddressId(It.IsAny<List<string>>(), transaction))
