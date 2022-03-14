@@ -3,6 +3,10 @@
 public class SalesforceAddressModel : SalesforceActionObject
 {
     /// <summary>
+    /// OraclePartyId__c
+    /// </summary>
+    public long? OraclePartyId { get; set; }
+    /// <summary>
     /// Account__c
     /// </summary>
     public string? ParentAccountId { get; set; }
