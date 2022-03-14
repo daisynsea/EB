@@ -185,7 +185,10 @@ public class AccountBrokerService : IAccountBrokerService
                     response.OracleErrorMessage = $"Salesforce Object ID is required.";
                     return response;
                 }
-                // We have to create 5 entities in Oracle: Organization, Location(s), PartySite, CustomerAccount, CustomerAccountProfile
+                // We have to create 8 entities in Oracle:
+                // Organization, Location(s), PartySite, Person(s), CustomerAccount, CustomerAccountSite, CustomerAccountContact, CustomerAccountProfile
+
+                // search for existing Organization objects with Salesforce Id or Oracle Ids (when present)
                 var organizationResult = await _oracleService.GetOrganizationById(model.ObjectId, salesforceTransaction, model.OraclePartyId);
                 if (!organizationResult.Item1)
                 {
@@ -236,7 +239,7 @@ public class AccountBrokerService : IAccountBrokerService
                     foreach (var address in model.Addresses)
                     {
                         // check the found Locations with the address to see if it has been created already
-                        var existingLocation = locationsResult.Item2?.FirstOrDefault(l => l.OrigSystemReference == address.ObjectId);
+                        var existingLocation = locationsResult.Item2?.FirstOrDefault(l => l.OrigSystemReference == address.ObjectId || l.LocationId == address.OracleLocationId);
                         if (existingLocation == null)
                         {
                             // create Location & OrgPartySite as a list of tasks to run async (outside of the loop)
@@ -246,7 +249,7 @@ public class AccountBrokerService : IAccountBrokerService
                         {
                             // check the Organization PartySites with the address to see if the PartySite has been created
                             // if not, add it to the list to create along with any other new Locations
-                            var orgPartySite = organization?.PartySites?.FirstOrDefault(s => s.OrigSystemReference == address.ObjectId);
+                            var orgPartySite = organization?.PartySites?.FirstOrDefault(s => s.OrigSystemReference == address.ObjectId || s.LocationId == address.OracleLocationId);
                             if (orgPartySite == null)
                             {
                                 // re-map Salesforce values to Oracle models
