@@ -5,7 +5,12 @@ public class SalesforceAddressModel : SalesforceActionObject
     /// <summary>
     /// OraclePartyId__c
     /// </summary>
-    public long? OraclePartyId { get; set; }
+    public ulong? OraclePartyId { get; set; }
+    /// <summary>
+    /// OracleLocationId__c
+    /// The Oracle Location object Id
+    /// </summary>
+    public ulong? OracleLocationId { get; set; }
     /// <summary>
     /// Account__c
     /// </summary>
@@ -21,7 +26,7 @@ public class SalesforceAddressModel : SalesforceActionObject
     /// <summary>
     /// This is required to link legacy objects to the correct items in Oracle
     /// </summary>
-    public string? ParentOraclePartyId { get; set; }
+    public ulong? ParentOraclePartyId { get; set; }
     /// <summary>
     /// Name
     /// </summary>
@@ -53,6 +58,4 @@ public class SalesforceAddressModel : SalesforceActionObject
     /// Type__c (picklist -> 'Billing & Shipping' || 'Shipping')
     /// </summary>
     public string? Type { get; set; }
-    public string? OracleLocationId { get; set; }
-    public string? OraclePartyId { get; set; }
 }

@@ -217,8 +217,8 @@ public class AccountBrokerService : IAccountBrokerService
                 {
                     // extract list of relevant Id values to use in SOAP requests
                     // extracting ObjectId (SalesforceId), OracleLocationId, and OraclePartySiteId
-                    List<Tuple<string, string, string>> addressIds = new();
-                    addressIds.AddRange(model.Addresses.Select(a => new Tuple<string, string, string>(a.ObjectId, a.OracleLocationId, a.OraclePartyId)));
+                    List<Tuple<string, ulong?, ulong?>> addressIds = new();
+                    addressIds.AddRange(model.Addresses.Select(a => new Tuple<string, ulong?, ulong?>(a.ObjectId, a.OracleLocationId, a.OraclePartyId)));
 
                     // find locations by Salesforce Id or LocationId (when present)
                     var locationsResult = await _oracleService.GetLocationsById(addressIds, salesforceTransaction);
@@ -439,8 +439,8 @@ public class AccountBrokerService : IAccountBrokerService
 
                     // extract list of relevant Id values to use in SOAP requests
                     // extracting ObjectId (SalesforceId), OraclePartyId
-                    List<Tuple<string, string>> contactIds = new();
-                    contactIds.AddRange(model.Contacts.Select(c => new Tuple<string, string>(c.ObjectId, c.OraclePartyId)));
+                    List<Tuple<string, ulong?>> contactIds = new();
+                    contactIds.AddRange(model.Contacts.Select(c => new Tuple<string, ulong?>(c.ObjectId, c.OraclePartyId)));
 
                     // find Persons by Salesforce or Oracle Id
                     var personsResult = await _oracleService.GetPersonsById(contactIds, salesforceTransaction);
@@ -462,7 +462,7 @@ public class AccountBrokerService : IAccountBrokerService
                             continue;
                         }
                         // check the found Persons with the contact to see if they have been created already
-                        var existingContact = personsResult.Item2?.FirstOrDefault(l => l.OrigSystemReference == contact.ObjectId || l.PartyId?.ToString() == contact.OraclePartyId);
+                        var existingContact = personsResult.Item2?.FirstOrDefault(l => l.OrigSystemReference == contact.ObjectId || l.PartyId == contact.OraclePartyId);
                         if (existingContact == null)
                         {
                             // create Person requests as a list of tasks to run async (outside of the loop)

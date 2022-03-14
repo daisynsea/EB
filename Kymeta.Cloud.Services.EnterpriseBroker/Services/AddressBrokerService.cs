@@ -103,8 +103,8 @@ public class AddressBrokerService : IAddressBrokerService
             // for the Customer Account
             var accountSites = new List<OracleCustomerAccountSite>();
 
-            var addressIds = new List<Tuple<string, string, string>> { 
-                new Tuple<string, string, string>(model.ObjectId, model.OracleLocationId, model.OraclePartyId) 
+            var addressIds = new List<Tuple<string, ulong?, ulong?>> { 
+                new Tuple<string, ulong?, ulong?>(model.ObjectId, model.OracleLocationId, model.OraclePartyId) 
             };
 
             // search for existing location
@@ -151,7 +151,7 @@ public class AddressBrokerService : IAddressBrokerService
                 var updatedLocation = updateLocationResult.Item1;
 
                 // validate the that PartySite exists for the Organization (if not, create)
-                var orgPartySite = organization.PartySites?.FirstOrDefault(ps => ps.OrigSystemReference == model.ObjectId || ps.PartySiteId.ToString() == model.OraclePartyId);
+                var orgPartySite = organization.PartySites?.FirstOrDefault(ps => ps.OrigSystemReference == model.ObjectId || ps.PartySiteId == model.OraclePartyId);
                 if (orgPartySite == null)
                 {
                     partySitesToCreate.Add(new OraclePartySite
@@ -232,7 +232,7 @@ public class AddressBrokerService : IAddressBrokerService
             }
 
             // validate that the CustomerAccountSite exists for the Customer Account (if not, create)
-            var accountSite = customerAccount.Sites?.FirstOrDefault(s => s.OrigSystemReference == model.ObjectId || s.PartySiteId.ToString() == model.OraclePartyId);
+            var accountSite = customerAccount.Sites?.FirstOrDefault(s => s.OrigSystemReference == model.ObjectId || s.PartySiteId == model.OraclePartyId);
             if (accountSite == null)
             {
                 // merge/update the existing Account to add the Customer Account Site

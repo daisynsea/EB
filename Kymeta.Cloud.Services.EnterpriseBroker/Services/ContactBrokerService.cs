@@ -100,8 +100,8 @@ public class ContactBrokerService : IContactBrokerService
 
             var accountContacts = new List<OracleCustomerAccountContact>();
             // fetch Person by Salesforce Id
-            var contactIds = new List<Tuple<string, string>> {
-                new Tuple<string, string>(model.ObjectId, model.OraclePartyId)
+            var contactIds = new List<Tuple<string, ulong?>> {
+                new Tuple<string, ulong?>(model.ObjectId, model.OraclePartyId)
             };
             var personsResult = await _oracleService.GetPersonsById(contactIds, salesforceTransaction);
             if (!personsResult.Item1)
@@ -164,7 +164,7 @@ public class ContactBrokerService : IContactBrokerService
             }
 
             // verify that the Customer Account has the necessary Contact objects
-            var customerAccountContact = customerAccount.Contacts?.FirstOrDefault(c => c.OrigSystemReference == model.ObjectId || c.ContactPersonId?.ToString() == model.OraclePartyId);
+            var customerAccountContact = customerAccount.Contacts?.FirstOrDefault(c => c.OrigSystemReference == model.ObjectId || c.ContactPersonId == model.OraclePartyId);
             if (customerAccountContact == null)
             {
                 // update the customer account to add the contact
