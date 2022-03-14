@@ -34,12 +34,12 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             // Get Org
             var oracleOrg = Helpers.BuildOracleOrganization();
             _fixture.OracleService
-                .Setup(ors => ors.GetOrganizationById(It.IsAny<string>(), transaction))
+                .Setup(ors => ors.GetOrganizationById(It.IsAny<string>(), transaction, null))
                 .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(true, oracleOrg, "Explosions"));
             // Get Customer Account
             var customerAccount = Helpers.BuildOracleCustomerAccount();
             _fixture.OracleService
-                .Setup(ors => ors.GetCustomerAccountById(It.IsAny<string>(), transaction))
+                .Setup(ors => ors.GetCustomerAccountById(It.IsAny<string>(), transaction, null))
                 .ReturnsAsync(new Tuple<bool, OracleCustomerAccount, string>(true, customerAccount, "Explosions"));
             // Get list of persons
             var persons = new List<OraclePersonObject>
@@ -54,7 +54,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             };
             // Empty list
             _fixture.OracleService
-                .Setup(ors => ors.GetPersonsBySalesforceContactId(It.IsAny<List<string>>(), transaction))
+                .Setup(ors => ors.GetPersonsById(It.IsAny<List<Tuple<string, ulong?>>>(), transaction))
                 .ReturnsAsync(new Tuple<bool, IEnumerable<OraclePersonObject>, string>(true, null, string.Empty));
             // Create the person
             _fixture.OracleService
