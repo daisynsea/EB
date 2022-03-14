@@ -79,7 +79,7 @@ public class ContactBrokerService : IContactBrokerService
                 return response;
             }
             // Get Organization by Salesforce Account Id
-            var organizationResult = await _oracleService.GetOrganizationBySalesforceAccountId(model.ParentAccountId, salesforceTransaction);
+            var organizationResult = await _oracleService.GetOrganizationById(model.ParentAccountId, salesforceTransaction);
             if (!organizationResult.Item1 || organizationResult.Item2 == null)
             {
                 response.OracleStatus = StatusType.Error;
@@ -89,7 +89,7 @@ public class ContactBrokerService : IContactBrokerService
             var organization = organizationResult.Item2;
 
             // Get customer account by Salesforce Account Id
-            var customerAccountResult = await _oracleService.GetCustomerAccountBySalesforceAccountId(model.ParentAccountId, salesforceTransaction);
+            var customerAccountResult = await _oracleService.GetCustomerAccountById(model.ParentAccountId, salesforceTransaction);
             if (!customerAccountResult.Item1 || customerAccountResult.Item2 == null)
             {
                 response.OracleStatus = StatusType.Error;
@@ -100,8 +100,10 @@ public class ContactBrokerService : IContactBrokerService
 
             var accountContacts = new List<OracleCustomerAccountContact>();
             // fetch Person by Salesforce Id
-            var contactIds = new List<string> { model.ObjectId };
-            var personsResult = await _oracleService.GetPersonsBySalesforceContactId(contactIds.ToList(), salesforceTransaction);
+            var contactIds = new List<Tuple<string, string>> {
+                new Tuple<string, string>(model.ObjectId, model.OraclePartyId)
+            };
+            var personsResult = await _oracleService.GetPersonsById(contactIds, salesforceTransaction);
             if (!personsResult.Item1)
             {
                 // fatal error occurred when sending request to oracle
@@ -162,7 +164,7 @@ public class ContactBrokerService : IContactBrokerService
             }
 
             // verify that the Customer Account has the necessary Contact objects
-            var customerAccountContact = customerAccount.Contacts?.FirstOrDefault(c => c.OrigSystemReference == model.ObjectId);
+            var customerAccountContact = customerAccount.Contacts?.FirstOrDefault(c => c.OrigSystemReference == model.ObjectId || c.ContactPersonId?.ToString() == model.OraclePartyId);
             if (customerAccountContact == null)
             {
                 // update the customer account to add the contact

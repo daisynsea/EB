@@ -178,11 +178,18 @@ public class AccountBrokerService : IAccountBrokerService
             // There is a plethora of possible exceptions in this flow, so we're going to catch any of them and ensure the logs are written
             try
             {
+                if (string.IsNullOrEmpty(model.ObjectId))
+                {
+                    // fatal error occurred when sending request to oracle
+                    response.OracleStatus = StatusType.Error;
+                    response.OracleErrorMessage = $"Salesforce Object ID is required.";
+                    return response;
+                }
                 // We have to create 5 entities in Oracle: Organization, Location(s), PartySite, CustomerAccount, CustomerAccountProfile
-                var organizationResult = await _oracleService.GetOrganizationBySalesforceAccountId(model.ObjectId, salesforceTransaction);
+                var organizationResult = await _oracleService.GetOrganizationById(model.ObjectId, salesforceTransaction, model.OraclePartyId);
                 if (!organizationResult.Item1)
                 {
-                    // TODO: fatal error occurred when sending request to oracle... return badRequest here?
+                    // fatal error occurred when sending request to oracle
                     response.OracleStatus = StatusType.Error;
                     response.OracleErrorMessage = organizationResult.Item3;
                     return response;
@@ -208,12 +215,16 @@ public class AccountBrokerService : IAccountBrokerService
                 // check to see if Locations exist
                 if (model.Addresses != null && model.Addresses.Count > 0)
                 {
-                    // find locations by Enterprise Id
-                    var addressIds = model.Addresses.Select(a => a.ObjectId);
-                    var locationsResult = await _oracleService.GetLocationsBySalesforceAddressId(addressIds.ToList(), salesforceTransaction);
+                    // extract list of relevant Id values to use in SOAP requests
+                    // extracting ObjectId (SalesforceId), OracleLocationId, and OraclePartySiteId
+                    List<Tuple<string, string, string>> addressIds = new();
+                    addressIds.AddRange(model.Addresses.Select(a => new Tuple<string, string, string>(a.ObjectId, a.OracleLocationId, a.OraclePartySiteId)));
+
+                    // find locations by Salesforce Id or LocationId (when present)
+                    var locationsResult = await _oracleService.GetLocationsById(addressIds, salesforceTransaction);
                     if (!locationsResult.Item1)
                     {
-                        // TODO: fatal error occurred when sending request to oracle... return badRequest here?
+                        // fatal error occurred when sending request to oracle
                         response.OracleStatus = StatusType.Error;
                         response.OracleErrorMessage = locationsResult.Item3;
                         return response;
@@ -426,12 +437,16 @@ public class AccountBrokerService : IAccountBrokerService
                         return response;
                     }
 
-                    // find Persons by Enterprise Id
-                    var contactIds = model.Contacts?.Select(a => a.ObjectId);
-                    var personsResult = await _oracleService.GetPersonsBySalesforceContactId(contactIds.ToList(), salesforceTransaction);
+                    // extract list of relevant Id values to use in SOAP requests
+                    // extracting ObjectId (SalesforceId), OraclePartyId
+                    List<Tuple<string, string>> contactIds = new();
+                    contactIds.AddRange(model.Contacts.Select(c => new Tuple<string, string>(c.ObjectId, c.OraclePartyId)));
+
+                    // find Persons by Salesforce or Oracle Id
+                    var personsResult = await _oracleService.GetPersonsById(contactIds, salesforceTransaction);
                     if (!personsResult.Item1)
                     {
-                        // TODO: fatal error occurred when sending request to oracle... return badRequest here?
+                        // fatal error occurred when sending request to oracle
                         response.OracleStatus = StatusType.Error;
                         response.OracleErrorMessage = personsResult.Item3;
                         return response;
@@ -447,7 +462,7 @@ public class AccountBrokerService : IAccountBrokerService
                             continue;
                         }
                         // check the found Persons with the contact to see if they have been created already
-                        var existingContact = personsResult.Item2?.FirstOrDefault(l => l.OrigSystemReference == contact.ObjectId);
+                        var existingContact = personsResult.Item2?.FirstOrDefault(l => l.OrigSystemReference == contact.ObjectId || l.PartyId?.ToString() == contact.OraclePartyId);
                         if (existingContact == null)
                         {
                             // create Person requests as a list of tasks to run async (outside of the loop)
@@ -498,10 +513,10 @@ public class AccountBrokerService : IAccountBrokerService
 
                 #region Customer Account
                 // search for existing Customer Account records based on Name and Salesforce Id
-                var existingCustomerAccount = await _oracleService.GetCustomerAccountBySalesforceAccountId(model.ObjectId, salesforceTransaction);
+                var existingCustomerAccount = await _oracleService.GetCustomerAccountById(model.ObjectId, salesforceTransaction, model.OraclePartyId);
                 if (!existingCustomerAccount.Item1)
                 {
-                    // TODO: fatal error occurred when sending request to oracle... return badRequest here?
+                    // fatal error occurred when sending request to oracle
                     response.OracleStatus = StatusType.Error;
                     response.OracleErrorMessage = existingCustomerAccount.Item3;
                     return response;

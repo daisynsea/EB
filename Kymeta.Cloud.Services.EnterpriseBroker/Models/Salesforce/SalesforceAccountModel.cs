@@ -11,6 +11,7 @@
         public string? AccountType { get; set; } // Used in SOAP request
         public string? BusinessUnit { get; set; } // Used in SOAP request
         public string? OssId { get; set; }
+        public string? OraclePartyId { get; set; } // used by Legacy objects
         public List<SalesforceAddressModel>? Addresses { get; set; }
         public List<SalesforceContactModel>? Contacts { get; set; }
     }

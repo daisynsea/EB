@@ -15,6 +15,10 @@ public class SalesforceAddressModel : SalesforceActionObject
     /// </summary>
     public string? ParentOracleAccountId { get; set; }
     /// <summary>
+    /// This is required to link the site to the customer account?
+    /// </summary>
+    public string? ParentOracleAccountPartyId { get; set; }
+    /// <summary>
     /// Name
     /// </summary>
     public string? SiteName { get; set; }
@@ -45,4 +49,6 @@ public class SalesforceAddressModel : SalesforceActionObject
     /// Type__c (picklist -> 'Billing & Shipping' || 'Shipping')
     /// </summary>
     public string? Type { get; set; }
+    public string? OracleLocationId { get; set; }
+    public string? OraclePartySiteId { get; set; }
 }
