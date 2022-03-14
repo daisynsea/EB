@@ -132,7 +132,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
             new OraclePersonObject { PartyId = 30001, OrigSystemReference = "con30001" }
         };
         _fixture.OracleService
-            .Setup(ors => ors.GetPersonsBySalesforceContactId(It.IsAny<List<string>>(), transaction))
+            .Setup(ors => ors.GetPersonsById(It.IsAny<List<Tuple<string, string>>>(), transaction))
             .ReturnsAsync(new Tuple<bool, IEnumerable<OraclePersonObject>, string>(true, persons, string.Empty));
         var customerAccount = new OracleCustomerAccount
         {

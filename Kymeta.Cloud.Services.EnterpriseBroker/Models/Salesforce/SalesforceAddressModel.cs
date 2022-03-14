@@ -15,9 +15,9 @@ public class SalesforceAddressModel : SalesforceActionObject
     /// </summary>
     public string? ParentOracleAccountId { get; set; }
     /// <summary>
-    /// This is required to link the site to the customer account?
+    /// This is required to link legacy objects to the correct items in Oracle
     /// </summary>
-    public string? ParentOracleAccountPartyId { get; set; }
+    public string? ParentOraclePartyId { get; set; }
     /// <summary>
     /// Name
     /// </summary>
@@ -50,5 +50,5 @@ public class SalesforceAddressModel : SalesforceActionObject
     /// </summary>
     public string? Type { get; set; }
     public string? OracleLocationId { get; set; }
-    public string? OraclePartySiteId { get; set; }
+    public string? OraclePartyId { get; set; }
 }

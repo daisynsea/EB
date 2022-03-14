@@ -218,7 +218,7 @@ public class AccountBrokerService : IAccountBrokerService
                     // extract list of relevant Id values to use in SOAP requests
                     // extracting ObjectId (SalesforceId), OracleLocationId, and OraclePartySiteId
                     List<Tuple<string, string, string>> addressIds = new();
-                    addressIds.AddRange(model.Addresses.Select(a => new Tuple<string, string, string>(a.ObjectId, a.OracleLocationId, a.OraclePartySiteId)));
+                    addressIds.AddRange(model.Addresses.Select(a => new Tuple<string, string, string>(a.ObjectId, a.OracleLocationId, a.OraclePartyId)));
 
                     // find locations by Salesforce Id or LocationId (when present)
                     var locationsResult = await _oracleService.GetLocationsById(addressIds, salesforceTransaction);

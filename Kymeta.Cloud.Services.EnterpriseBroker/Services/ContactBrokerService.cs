@@ -79,7 +79,7 @@ public class ContactBrokerService : IContactBrokerService
                 return response;
             }
             // Get Organization by Salesforce Account Id
-            var organizationResult = await _oracleService.GetOrganizationById(model.ParentAccountId, salesforceTransaction);
+            var organizationResult = await _oracleService.GetOrganizationById(model.ParentAccountId, salesforceTransaction, model.ParentOraclePartyId);
             if (!organizationResult.Item1 || organizationResult.Item2 == null)
             {
                 response.OracleStatus = StatusType.Error;
@@ -89,7 +89,7 @@ public class ContactBrokerService : IContactBrokerService
             var organization = organizationResult.Item2;
 
             // Get customer account by Salesforce Account Id
-            var customerAccountResult = await _oracleService.GetCustomerAccountById(model.ParentAccountId, salesforceTransaction);
+            var customerAccountResult = await _oracleService.GetCustomerAccountById(model.ParentAccountId, salesforceTransaction, model.ParentOraclePartyId);
             if (!customerAccountResult.Item1 || customerAccountResult.Item2 == null)
             {
                 response.OracleStatus = StatusType.Error;
