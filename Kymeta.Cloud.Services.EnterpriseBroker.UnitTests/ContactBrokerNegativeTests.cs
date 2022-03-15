@@ -58,7 +58,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             Helpers.MockActionRepository(_fixture.ActionsRepository, transaction);
 
             _fixture.OracleService
-                .Setup(ors => ors.GetOrganizationById(It.IsAny<string>(), transaction))
+                .Setup(ors => ors.GetOrganizationById(It.IsAny<string>(), transaction, null))
                 .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(false, null, "Explosions"));
 
             // Act
@@ -87,10 +87,10 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
 
             var oracleOrg = Helpers.BuildOracleOrganization();
             _fixture.OracleService
-                .Setup(ors => ors.GetOrganizationById(It.IsAny<string>(), transaction))
+                .Setup(ors => ors.GetOrganizationById(It.IsAny<string>(), transaction, null))
                 .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(true, oracleOrg, "Explosions"));
             _fixture.OracleService
-                .Setup(ors => ors.GetCustomerAccountById(It.IsAny<string>(), transaction))
+                .Setup(ors => ors.GetCustomerAccountById(It.IsAny<string>(), transaction, null))
                 .ReturnsAsync(new Tuple<bool, OracleCustomerAccount, string>(false, null, string.Empty));
 
             // Act
@@ -129,7 +129,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                 .ReturnsAsync(new Tuple<bool, OracleCustomerAccount, string>(true, customerAccount, "Explosions"));
             // Fail to get Persons
             _fixture.OracleService
-                .Setup(ors => ors.GetPersonsById(It.IsAny<List<Tuple<string, string>>>(), transaction))
+                .Setup(ors => ors.GetPersonsById(It.IsAny<List<Tuple<string, ulong?>>>(), transaction))
                 .ReturnsAsync(new Tuple<bool, IEnumerable<OraclePersonObject>, string>(false, null, "Explosions"));
 
             // Act
@@ -159,17 +159,17 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             // Get Org
             var oracleOrg = Helpers.BuildOracleOrganization();
             _fixture.OracleService
-                .Setup(ors => ors.GetOrganizationById(It.IsAny<string>(), transaction))
+                .Setup(ors => ors.GetOrganizationById(It.IsAny<string>(), transaction, null))
                 .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(true, oracleOrg, "Explosions"));
             // Get Customer Account
             var customerAccount = Helpers.BuildOracleCustomerAccount();
             _fixture.OracleService
-                .Setup(ors => ors.GetCustomerAccountById(It.IsAny<string>(), transaction))
+                .Setup(ors => ors.GetCustomerAccountById(It.IsAny<string>(), transaction, null))
                 .ReturnsAsync(new Tuple<bool, OracleCustomerAccount, string>(true, customerAccount, "Explosions"));
             // Get list of persons
             var persons = new List<OraclePersonObject>();
             _fixture.OracleService
-                .Setup(ors => ors.GetPersonsBySalesforceContactId(It.IsAny<List<string>>(), transaction))
+                .Setup(ors => ors.GetPersonsById(It.IsAny<List<Tuple<string, ulong?>>>(), transaction))
                 .ReturnsAsync(new Tuple<bool, IEnumerable<OraclePersonObject>, string>(true, persons, string.Empty));
             _fixture.OracleService
                 .Setup(ors => ors.CreatePerson(It.IsAny<SalesforceContactModel>(), It.IsAny<ulong>(), transaction))
@@ -220,7 +220,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                 }
             };
             _fixture.OracleService
-                .Setup(ors => ors.GetPersonsById(It.IsAny<List<Tuple<string, string>>>(), transaction))
+                .Setup(ors => ors.GetPersonsById(It.IsAny<List<Tuple<string, ulong?>>>(), transaction))
                 .ReturnsAsync(new Tuple<bool, IEnumerable<OraclePersonObject>, string>(true, persons, string.Empty));
             _fixture.OracleService
                 .Setup(ors => ors.UpdatePerson(It.IsAny<SalesforceContactModel>(), It.IsAny<OraclePersonObject>(), transaction))
@@ -271,7 +271,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                 }
             };
             _fixture.OracleService
-                .Setup(ors => ors.GetPersonsById(It.IsAny<List<Tuple<string, string>>>(), transaction))
+                .Setup(ors => ors.GetPersonsById(It.IsAny<List<Tuple<string, ulong?>>>(), transaction))
                 .ReturnsAsync(new Tuple<bool, IEnumerable<OraclePersonObject>, string>(true, persons, string.Empty));
             // Update the person
             _fixture.OracleService

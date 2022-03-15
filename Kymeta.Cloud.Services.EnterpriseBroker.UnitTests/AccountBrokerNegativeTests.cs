@@ -107,7 +107,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
 
             // Mock Oracle portion of the request
             _fixture.OracleService
-                .Setup(ors => ors.GetOrganizationById(It.IsAny<string>(), transaction))
+                .Setup(ors => ors.GetOrganizationById(It.IsAny<string>(), transaction, null))
                 .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(false, null, $"There was an error finding the Organization in Oracle: Epic Fail."));      
 
             // Act
@@ -172,10 +172,10 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                 new OracleLocationModel { LocationId = 30002, OrigSystemReference = "add30002" }
             };
             _fixture.OracleService
-                .Setup(ors => ors.GetLocationsById(It.IsAny<List<Tuple<string, string, string>>>(), transaction))
+                .Setup(ors => ors.GetLocationsById(It.IsAny<List<Tuple<string, ulong?, ulong?>>>(), transaction))
                 .ReturnsAsync(new Tuple<bool, IEnumerable<OracleLocationModel>, string>(true, locations, string.Empty));
             _fixture.OracleService
-                .Setup(ors => ors.GetOrganizationById(It.IsAny<string>(), transaction, It.IsAny<string>()))
+                .Setup(ors => ors.GetOrganizationById(It.IsAny<string>(), transaction, null))
                 .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(true, oracleOrg, string.Empty));
             _fixture.OracleService
                 .Setup(ors => ors.UpdateOrganization(It.IsAny<OracleOrganization>(), It.IsAny<SalesforceAccountModel>(), transaction))
@@ -247,10 +247,10 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
 
             // returns null here, means create
             _fixture.OracleService
-                .Setup(ors => ors.GetOrganizationById(It.IsAny<string>(), transaction, It.IsAny<string>()))
+                .Setup(ors => ors.GetOrganizationById(It.IsAny<string>(), transaction, null))
                 .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(true, null, string.Empty));
             _fixture.OracleService
-                .Setup(ors => ors.GetLocationsById(It.IsAny<List<Tuple<string, string, string>>>(), transaction))
+                .Setup(ors => ors.GetLocationsById(It.IsAny<List<Tuple<string, ulong?, ulong?>>>(), transaction))
                 .ReturnsAsync(new Tuple<bool, IEnumerable<OracleLocationModel>, string>(true, locations, string.Empty));
             _fixture.OracleService
                 .Setup(ors => ors.CreateOrganization(It.IsAny<SalesforceAccountModel>(), It.IsAny<List<OraclePartySite>>(), transaction))
@@ -314,13 +314,13 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                 }
             };
             _fixture.OracleService
-                .Setup(ors => ors.GetOrganizationById(It.IsAny<string>(), transaction))
+                .Setup(ors => ors.GetOrganizationById(It.IsAny<string>(), transaction, null))
                 .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(true, null, string.Empty));
             _fixture.OracleService
                 .Setup(ors => ors.CreateOrganization(It.IsAny<SalesforceAccountModel>(), It.IsAny<List<OraclePartySite>>(), transaction))
                 .ReturnsAsync(new Tuple<OracleOrganization, string>(oracleOrg, string.Empty));
             _fixture.OracleService
-                .Setup(ors => ors.GetLocationsById(It.IsAny<List<Tuple<string, string, string>>>(), transaction))
+                .Setup(ors => ors.GetLocationsById(It.IsAny<List<Tuple<string, ulong?, ulong?>>>(), transaction))
                 .ReturnsAsync(new Tuple<bool, IEnumerable<OracleLocationModel>, string>(false, null, $"There was an error finding the Locations in Oracle: Epic Fail."));
 
             // Act
@@ -381,7 +381,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             Helpers.MockActionRepository(_fixture.ActionsRepository, transaction);
 
             _fixture.OracleService
-                .Setup(ors => ors.GetOrganizationById(It.IsAny<string>(), transaction))
+                .Setup(ors => ors.GetOrganizationById(It.IsAny<string>(), transaction, null))
                 .ThrowsAsync(new Exception("Explosions!"));
 
             // Act
