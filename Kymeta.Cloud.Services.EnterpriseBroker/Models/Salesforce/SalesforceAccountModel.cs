@@ -2,7 +2,7 @@
 {
     public class SalesforceAccountModel : SalesforceActionObject
     {
-        public long? OraclePartyId { get; set; }
+        public ulong? OraclePartyId { get; set; }
         public string? Name { get; set; }
         public string? ParentId { get; set; }
         public string? Pricebook { get; set; } // CPB, MPB or both

@@ -11,7 +11,7 @@ public static class OracleSoapTemplates
     ///  A template for finding Locations in Oracle based on Enterprise Id.
     /// </summary>
     /// <returns>TBD</returns>
-    public static string FindLocations(List<string> addressIds)
+    public static string FindLocations(List<Tuple<string, ulong?, ulong?>> addressIds)
     {
         if (addressIds == null || addressIds.Count == 0) return null;
 
@@ -32,13 +32,14 @@ public static class OracleSoapTemplates
 						            <find:upperCaseCompare>false</find:upperCaseCompare>";
         foreach (var addressId in addressIds)
         {
+            // find Location by LocationId for legacy objects or default to OrigSystemReference
             findLocationsEnvelope +=
                                     @$"<find:item>
 							            <find:conjunction>Or</find:conjunction>
 							            <find:upperCaseCompare>false</find:upperCaseCompare>
-							            <find:attribute>OrigSystemReference</find:attribute>
+							            <find:attribute>{(addressId.Item2 != null ? "LocationId" : "OrigSystemReference")}</find:attribute>
 							            <find:operator>=</find:operator>
-							            <find:value>{addressId}</find:value>
+							            <find:value>{(addressId.Item2 != null ? addressId.Item2 : addressId.Item1)}</find:value>
 						            </find:item>";
         }
 
@@ -118,7 +119,7 @@ public static class OracleSoapTemplates
     ///  A template for creating an Organization Party Site object in Oracle.
     /// </summary>
     /// <returns>TBD</returns>
-    public static string FindOrganization(string originSystemReference)
+    public static string FindOrganization(string originSystemReference, ulong? partyId = null)
     {
         var locationEnvelope = 
             $@"<soap:Envelope xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
@@ -135,9 +136,9 @@ public static class OracleSoapTemplates
                         <find:item>
                             <find:conjunction/>
                             <find:upperCaseCompare>false</find:upperCaseCompare>
-                            <find:attribute>OrigSystemReference</find:attribute>
+                            <find:attribute>{(partyId != null ? "PartyId" : "OrigSystemReference")}</find:attribute>
                             <find:operator>=</find:operator>
-                            <find:value>{originSystemReference}</find:value>
+                            <find:value>{(partyId != null ? partyId : originSystemReference)}</find:value>
                         </find:item>
                         </find:group>
                     </find:filter>
@@ -352,7 +353,7 @@ public static class OracleSoapTemplates
     /// A template for finding Persons in Oracle based on Enterprise Id.
     /// </summary>
     /// <returns>TBD</returns>
-    public static string FindPersons(List<string> contactIds)
+    public static string FindPersons(List<Tuple<string, ulong?>> contactIds)
     {
         if (contactIds == null || contactIds.Count == 0) return null;
 
@@ -377,9 +378,9 @@ public static class OracleSoapTemplates
                                     @$"<find:item>
 							            <find:conjunction>Or</find:conjunction>
 							            <find:upperCaseCompare>false</find:upperCaseCompare>
-							            <find:attribute>OrigSystemReference</find:attribute>
+							            <find:attribute>{(contactId.Item2 != null ? "PartyId" : "OrigSystemReference")}</find:attribute>
 							            <find:operator>=</find:operator>
-							            <find:value>{contactId}</find:value>
+							            <find:value>{(contactId.Item2 != null ? contactId.Item2 : contactId.Item1)}</find:value>
 						            </find:item>";
         }
 
@@ -599,7 +600,7 @@ public static class OracleSoapTemplates
     /// </summary>
     /// <param name="enterpriseId">The Id of the originating object from Salesforce</param>
     /// <returns>A SOAP envelope XML payload to send as a request body.</returns>
-    public static string FindCustomerAccount(string enterpriseId)
+    public static string FindCustomerAccount(string enterpriseId, ulong? oraclePartyId = null)
     {
         var findCustomerAccountEnvelope =
             $@"<soapenv:Envelope
@@ -620,9 +621,9 @@ public static class OracleSoapTemplates
 						            <find:item>
 							            <find:conjunction/>
 							            <find:upperCaseCompare>false</find:upperCaseCompare>
-							            <find:attribute>OrigSystemReference</find:attribute>
+							            <find:attribute>{(oraclePartyId != null ? "PartyId" : "OrigSystemReference")}</find:attribute>
 							            <find:operator>=</find:operator>
-							            <find:value>{enterpriseId}</find:value>
+							            <find:value>{(oraclePartyId != null ? oraclePartyId : enterpriseId)}</find:value>
 						            </find:item>
 					            </find:group>
 					            <find:nested/>

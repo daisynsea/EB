@@ -15,15 +15,15 @@ public interface IOracleService
     Task<Tuple<OracleCustomerAccountProfile, string>> CreateCustomerAccountProfile(ulong? customerAccountId, uint customerAccountNumber, SalesforceActionTransaction transaction);
     Task<Tuple<OracleCustomerAccount, string>> UpdateCustomerAccount(OracleCustomerAccount existingCustomerAccount, SalesforceAccountModel model, List<OracleCustomerAccountSite> accountSites, List<OracleCustomerAccountContact> accountContacts, SalesforceActionTransaction transaction);
     Task<Tuple<OracleCustomerAccount, string>> UpdateCustomerAccountChildren(OracleCustomerAccount existingCustomerAccount, SalesforceActionTransaction transaction, List<OracleCustomerAccountSite>? accountSites = null, List<OracleCustomerAccountContact>? accountContacts = null);
-    Task<Tuple<bool, OracleOrganization, string>> GetOrganizationBySalesforceAccountId(string salesforceAccountId, SalesforceActionTransaction transaction);
-    Task<Tuple<bool, OracleCustomerAccount, string>> GetCustomerAccountBySalesforceAccountId(string salesforceAccountId, SalesforceActionTransaction transaction);
+    Task<Tuple<bool, OracleOrganization, string>> GetOrganizationById(string salesforceAccountId, SalesforceActionTransaction transaction, ulong? oraclePartyId = null);
+    Task<Tuple<bool, OracleCustomerAccount, string>> GetCustomerAccountById(string salesforceAccountId, SalesforceActionTransaction transaction, ulong? oraclePartyId = null);
     Task<Tuple<bool, OracleCustomerAccountProfile, string>> GetCustomerProfileByAccountNumber(string customerAccountNumber, SalesforceActionTransaction transaction);
     // Address Endpoints
-    Task<Tuple<bool, IEnumerable<OracleLocationModel>, string>> GetLocationsBySalesforceAddressId(List<string> addressIds, SalesforceActionTransaction transaction);
+    Task<Tuple<bool, IEnumerable<OracleLocationModel>, string>> GetLocationsById(List<Tuple<string, ulong?, ulong?>> addressIds, SalesforceActionTransaction transaction);
     Task<Tuple<OracleLocationModel, string>> CreateLocation(SalesforceAddressModel address, SalesforceActionTransaction transaction);
     Task<Tuple<OracleLocationModel, string>> UpdateLocation(SalesforceAddressModel model, OracleLocationModel existingLocation, SalesforceActionTransaction transaction);
     // Contact Endpoints
-    Task<Tuple<bool, IEnumerable<OraclePersonObject>, string>> GetPersonsBySalesforceContactId(List<string> contactIds, SalesforceActionTransaction transaction);
+    Task<Tuple<bool, IEnumerable<OraclePersonObject>, string>> GetPersonsById(List<Tuple<string, ulong?>> contactIds, SalesforceActionTransaction transaction);
     Task<Tuple<OraclePersonObject, string>> CreatePerson(SalesforceContactModel model, ulong organizationPartyId, SalesforceActionTransaction transaction);
     Task<Tuple<OraclePersonObject, string>> UpdatePerson(SalesforceContactModel model, OraclePersonObject existingPerson, SalesforceActionTransaction transaction);
 }
@@ -43,12 +43,12 @@ public class OracleService : IOracleService
 
     #region Account / Organization / Customer Account / Customer Profile
     #region Organization
-    public async Task<Tuple<bool, OracleOrganization, string>> GetOrganizationBySalesforceAccountId(string salesforceAccountId, SalesforceActionTransaction transaction)
+    public async Task<Tuple<bool, OracleOrganization, string>> GetOrganizationById(string salesforceAccountId, SalesforceActionTransaction transaction, ulong? oraclePartyId = null)
     {
         await LogAction(transaction, SalesforceTransactionAction.GetOrganizationInOracleBySFID, ActionObjectType.Account, StatusType.Started);
 
         // populate the template
-        var findOrganizationEnvelope = OracleSoapTemplates.FindOrganization(salesforceAccountId);
+        var findOrganizationEnvelope = OracleSoapTemplates.FindOrganization(salesforceAccountId, oraclePartyId);
 
         // Find the Organization via SOAP service
         var findOrgResponse = await _oracleClient.SendSoapRequest(findOrganizationEnvelope, $"{_config["Oracle:Endpoint"]}/{_config["Oracle:Services:Organization"]}");
@@ -193,9 +193,9 @@ public class OracleService : IOracleService
     #endregion
 
     #region Customer Account
-    public async Task<Tuple<bool, OracleCustomerAccount, string>> GetCustomerAccountBySalesforceAccountId(string salesforceAccountId, SalesforceActionTransaction transaction)
+    public async Task<Tuple<bool, OracleCustomerAccount, string>> GetCustomerAccountById(string salesforceAccountId, SalesforceActionTransaction transaction, ulong? oraclePartyId = null)
     {
-        var findAccountEnvelope = OracleSoapTemplates.FindCustomerAccount(salesforceAccountId);
+        var findAccountEnvelope = OracleSoapTemplates.FindCustomerAccount(salesforceAccountId, oraclePartyId);
         // Find the Organization via SOAP service
         var findAccountResponse = await _oracleClient.SendSoapRequest(findAccountEnvelope, $"{_config["Oracle:Endpoint"]}/{_config["Oracle:Services:CustomerAccount"]}");
         if (!string.IsNullOrEmpty(findAccountResponse.Item2)) return new Tuple<bool, OracleCustomerAccount, string>(false, null, $"There was an error finding the Customer Account in Oracle: {findAccountResponse.Item2}.");
@@ -430,7 +430,7 @@ public class OracleService : IOracleService
     #endregion
 
     #region Address/Location
-    public async Task<Tuple<bool, IEnumerable<OracleLocationModel>, string>> GetLocationsBySalesforceAddressId(List<string> addressIds, SalesforceActionTransaction transaction)
+    public async Task<Tuple<bool, IEnumerable<OracleLocationModel>, string>> GetLocationsById(List<Tuple<string, ulong?, ulong?>> addressIds, SalesforceActionTransaction transaction)
     {
         await LogAction(transaction, SalesforceTransactionAction.GetLocationBySalesforceId, ActionObjectType.Address, StatusType.Started, string.Join(",", addressIds));
 
@@ -648,7 +648,7 @@ public class OracleService : IOracleService
     #endregion
 
     #region Contact/Person
-    public async Task<Tuple<bool, IEnumerable<OraclePersonObject>, string>> GetPersonsBySalesforceContactId(List<string> contactIds, SalesforceActionTransaction transaction)
+    public async Task<Tuple<bool, IEnumerable<OraclePersonObject>, string>> GetPersonsById(List<Tuple<string, ulong?>> contactIds, SalesforceActionTransaction transaction)
     {
         await LogAction(transaction, SalesforceTransactionAction.GetPersonBySalesforceId, ActionObjectType.Contact, StatusType.Started, string.Join(",", contactIds));
 

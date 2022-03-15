@@ -2,8 +2,12 @@
 {
     public class SalesforceContactModel : SalesforceActionObject
     {
-        public long? OraclePartyId { get; set; }
+        public ulong? OraclePartyId { get; set; }
         public string? ParentAccountId { get; set; }
+        /// <summary>
+        /// This is required to link legacy objects to the correct items in Oracle
+        /// </summary>
+        public ulong? ParentOraclePartyId { get; set; }
         public string? Name { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }

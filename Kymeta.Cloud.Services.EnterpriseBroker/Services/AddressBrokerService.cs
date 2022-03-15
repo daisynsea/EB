@@ -65,7 +65,7 @@ public class AddressBrokerService : IAddressBrokerService
         if (syncToOracle)
         {
             // Get Organization by Salesforce Account Id
-            var organizationResult = await _oracleService.GetOrganizationBySalesforceAccountId(model.ParentAccountId, salesforceTransaction);
+            var organizationResult = await _oracleService.GetOrganizationById(model.ParentAccountId, salesforceTransaction, model.ParentOraclePartyId);
             if (!organizationResult.Item1 || organizationResult.Item2 == null)
             {
                 response.OracleStatus = StatusType.Error;
@@ -75,7 +75,7 @@ public class AddressBrokerService : IAddressBrokerService
             var organization = organizationResult.Item2;
 
             // Get customer account by Salesforce Account Id
-            var customerAccountResult = await _oracleService.GetCustomerAccountBySalesforceAccountId(model.ParentAccountId, salesforceTransaction);
+            var customerAccountResult = await _oracleService.GetCustomerAccountById(model.ParentAccountId, salesforceTransaction, model.ParentOraclePartyId);
             if (!customerAccountResult.Item1 || customerAccountResult.Item2 == null)
             {
                 response.OracleStatus = StatusType.Error;
@@ -103,8 +103,12 @@ public class AddressBrokerService : IAddressBrokerService
             // for the Customer Account
             var accountSites = new List<OracleCustomerAccountSite>();
 
+            var addressIds = new List<Tuple<string, ulong?, ulong?>> { 
+                new Tuple<string, ulong?, ulong?>(model.ObjectId, model.OracleLocationId, model.OraclePartyId) 
+            };
+
             // search for existing location
-            var locationsResult = await _oracleService.GetLocationsBySalesforceAddressId(new List<string> { model.ObjectId }, salesforceTransaction);
+            var locationsResult = await _oracleService.GetLocationsById(addressIds, salesforceTransaction);
             if (!locationsResult.Item1)
             {
                 response.OracleStatus = StatusType.Error;
@@ -147,7 +151,7 @@ public class AddressBrokerService : IAddressBrokerService
                 var updatedLocation = updateLocationResult.Item1;
 
                 // validate the that PartySite exists for the Organization (if not, create)
-                var orgPartySite = organization.PartySites?.FirstOrDefault(ps => ps.OrigSystemReference == model.ObjectId);
+                var orgPartySite = organization.PartySites?.FirstOrDefault(ps => ps.OrigSystemReference == model.ObjectId || ps.PartySiteId == model.OraclePartyId);
                 if (orgPartySite == null)
                 {
                     partySitesToCreate.Add(new OraclePartySite
@@ -228,7 +232,7 @@ public class AddressBrokerService : IAddressBrokerService
             }
 
             // validate that the CustomerAccountSite exists for the Customer Account (if not, create)
-            var accountSite = customerAccount.Sites?.FirstOrDefault(s => s.OrigSystemReference == model.ObjectId);
+            var accountSite = customerAccount.Sites?.FirstOrDefault(s => s.OrigSystemReference == model.ObjectId || s.PartySiteId == model.OraclePartyId);
             if (accountSite == null)
             {
                 // merge/update the existing Account to add the Customer Account Site

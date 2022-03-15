@@ -178,11 +178,21 @@ public class AccountBrokerService : IAccountBrokerService
             // There is a plethora of possible exceptions in this flow, so we're going to catch any of them and ensure the logs are written
             try
             {
-                // We have to create 5 entities in Oracle: Organization, Location(s), PartySite, CustomerAccount, CustomerAccountProfile
-                var organizationResult = await _oracleService.GetOrganizationBySalesforceAccountId(model.ObjectId, salesforceTransaction);
+                if (string.IsNullOrEmpty(model.ObjectId))
+                {
+                    // fatal error occurred when sending request to oracle
+                    response.OracleStatus = StatusType.Error;
+                    response.OracleErrorMessage = $"Salesforce Object ID is required.";
+                    return response;
+                }
+                // We have to create 8 entities in Oracle:
+                // Organization, Location(s), PartySite, Person(s), CustomerAccount, CustomerAccountSite, CustomerAccountContact, CustomerAccountProfile
+
+                // search for existing Organization objects with Salesforce Id or Oracle Ids (when present)
+                var organizationResult = await _oracleService.GetOrganizationById(model.ObjectId, salesforceTransaction, model.OraclePartyId);
                 if (!organizationResult.Item1)
                 {
-                    // TODO: fatal error occurred when sending request to oracle... return badRequest here?
+                    // fatal error occurred when sending request to oracle
                     response.OracleStatus = StatusType.Error;
                     response.OracleErrorMessage = organizationResult.Item3;
                     return response;
@@ -208,12 +218,16 @@ public class AccountBrokerService : IAccountBrokerService
                 // check to see if Locations exist
                 if (model.Addresses != null && model.Addresses.Count > 0)
                 {
-                    // find locations by Enterprise Id
-                    var addressIds = model.Addresses.Select(a => a.ObjectId);
-                    var locationsResult = await _oracleService.GetLocationsBySalesforceAddressId(addressIds.ToList(), salesforceTransaction);
+                    // extract list of relevant Id values to use in SOAP requests
+                    // extracting ObjectId (SalesforceId), OracleLocationId, and OraclePartySiteId
+                    List<Tuple<string, ulong?, ulong?>> addressIds = new();
+                    addressIds.AddRange(model.Addresses.Select(a => new Tuple<string, ulong?, ulong?>(a.ObjectId, a.OracleLocationId, a.OraclePartyId)));
+
+                    // find locations by Salesforce Id or LocationId (when present)
+                    var locationsResult = await _oracleService.GetLocationsById(addressIds, salesforceTransaction);
                     if (!locationsResult.Item1)
                     {
-                        // TODO: fatal error occurred when sending request to oracle... return badRequest here?
+                        // fatal error occurred when sending request to oracle
                         response.OracleStatus = StatusType.Error;
                         response.OracleErrorMessage = locationsResult.Item3;
                         return response;
@@ -225,7 +239,7 @@ public class AccountBrokerService : IAccountBrokerService
                     foreach (var address in model.Addresses)
                     {
                         // check the found Locations with the address to see if it has been created already
-                        var existingLocation = locationsResult.Item2?.FirstOrDefault(l => l.OrigSystemReference == address.ObjectId);
+                        var existingLocation = locationsResult.Item2?.FirstOrDefault(l => l.OrigSystemReference == address.ObjectId || l.LocationId == address.OracleLocationId);
                         if (existingLocation == null)
                         {
                             // create Location & OrgPartySite as a list of tasks to run async (outside of the loop)
@@ -235,7 +249,7 @@ public class AccountBrokerService : IAccountBrokerService
                         {
                             // check the Organization PartySites with the address to see if the PartySite has been created
                             // if not, add it to the list to create along with any other new Locations
-                            var orgPartySite = organization?.PartySites?.FirstOrDefault(s => s.OrigSystemReference == address.ObjectId);
+                            var orgPartySite = organization?.PartySites?.FirstOrDefault(s => s.OrigSystemReference == address.ObjectId || s.LocationId == address.OracleLocationId);
                             if (orgPartySite == null)
                             {
                                 // re-map Salesforce values to Oracle models
@@ -426,12 +440,16 @@ public class AccountBrokerService : IAccountBrokerService
                         return response;
                     }
 
-                    // find Persons by Enterprise Id
-                    var contactIds = model.Contacts?.Select(a => a.ObjectId);
-                    var personsResult = await _oracleService.GetPersonsBySalesforceContactId(contactIds.ToList(), salesforceTransaction);
+                    // extract list of relevant Id values to use in SOAP requests
+                    // extracting ObjectId (SalesforceId), OraclePartyId
+                    List<Tuple<string, ulong?>> contactIds = new();
+                    contactIds.AddRange(model.Contacts.Select(c => new Tuple<string, ulong?>(c.ObjectId, c.OraclePartyId)));
+
+                    // find Persons by Salesforce or Oracle Id
+                    var personsResult = await _oracleService.GetPersonsById(contactIds, salesforceTransaction);
                     if (!personsResult.Item1)
                     {
-                        // TODO: fatal error occurred when sending request to oracle... return badRequest here?
+                        // fatal error occurred when sending request to oracle
                         response.OracleStatus = StatusType.Error;
                         response.OracleErrorMessage = personsResult.Item3;
                         return response;
@@ -447,7 +465,7 @@ public class AccountBrokerService : IAccountBrokerService
                             continue;
                         }
                         // check the found Persons with the contact to see if they have been created already
-                        var existingContact = personsResult.Item2?.FirstOrDefault(l => l.OrigSystemReference == contact.ObjectId);
+                        var existingContact = personsResult.Item2?.FirstOrDefault(l => l.OrigSystemReference == contact.ObjectId || l.PartyId == contact.OraclePartyId);
                         if (existingContact == null)
                         {
                             // create Person requests as a list of tasks to run async (outside of the loop)
@@ -498,10 +516,10 @@ public class AccountBrokerService : IAccountBrokerService
 
                 #region Customer Account
                 // search for existing Customer Account records based on Name and Salesforce Id
-                var existingCustomerAccount = await _oracleService.GetCustomerAccountBySalesforceAccountId(model.ObjectId, salesforceTransaction);
+                var existingCustomerAccount = await _oracleService.GetCustomerAccountById(model.ObjectId, salesforceTransaction, model.OraclePartyId);
                 if (!existingCustomerAccount.Item1)
                 {
-                    // TODO: fatal error occurred when sending request to oracle... return badRequest here?
+                    // fatal error occurred when sending request to oracle
                     response.OracleStatus = StatusType.Error;
                     response.OracleErrorMessage = existingCustomerAccount.Item3;
                     return response;
