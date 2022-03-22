@@ -87,8 +87,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                 SiteName = "ShipStuffHereLol",
                 Type = "Billing & Shipping",
                 Address = $"12345 SE 100th Street{Environment.NewLine}Ste 100",
-                Address1 = "12345 SE 100th Street",
-                Address2 = "Ste 100"
+                Address1 = "12345 SE 100th Street"
             };
         }
 
