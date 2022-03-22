@@ -213,7 +213,8 @@ public class AddressBrokerService : IAddressBrokerService
                             SiteUseCode = su.SiteUseType
                         }).ToList()
                     });
-                    accountSites.AddRange(sites);
+                    // if we have Sites, add them to the list
+                    if (sites != null) accountSites.AddRange(sites);
                 }
             }
 

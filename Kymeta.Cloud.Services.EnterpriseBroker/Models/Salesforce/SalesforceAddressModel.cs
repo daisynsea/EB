@@ -37,7 +37,10 @@ public class SalesforceAddressModel : SalesforceActionObject
     /// </summary>
     public string? Address { get; set; }
     public string? Address1 { get; set; }
-    public string? Address2 { get; set; }
+    /// <summary>
+    /// Split the Address value on newline/return to extract the relevant value
+    /// </summary>
+    public string? Address2 => Address?.Split(new string[] { "\r\n", "\r", "\n" }, StringSplitOptions.None).LastOrDefault();
     /// <summary>
     /// City__c
     /// </summary>
