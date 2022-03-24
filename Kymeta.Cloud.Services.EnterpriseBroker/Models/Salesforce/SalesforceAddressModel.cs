@@ -40,7 +40,17 @@ public class SalesforceAddressModel : SalesforceActionObject
     /// <summary>
     /// Split the Address value on newline/return to extract the relevant value
     /// </summary>
-    public string? Address2 => Address?.Split(new string[] { "\r\n", "\r", "\n" }, StringSplitOptions.None).LastOrDefault();
+    public string? Address2 {
+        get
+        {
+            // define newline/return identifiers
+            var newlines = new string[] { "\r\n", "\r", "\n" };
+            // if the Address value contains any matches, then split the address to acquire the 2nd (or last) line
+            return !string.IsNullOrEmpty(Address) && newlines.Any(Address.Contains) 
+                ? Address?.Split(newlines, StringSplitOptions.None).LastOrDefault() // 2nd or last line
+                : null; // no newlines/returns - nothing to assign to this property
+        }
+    }
     /// <summary>
     /// City__c
     /// </summary>
