@@ -93,19 +93,20 @@ public static class OracleSoapTemplates
     ///  A template for updating an existing Location object in Oracle
     /// </summary>
     /// <returns>TBD</returns>
-    public static string UpdateLocation(OracleLocationModel model)
+    public static string UpdateLocation(OracleLocationModel location)
     {
         var locationEnvelope =
             $@"<soap:Envelope xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
 	            <soap:Body xmlns:typ=""http://xmlns.oracle.com/apps/cdm/foundation/parties/locationService/applicationModule/types/"">
 		            <typ:updateLocation>
 			            <typ:location xmlns:loc=""http://xmlns.oracle.com/apps/cdm/foundation/parties/locationService/"">
-				            <loc:LocationId>{model.LocationId}</loc:LocationId>
-				            <loc:Address1>{model.Address1}</loc:Address1>
-				            <loc:Address2>{model.Address2}</loc:Address2>
-				            <loc:City>{model.City}</loc:City>
-				            <loc:PostalCode>{model.PostalCode}</loc:PostalCode>
-				            <loc:Country>{model.Country}</loc:Country>
+				            <loc:LocationId>{location.LocationId}</loc:LocationId>
+				            <loc:Address1>{location.Address1}</loc:Address1>
+				            <loc:Address2>{location.Address2}</loc:Address2>
+				            <loc:City>{location.City}</loc:City>
+                            <loc:State>{location.State}</loc:State>
+				            <loc:PostalCode>{location.PostalCode}</loc:PostalCode>
+				            <loc:Country>{location.Country}</loc:Country>
 			            </typ:location>
 		            </typ:updateLocation>
 	            </soap:Body>
