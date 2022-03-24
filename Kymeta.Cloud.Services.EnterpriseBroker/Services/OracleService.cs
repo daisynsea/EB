@@ -815,11 +815,11 @@ public class OracleService : IOracleService
         }
 
         // deserialize the xml response envelope
-        XmlSerializer serializer = new(typeof(UpdatePersonEnvelope));
-        var res = (UpdatePersonEnvelope)serializer.Deserialize(updatePersonResponse.Item1.CreateReader());
+        XmlSerializer serializer = new(typeof(MergePersonEnvelope));
+        var res = (MergePersonEnvelope)serializer.Deserialize(updatePersonResponse.Item1.CreateReader());
 
         // map response model to a simplified object
-        var oracleResult = res?.Body?.updatePersonResponse?.result?.Value;
+        var oracleResult = res?.Body?.mergePersonResponse?.result?.Value;
         var oraclePerson = new OraclePersonObject
         {
             ContactNumber = person.ContactNumber,

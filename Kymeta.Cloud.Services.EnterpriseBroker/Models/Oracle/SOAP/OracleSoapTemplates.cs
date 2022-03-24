@@ -550,7 +550,7 @@ public static class OracleSoapTemplates
 	            xmlns:typ=""http://xmlns.oracle.com/apps/cdm/foundation/parties/personService/applicationModule/types/"">
 	            <soapenv:Header />
 	            <soapenv:Body>
-		            <typ:updatePerson>
+		            <typ:mergePerson>
 			            <typ:personParty>
 				            <per:PartyId>{person.PartyId}</per:PartyId>
 				            <per:PersonProfile>
@@ -558,18 +558,32 @@ public static class OracleSoapTemplates
 					            <per:PersonLastName>{person.LastName}</per:PersonLastName>
                                 <per:PersonTitle>{person.Title}</per:PersonTitle>
 				            </per:PersonProfile>";
+        
         // verify we have Phone metadata
         if (person.PhoneNumbers != null && person.PhoneNumbers.Count > 0)
         {
-            var phone = person.PhoneNumbers.FirstOrDefault();
-            if (phone != null)
+            person.PhoneNumbers.ForEach(phone =>
             {
-                personEnvelope +=
+                // if we have a ContactPointId, then we are updating an existing phone number
+                if (phone.ContactPointId != null)
+                {
+                    personEnvelope +=
                                 $@"<per:Phone>
                                     <con:ContactPointId>{phone.ContactPointId}</con:ContactPointId>
                                     <con:PhoneNumber>{phone.PhoneNumber}</con:PhoneNumber>
                                 </per:Phone>";
-            }
+                } else // create a new phone number
+                {
+                    personEnvelope +=
+                                $@"<per:Phone>
+                                    <con:OwnerTableName>HZ_PARTIES</con:OwnerTableName>
+                                    <con:CreatedByModule>HZ_WS</con:CreatedByModule>
+                                    <con:RelationshipId>{person.RelationshipId}</con:RelationshipId>
+                                    <con:PhoneNumber>{phone.PhoneNumber}</con:PhoneNumber>
+                                    <con:PhoneLineType>{phone.PhoneLineType}</con:PhoneLineType> 
+                                </per:Phone>";
+                }
+            });
         }
 
         // verify we have Email metadata
@@ -587,7 +601,7 @@ public static class OracleSoapTemplates
         }
         personEnvelope +=
 			            $@"</typ:personParty>
-		            </typ:updatePerson>
+		            </typ:mergePerson>
 	            </soapenv:Body>
             </soapenv:Envelope>";
         return personEnvelope;
