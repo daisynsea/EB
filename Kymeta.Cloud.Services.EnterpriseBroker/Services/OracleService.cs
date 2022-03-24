@@ -967,6 +967,7 @@ public class OracleService : IOracleService
         {
             person.PartyId = existingPerson.PartyId;
             person.ContactNumber = existingPerson.ContactNumber;
+            person.RelationshipId = existingPerson.RelationshipId;
 
             // map ContactPointId for Email and Phone #
             var existingEmail = existingPerson.EmailAddresses?.FirstOrDefault();
