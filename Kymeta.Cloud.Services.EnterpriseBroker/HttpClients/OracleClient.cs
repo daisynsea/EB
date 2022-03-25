@@ -155,7 +155,7 @@ public class OracleClient : IOracleClient
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogCritical($"Failed UpdateAccount Oracle HTTP call: {(int)response.StatusCode} | {data} | Model sent: {JsonSerializer.Serialize(model)}");
-            return new Tuple<OracleOrganizationResponse, string>(null, data);
+            return new Tuple<OracleOrganizationResponse, string>(null, $"{(int)response.StatusCode} | {data}");
         }
 
         var deserializedObject = JsonSerializer.Deserialize<OracleOrganizationResponse>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });

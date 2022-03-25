@@ -373,7 +373,7 @@ public class AccountBrokerService : IAccountBrokerService
                 else // Otherwise, update it
                 {
                     // update the Organization
-                    var updatedOrganization = await _oracleService.UpdateOrganization(organizationResult.Item2, model, salesforceTransaction);
+                    var updatedOrganization = await _oracleService.UpdateOrganization(organization, model, salesforceTransaction);
                     if (updatedOrganization.Item1 == null)
                     {
                         // fatal error occurred
@@ -544,33 +544,23 @@ public class AccountBrokerService : IAccountBrokerService
                 else // Otherwise, update it
                 {
                     var existingAccount = existingCustomerAccount.Item2;
+
                     // review the list of Persons
                     // check for existing Customer Account Contacts to avoid trying to establish a new relationship with an existing Contact
                     if (existingAccount.Contacts != null && existingAccount.Contacts.Count > 0)
                     {
-                        foreach (var contact in existingAccount.Contacts)
-                        {
-                            // check to see if a matching person (contact) is found
-                            if (accountContacts.Exists(p => p.OrigSystemReference == contact.OrigSystemReference))
-                            {
-                                // remove the person from the list because they already exist as a contact on the Customer Account
-                                accountContacts.RemoveAll(p => p.OrigSystemReference == contact.OrigSystemReference);
-                            }
-                        }
+                        // remove the person from the list if they already exist as a contact on the Customer Account
+                        var existingContacts = existingAccount.Contacts.Select(s => s.ContactPersonId).ToList();
+                        accountContacts.RemoveAll(p => existingContacts.Contains(p.ContactPersonId));
                     }
 
                     // review list of PartySites/Locations to see if we need to create Customer Account Site records
                     if (existingAccount.Sites != null && existingAccount.Sites.Count > 0)
                     {
-                        foreach (var site in existingAccount.Sites)
-                        {
-                            // check to see if the this site already has been established as a Customer Account Site
-                            if (accountSites.Exists(ps => ps.OrigSystemReference == site.OrigSystemReference))
-                            {
-                                // remove the partySite from the list because it already exists and doesn't need to be added again
-                                accountSites.RemoveAll(ps => ps.OrigSystemReference == site.OrigSystemReference);
-                            }
-                        }
+                        // check to see if the this site already has been established as a Customer Account Site
+                        // remove the partySite from the list if it already exists on the Customer Account
+                        var existingSites = existingAccount.Sites.Select(s => s.PartySiteId).ToList();
+                        accountSites.RemoveAll(ps => existingSites.Contains(ps.PartySiteId));
                     }
 
                     // update the Customer Account

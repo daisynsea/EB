@@ -171,7 +171,7 @@ public class OracleService : IOracleService
         var organization = RemapSalesforceAccountToUpdateOracleOrganization(model, existingOracleOrganization);
         if (existingOracleOrganization?.PartyNumber == null) return new Tuple<OracleOrganization, string>(null, $"Oracle Party Number must be present to update the Oracle Organization record.");
         var updated = await _oracleClient.UpdateOrganization(organization, existingOracleOrganization.PartyNumber);
-        if (!string.IsNullOrEmpty(updated.Item2)) return new Tuple<OracleOrganization, string>(null, $"There was an error updating the account in Oracle: {updated.Item2}");
+        if (updated.Item1 == null) return new Tuple<OracleOrganization, string>(null, $"There was an error updating the account in Oracle: {updated.Item2}");
 
         // map response model to our simplified OracleOrganization
         var updatedOrganization = new OracleOrganization
