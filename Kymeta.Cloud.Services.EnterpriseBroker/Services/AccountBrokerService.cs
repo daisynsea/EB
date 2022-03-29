@@ -1,4 +1,5 @@
 ﻿using Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.SOAP;
+using Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce.External;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -15,6 +16,7 @@ public interface IAccountBrokerService
     /// <param name="model">Incoming payload</param>
     /// <returns>Processed action</returns>
     Task<UnifiedResponse> ProcessAccountAction(SalesforceAccountModel model);
+    Task<SalesforceAccountObjectModel> GetSalesforceAccountById(string accountId);
 }
 
 public class AccountBrokerService : IAccountBrokerService
@@ -22,12 +24,19 @@ public class AccountBrokerService : IAccountBrokerService
     private readonly IActionsRepository _actionsRepository;
     private readonly IOracleService _oracleService;
     private readonly IOssService _ossService;
+    private readonly ISalesforceClient _sfClient;
 
-    public AccountBrokerService(IActionsRepository actionsRepository, IOracleService oracleService, IOssService ossService)
+    public AccountBrokerService(IActionsRepository actionsRepository, IOracleService oracleService, IOssService ossService, ISalesforceClient salesforceClient)
     {
         _actionsRepository = actionsRepository;
         _oracleService = oracleService;
         _ossService = ossService;
+        _sfClient = salesforceClient;
+    }
+
+    public async Task<SalesforceAccountObjectModel> GetSalesforceAccountById(string accountId)
+    {
+        return await _sfClient.GetAccountFromSalesforce(accountId);
     }
 
     public async Task<UnifiedResponse> ProcessAccountAction(SalesforceAccountModel model)

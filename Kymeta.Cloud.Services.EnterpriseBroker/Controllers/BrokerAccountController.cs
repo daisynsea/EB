@@ -1,3 +1,4 @@
+using Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce.External;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics.CodeAnalysis;
@@ -36,6 +37,22 @@ public class BrokerAccountController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Error processing create account action due to an exception: {ex.Message}");
+            return StatusCode(500, ex.Message);
+        }
+    }
+
+    [HttpGet("{accountId}"), AllowAnonymous]
+    public async Task<ActionResult<SalesforceAccountObjectModel>> GetSalesforceAccount(string accountId)
+    {
+        if (string.IsNullOrEmpty(accountId)) return new BadRequestObjectResult($"You must provide an accountId to query.");
+
+        try
+        {
+            var result = await _accountBrokerService.GetSalesforceAccountById(accountId);
+            return result;
+        } catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error fetching account from Salesforce REST API due to an exception: {ex.Message}");
             return StatusCode(500, ex.Message);
         }
     }
