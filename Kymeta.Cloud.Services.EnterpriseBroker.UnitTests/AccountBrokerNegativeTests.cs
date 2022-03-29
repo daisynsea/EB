@@ -42,7 +42,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                 .ReturnsAsync(new Tuple<Account, string>(null, $"Error when updating"));
 
             // Act
-            var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object);
+            var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object, _fixture.SalesforceClient.Object);
             var result = await svc.ProcessAccountAction(model);
 
             // Assert
@@ -77,7 +77,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                 .ReturnsAsync(new Tuple<Account, string>(null, $"Error when adding"));
 
             // Act
-            var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object);
+            var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object, _fixture.SalesforceClient.Object);
             var result = await svc.ProcessAccountAction(model);
 
             // Assert
@@ -111,7 +111,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                 .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(false, null, $"There was an error finding the Organization in Oracle: Epic Fail."));      
 
             // Act
-            var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object);
+            var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object, _fixture.SalesforceClient.Object);
             var result = await svc.ProcessAccountAction(model);
 
             // Assert
@@ -182,7 +182,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                 .ReturnsAsync(new Tuple<OracleOrganization, string>(null, "There was an error updating the account in Oracle: Epic Fail"));
 
             // Act
-            var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object);
+            var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object, _fixture.SalesforceClient.Object);
             var result = await svc.ProcessAccountAction(model);
 
             // Assert
@@ -257,7 +257,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                 .ReturnsAsync(new Tuple<OracleOrganization, string>(null, "There was an error adding the account to Oracle: Epic Fail"));
 
             // Act
-            var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object);
+            var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object, _fixture.SalesforceClient.Object);
             var result = await svc.ProcessAccountAction(model);
 
             // Assert
@@ -324,7 +324,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                 .ReturnsAsync(new Tuple<bool, IEnumerable<OracleLocationModel>, string>(false, null, $"There was an error finding the Locations in Oracle: Epic Fail."));
 
             // Act
-            var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object);
+            var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object, _fixture.SalesforceClient.Object);
             var result = await svc.ProcessAccountAction(model);
 
             // Assert
@@ -357,7 +357,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                 .ThrowsAsync(new Exception("Explosions!"));
 
             // Act
-            var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object);
+            var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object, _fixture.SalesforceClient.Object);
             var result = await svc.ProcessAccountAction(model);
 
             // Assert
@@ -385,7 +385,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                 .ThrowsAsync(new Exception("Explosions!"));
 
             // Act
-            var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object);
+            var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object, _fixture.SalesforceClient.Object);
             var result = await svc.ProcessAccountAction(model);
 
             // Assert

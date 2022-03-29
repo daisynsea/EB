@@ -41,7 +41,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
             .ReturnsAsync(new Tuple<Account, string>(accountFromOss, string.Empty));
 
         // Act
-        var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object);
+        var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object, _fixture.SalesforceClient.Object);
         var result = await svc.ProcessAccountAction(model);
 
         // Assert
@@ -77,7 +77,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
             .ReturnsAsync(new Tuple<Account, string>(accountFromOss, string.Empty));
 
         // Act
-        var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object);
+        var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object, _fixture.SalesforceClient.Object);
         var result = await svc.ProcessAccountAction(model);
 
         // Assert
@@ -159,7 +159,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
             .ReturnsAsync(new Tuple<Account, string>(accountFromOss, string.Empty));
 
         // Act
-        var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object);
+        var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object, _fixture.SalesforceClient.Object);
         var result = await svc.ProcessAccountAction(model);
 
         // Assert
@@ -306,7 +306,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
             .ReturnsAsync(new Tuple<Account, string>(accountFromOss, string.Empty));
 
         // Act
-        var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object);
+        var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object, _fixture.SalesforceClient.Object);
         var result = await svc.ProcessAccountAction(model);
 
         // Assert
@@ -428,7 +428,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
             .ReturnsAsync(new Tuple<OracleCustomerAccountProfile, string>(customerProfile, string.Empty));
 
         // Act
-        var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object);
+        var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object, _fixture.SalesforceClient.Object);
         var result = await svc.ProcessAccountAction(model);
 
         // Assert
@@ -565,7 +565,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
             .ReturnsAsync(new Tuple<OracleCustomerAccountProfile, string>(customerProfile, string.Empty));
 
         // Act
-        var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object);
+        var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object, _fixture.SalesforceClient.Object);
         var result = await svc.ProcessAccountAction(model);
 
         // Assert
@@ -591,7 +591,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
         Helpers.MockActionRepository(_fixture.ActionsRepository, transaction);
 
         // Act
-        var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object);
+        var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object, _fixture.SalesforceClient.Object);
         var result = await svc.ProcessAccountAction(model);
 
         // Assert

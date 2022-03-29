@@ -13,6 +13,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
 {
     public class TestFixture : IDisposable
     {
+        public Mock<ISalesforceClient> SalesforceClient = new Mock<ISalesforceClient>();
         public Mock<IAccountsClient> AccountsClient = new Mock<IAccountsClient>();
         public Mock<IUsersClient> UsersClient = new Mock<IUsersClient>();
         public Mock<IOracleClient> OracleClient = new Mock<IOracleClient>();
