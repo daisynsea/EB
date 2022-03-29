@@ -9,6 +9,7 @@ public interface ISalesforceClient
     Task<SalesforceAddressObjectModel> GetAddressFromSalesforce(string addressId);
     Task<SalesforceContactObjectModel> GetContactFromSalesforce(string contactId);
     Task<SalesforceAccountObjectModel> GetAccountFromSalesforce(string accountId);
+    Task<SalesforceUserObjectModel> GetUserFromSalesforce(string userId);
 }
 
 public class SalesforceClient : ISalesforceClient
@@ -47,7 +48,7 @@ public class SalesforceClient : ISalesforceClient
         }
         catch (Exception ex)
         {
-            _logger.LogError($"[EB] Exception thrown when fetching Account from Salesforce: {ex.Message}");
+            _logger.LogError($"[EB] Exception thrown when fetching Address from Salesforce: {ex.Message}");
             return null;
         }
     }
@@ -73,7 +74,7 @@ public class SalesforceClient : ISalesforceClient
         }
         catch (Exception ex)
         {
-            _logger.LogError($"[EB] Exception thrown when fetching Account from Salesforce: {ex.Message}");
+            _logger.LogError($"[EB] Exception thrown when fetching Contact from Salesforce: {ex.Message}");
             return null;
         }
     }
@@ -99,6 +100,32 @@ public class SalesforceClient : ISalesforceClient
         } catch (Exception ex)
         {
             _logger.LogError($"[EB] Exception thrown when fetching Account from Salesforce: {ex.Message}");
+            return null;
+        }
+    }
+
+    public async Task<SalesforceUserObjectModel> GetUserFromSalesforce(string userId)
+    {
+        try
+        {
+            var tokenAndUrl = await GetTokenAndUrl();
+            var token = tokenAndUrl?.Item1;
+            var url = tokenAndUrl?.Item2;
+
+            _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+            var response = await _client.GetAsync($"{url}/services/data/v53.0/sobjects/User/{userId}");
+            var stringResponse = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode) return null;
+
+            var accountObject = JsonConvert.DeserializeObject<SalesforceUserObjectModel>(stringResponse);
+
+            return accountObject;
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"[EB] Exception thrown when fetching User from Salesforce: {ex.Message}");
             return null;
         }
     }
