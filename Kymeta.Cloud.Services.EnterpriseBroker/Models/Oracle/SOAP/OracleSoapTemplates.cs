@@ -78,6 +78,7 @@ public static class OracleSoapTemplates
                             <loc:OrigSystemReference>{location.OrigSystemReference}</loc:OrigSystemReference>
                             <loc:Address1>{location.Address1}</loc:Address1>
                             <loc:Address2>{location.Address2}</loc:Address2>
+                            <loc:Address3> </loc:Address3>
                             <loc:City>{location.City}</loc:City>
                             <loc:State>{location.State}</loc:State>
                             <loc:Province>{location.State}</loc:Province>
@@ -325,8 +326,7 @@ public static class OracleSoapTemplates
                                 $"<ns3:PartySiteId>{ps.PartySiteId}</ns3:PartySiteId>" +
                                 $"<ns3:LocationId>{ps.LocationId}</ns3:LocationId>" +
                                 $"<ns3:OrigSystemReference>{ps.OrigSystemReference}</ns3:OrigSystemReference>" +
-                                $"<ns3:PartySiteName>{ps.PartySiteName}</ns3:PartySiteName>" +
-                                "<ns3:CreatedByModule>HZ_WS</ns3:CreatedByModule>";
+                                $"<ns3:PartySiteName>{ps.PartySiteName}</ns3:PartySiteName>";
             // TODO: figure out why Oracle prevents us from updating these PartySiteUse objects... current errors on conflicting Site Use values instead of accepting what is provided
             //if (ps.SiteUses != null)
             //{
