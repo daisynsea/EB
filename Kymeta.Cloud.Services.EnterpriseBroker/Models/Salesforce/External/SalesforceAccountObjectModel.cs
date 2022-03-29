@@ -24,5 +24,7 @@ public class SalesforceAccountObjectModel
     public string? Sync_Status__c { get; set; }
     public string? OSS_Error_Message__c { get; set; }
     public string? Oracle_Error_Message__c { get; set; }
+    public string? Pricebook__c { get; set; }
+    public string? Volume_Tier__c { get; set; }
     public bool? Approved__c { get; set; }
 }

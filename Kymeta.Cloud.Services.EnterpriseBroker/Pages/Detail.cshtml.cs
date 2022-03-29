@@ -19,7 +19,14 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Pages
         public SalesforceActionTransaction SalesforceActionTransaction { get; set; }
         public SalesforceActionObject? SalesforceActionObject { get; set; }
         public SalesforceAccountObjectModel SalesforceAccount { get; set; }
-        public string SerializedAccount => JsonSerializer.Serialize(SalesforceAccount, _serializerOptions);
+        public SalesforceContactObjectModel SalesforceContact { get; set; }
+        public SalesforceAddressObjectModel SalesforceAddress { get; set; }
+
+        public string? SerializedAccount => SalesforceAccount != null ? JsonSerializer.Serialize(SalesforceAccount, _serializerOptions) : null;
+        public string? SerializedAddress => SalesforceAddress != null ? JsonSerializer.Serialize(SalesforceAddress, _serializerOptions) : null;
+        public string? SerializedContact => SalesforceContact != null ? JsonSerializer.Serialize(SalesforceContact, _serializerOptions) : null;
+
+
         public string TimePreference = "utc";
         public string SerializedTransaction
         {
@@ -74,6 +81,12 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Pages
             if (objectType == "Account")
             {
                 SalesforceAccount = await _salesforceClient.GetAccountFromSalesforce(SalesforceActionObject?.ObjectId);
+            } else if (objectType == "Contact")
+            {
+                SalesforceContact = await _salesforceClient.GetContactFromSalesforce(SalesforceActionObject?.ObjectId);
+            } else if (objectType == "Address")
+            {
+                SalesforceAddress = await _salesforceClient.GetAddressFromSalesforce(SalesforceActionObject?.ObjectId);
             }
         }
     }
