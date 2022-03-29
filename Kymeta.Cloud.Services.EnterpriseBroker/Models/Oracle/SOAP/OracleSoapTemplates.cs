@@ -104,6 +104,7 @@ public static class OracleSoapTemplates
 				            <loc:LocationId>{location.LocationId}</loc:LocationId>
 				            <loc:Address1>{location.Address1}</loc:Address1>
 				            <loc:Address2>{location.Address2}</loc:Address2>
+				            <loc:Address3> </loc:Address3>
 				            <loc:City>{location.City}</loc:City>
                             <loc:State>{location.State}</loc:State>
                             <loc:Province>{location.State}</loc:Province>
