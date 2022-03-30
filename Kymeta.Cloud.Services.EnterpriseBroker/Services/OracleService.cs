@@ -26,6 +26,8 @@ public interface IOracleService
     Task<Tuple<bool, IEnumerable<OraclePersonObject>, string>> GetPersonsById(List<Tuple<string, ulong?>> contactIds, SalesforceActionTransaction transaction);
     Task<Tuple<OraclePersonObject, string>> CreatePerson(SalesforceContactModel model, ulong organizationPartyId, SalesforceActionTransaction transaction);
     Task<Tuple<OraclePersonObject, string>> UpdatePerson(SalesforceContactModel model, OraclePersonObject existingPerson, SalesforceActionTransaction transaction);
+    // Helpers
+    Task<string> RemapBusinessUnitToOracleSiteAddressSet(string businessUnit, SalesforceActionTransaction transaction);
 }
 
 public class OracleService : IOracleService
@@ -857,6 +859,51 @@ public class OracleService : IOracleService
     #endregion
 
     #region Helpers
+    public async Task<string> RemapBusinessUnitToOracleSiteAddressSet(string businessUnit, SalesforceActionTransaction transaction)
+    {
+        await LogAction(transaction, SalesforceTransactionAction.ValidateBusinessUnit, ActionObjectType.Account, StatusType.Started, businessUnit);
+        // if no BusinessUnit, then return
+        if (string.IsNullOrEmpty(businessUnit))
+        {
+            await LogAction(transaction, SalesforceTransactionAction.ValidateBusinessUnit, ActionObjectType.Account, StatusType.Error, businessUnit, "Business unit not recognized.");
+            return null;
+        }
+
+        string result = null!;
+        // decode any Ascii characters
+        var decodedBusinessUnit = OracleSoapTemplates.DecodeEncodedNonAsciiCharacters(businessUnit);
+
+        // calculate AddressSet from Business Unit
+        var businessUnitLower = decodedBusinessUnit.ToLower();
+        if (businessUnitLower.Contains("commercial;u.s. government"))
+        {
+            result = OracleSoapTemplates.AddressSetIds.GetValueOrDefault(OracleSoapTemplates.BusinessUnit.KYMETAKGS.ToString().ToLower());
+        }
+        else if (businessUnitLower.Contains("commercial"))
+        {
+            result = OracleSoapTemplates.AddressSetIds.GetValue(OracleSoapTemplates.BusinessUnit.KYMETA.ToString().ToLower());
+        }
+        else if (businessUnitLower.Contains("u.s. government"))
+        {
+            result = OracleSoapTemplates.AddressSetIds.GetValue(OracleSoapTemplates.BusinessUnit.KGS.ToString().ToLower());
+        }
+        else
+        {
+            // selection not recognized
+        }
+
+        // log the appropriate action
+        if (string.IsNullOrEmpty(result))
+        {
+            await LogAction(transaction, SalesforceTransactionAction.ValidateBusinessUnit, ActionObjectType.Account, StatusType.Error, businessUnit, "Business unit not recognized.");
+        }
+        else {
+            await LogAction(transaction, SalesforceTransactionAction.ValidateBusinessUnit, ActionObjectType.Account, StatusType.Successful, businessUnit, result);
+        }
+
+        // return the Oracle Address Set Id
+        return result;
+    }
 
     private CreateOracleOrganizationModel RemapSalesforceAccountToCreateOracleOrganization(SalesforceAccountModel model)
     {

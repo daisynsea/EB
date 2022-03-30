@@ -54,25 +54,11 @@ public class SalesforceActionTransaction
 
     public UnifiedResponse? Response { get; set; }
 
-    [JsonIgnore]
-    public StatusType? OssStatus
-    {
-        get
-        {
-            var ossStatuses = TransactionLog?.Where(a => a.Action.ToString().ToLower().Contains("oss")).OrderByDescending(t => t.Timestamp);
-            return ossStatuses?.FirstOrDefault()?.Status ?? StatusType.Skipped;
-        }
-    }
+    [JsonProperty("ossStatus")]
+    public StatusType? OssStatus => string.IsNullOrEmpty(Response?.OSSStatus.ToString()) ? StatusType.Started : Response.OSSStatus;
 
-    [JsonIgnore]
-    public StatusType? OracleStatus
-    {
-        get
-        {
-            var oracleStatuses = TransactionLog?.Where(a => a.Action.ToString().ToLower().Contains("oracle")).OrderByDescending(t => t.Timestamp);
-            return oracleStatuses?.FirstOrDefault()?.Status ?? StatusType.Skipped;
-        }
-    }
+    [JsonProperty("oracleStatus")]
+    public StatusType? OracleStatus => string.IsNullOrEmpty(Response?.OracleStatus.ToString()) ? StatusType.Started : Response.OracleStatus;
 }
 
 public class SalesforceActionRecord
@@ -122,7 +108,9 @@ public enum SalesforceTransactionAction
     CreateCustomerAccountContactInOracle,
     // Update Contact
     UpdatePersonInOracle,
-    UpdateCustomerContactContactInOracle
+    UpdateCustomerContactContactInOracle,
+    // Validation
+    ValidateBusinessUnit
 }
 
 public enum ActionObjectType

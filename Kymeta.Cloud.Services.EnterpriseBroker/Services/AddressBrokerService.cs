@@ -85,7 +85,7 @@ public class AddressBrokerService : IAddressBrokerService
             var customerAccount = customerAccountResult.Item2;
 
             // remap Salesforce Business Unit value to Oracle Address Set
-            var addressSetId = Helpers.RemapBusinessUnitToOracleSiteAddressSet(model.ParentAccountBusinessUnit);
+            var addressSetId = await _oracleService.RemapBusinessUnitToOracleSiteAddressSet(model.ParentAccountBusinessUnit, salesforceTransaction);
             if (addressSetId == null)
             {
                 // fatal error occurred when sending request to oracle... return badRequest here?
