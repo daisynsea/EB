@@ -114,6 +114,9 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
         // Mock Oracle portion of the request
         var oracleOrg = Helpers.BuildOracleOrganization();
         _fixture.OracleService
+            .Setup(ors => ors.RemapBusinessUnitToOracleSiteAddressSet(It.IsAny<string>(), transaction))
+            .ReturnsAsync("300000001127004");
+        _fixture.OracleService
             .Setup(ors => ors.GetOrganizationById(It.IsAny<string>(), transaction, null))
             .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(true, oracleOrg, string.Empty));
         _fixture.OracleService
@@ -223,6 +226,9 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
                 }
             }
         };
+        _fixture.OracleService
+            .Setup(ors => ors.RemapBusinessUnitToOracleSiteAddressSet(It.IsAny<string>(), transaction))
+            .ReturnsAsync("300000001127004");
         // finding organization returns a null so...
         _fixture.OracleService
             .Setup(ors => ors.GetOrganizationById(It.IsAny<string>(), transaction, null))
@@ -355,6 +361,9 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
                     }
                 }
         };
+        _fixture.OracleService
+            .Setup(ors => ors.RemapBusinessUnitToOracleSiteAddressSet(It.IsAny<string>(), transaction))
+            .ReturnsAsync("300000001127004");
         _fixture.OracleService
             .Setup(ors => ors.GetOrganizationById(It.IsAny<string>(), transaction, null))
             .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(true, oracleOrg, string.Empty));
@@ -492,6 +501,9 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
                     }
                 }
         };
+        _fixture.OracleService
+            .Setup(ors => ors.RemapBusinessUnitToOracleSiteAddressSet(It.IsAny<string>(), transaction))
+            .ReturnsAsync("300000001127004");
         _fixture.OracleService
             .Setup(ors => ors.GetOrganizationById(It.IsAny<string>(), transaction, null))
             .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(true, oracleOrg, string.Empty));

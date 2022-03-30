@@ -69,6 +69,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             var transaction = Helpers.BuildSalesforceTransaction();
             Helpers.MockActionRepository(_fixture.ActionsRepository, transaction);
 
+
             _fixture.OssService
                 .Setup(oss => oss.GetAccountBySalesforceId(It.IsAny<string>()))
                 .ReturnsAsync((Account)null);
@@ -172,6 +173,9 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                 new OracleLocationModel { LocationId = 30002, OrigSystemReference = "add30002" }
             };
             _fixture.OracleService
+                .Setup(ors => ors.RemapBusinessUnitToOracleSiteAddressSet(It.IsAny<string>(), transaction))
+                .ReturnsAsync("300000001127004");
+            _fixture.OracleService
                 .Setup(ors => ors.GetLocationsById(It.IsAny<List<Tuple<string, ulong?, ulong?>>>(), transaction))
                 .ReturnsAsync(new Tuple<bool, IEnumerable<OracleLocationModel>, string>(true, locations, string.Empty));
             _fixture.OracleService
@@ -191,6 +195,80 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             Assert.Equal(StatusType.Error, result.OracleStatus);
             Assert.Equal(StatusType.Skipped, result.OSSStatus);
             Assert.Equal($"There was an error updating the account in Oracle: Epic Fail", result.OracleErrorMessage);
+            Assert.Null(result.OSSErrorMessage);
+            Assert.Null(result.OssAccountId);
+            Assert.Null(result.OracleOrganizationId);
+            Assert.Null(result.OracleCustomerProfileId);
+            Assert.Null(result.OracleCustomerAccountId);
+        }
+
+        [Fact]
+        [Trait("Category", "AccountBrokerTests")]
+        [Trait("Category", "AccountBrokerNegativeTests")]
+        [Trait("Category", "AccountBrokerOracleTests")]
+        [Trait("Category", "AccountBrokerOracleOrganizationTests")]
+        public async void PSA_SyncToOracle_ValidModel_InvalidBusinessUnit_ReturnsError()
+        {
+            // Arrange
+            var model = Helpers.BuildSalesforceAccountModel(true, false);
+            var transaction = Helpers.BuildSalesforceTransaction();
+            Helpers.MockActionRepository(_fixture.ActionsRepository, transaction);
+
+            // Mock Oracle portion of the request
+            var oracleOrg = new OracleOrganization
+            {
+                PartyId = 001,
+                PartyNumber = 30001,
+                OrigSystemReference = "acc30001",
+                PartySites = new List<OraclePartySite>
+                {
+                    new OraclePartySite
+                    {
+                        OrigSystemReference = "add30001",
+                        LocationId = 30001
+                    },
+                    new OraclePartySite
+                    {
+                        OrigSystemReference = "add30002",
+                        LocationId = 30002
+                    }
+                },
+                Contacts = new List<OracleOrganizationContact>
+                {
+                    new OracleOrganizationContact
+                    {
+                        OrigSystemReference = "con30001",
+                        ContactPartyId = 30001
+                    }
+                }
+            };
+            var locations = new List<OracleLocationModel> {
+                new OracleLocationModel { LocationId = 30001, OrigSystemReference = "add30001" },
+                new OracleLocationModel { LocationId = 30002, OrigSystemReference = "add30002" }
+            };
+
+            _fixture.OracleService
+                .Setup(ors => ors.RemapBusinessUnitToOracleSiteAddressSet(It.IsAny<string>(), transaction));
+            _fixture.OracleService
+                .Setup(ors => ors.GetLocationsById(It.IsAny<List<Tuple<string, ulong?, ulong?>>>(), transaction))
+                .ReturnsAsync(new Tuple<bool, IEnumerable<OracleLocationModel>, string>(true, locations, string.Empty));
+            _fixture.OracleService
+                .Setup(ors => ors.GetOrganizationById(It.IsAny<string>(), transaction, null))
+                .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(true, oracleOrg, string.Empty));
+            _fixture.OracleService
+                .Setup(ors => ors.UpdateOrganization(It.IsAny<OracleOrganization>(), It.IsAny<SalesforceAccountModel>(), transaction))
+                .ReturnsAsync(new Tuple<OracleOrganization, string>(null, "There was an error updating the account in Oracle: Epic Fail"));
+
+            // Act
+            var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object, _fixture.SalesforceClient.Object);
+            var result = await svc.ProcessAccountAction(model);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(model.ObjectId, result.SalesforceObjectId);
+            Assert.Equal(StatusType.Error, result.OracleStatus);
+            Assert.Equal(StatusType.Skipped, result.OSSStatus);
+            Assert.Equal($"Business Unit not recognized.", result.OracleErrorMessage);
             Assert.Null(result.OSSErrorMessage);
             Assert.Null(result.OssAccountId);
             Assert.Null(result.OracleOrganizationId);
@@ -249,6 +327,9 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             _fixture.OracleService
                 .Setup(ors => ors.GetOrganizationById(It.IsAny<string>(), transaction, null))
                 .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(true, null, string.Empty));
+            _fixture.OracleService
+                .Setup(ors => ors.RemapBusinessUnitToOracleSiteAddressSet(It.IsAny<string>(), transaction))
+                .ReturnsAsync("300000001127004");
             _fixture.OracleService
                 .Setup(ors => ors.GetLocationsById(It.IsAny<List<Tuple<string, ulong?, ulong?>>>(), transaction))
                 .ReturnsAsync(new Tuple<bool, IEnumerable<OracleLocationModel>, string>(true, locations, string.Empty));
@@ -313,6 +394,9 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                     }
                 }
             };
+            _fixture.OracleService
+                .Setup(ors => ors.RemapBusinessUnitToOracleSiteAddressSet(It.IsAny<string>(), transaction))
+                .ReturnsAsync("300000001127004");
             _fixture.OracleService
                 .Setup(ors => ors.GetOrganizationById(It.IsAny<string>(), transaction, null))
                 .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(true, null, string.Empty));

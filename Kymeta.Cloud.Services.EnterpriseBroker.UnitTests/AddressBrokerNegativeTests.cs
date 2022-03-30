@@ -94,6 +94,10 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             var transaction = Helpers.BuildSalesforceTransaction();
             Helpers.MockActionRepository(_fixture.ActionsRepository, transaction);
 
+            // valid business unit
+            _fixture.OracleService
+                .Setup(ors => ors.RemapBusinessUnitToOracleSiteAddressSet(It.IsAny<string>(), transaction))
+                .ReturnsAsync("300000001127004");
             // The organization exists
             var oracleOrg = Helpers.BuildOracleOrganization();
             _fixture.OracleService
@@ -133,6 +137,10 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             var transaction = Helpers.BuildSalesforceTransaction();
             Helpers.MockActionRepository(_fixture.ActionsRepository, transaction);
 
+            // valid business unit
+            _fixture.OracleService
+                .Setup(ors => ors.RemapBusinessUnitToOracleSiteAddressSet(It.IsAny<string>(), transaction))
+                .ReturnsAsync("300000001127004");
             // The organization exists
             var oracleOrg = Helpers.BuildOracleOrganization();
             _fixture.OracleService
@@ -176,6 +184,10 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             var transaction = Helpers.BuildSalesforceTransaction();
             Helpers.MockActionRepository(_fixture.ActionsRepository, transaction);
 
+            // valid business unit
+            _fixture.OracleService
+                .Setup(ors => ors.RemapBusinessUnitToOracleSiteAddressSet(It.IsAny<string>(), transaction))
+                .ReturnsAsync("300000001127004");
             // The organization exists
             var oracleOrg = Helpers.BuildOracleOrganization();
             _fixture.OracleService
@@ -227,6 +239,10 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             var transaction = Helpers.BuildSalesforceTransaction();
             Helpers.MockActionRepository(_fixture.ActionsRepository, transaction);
 
+            // valid business unit
+            _fixture.OracleService
+                .Setup(ors => ors.RemapBusinessUnitToOracleSiteAddressSet(It.IsAny<string>(), transaction))
+                .ReturnsAsync("300000001127004");
             // The organization exists
             var oracleOrg = Helpers.BuildOracleOrganization();
             _fixture.OracleService
@@ -291,6 +307,10 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             var transaction = Helpers.BuildSalesforceTransaction();
             Helpers.MockActionRepository(_fixture.ActionsRepository, transaction);
 
+            // valid business unit
+            _fixture.OracleService
+                .Setup(ors => ors.RemapBusinessUnitToOracleSiteAddressSet(It.IsAny<string>(), transaction))
+                .ReturnsAsync("300000001127004");
             // The organization exists
             var oracleOrg = Helpers.BuildOracleOrganization();
             _fixture.OracleService
