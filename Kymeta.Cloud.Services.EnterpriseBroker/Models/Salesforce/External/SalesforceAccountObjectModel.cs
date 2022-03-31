@@ -27,4 +27,14 @@ public class SalesforceAccountObjectModel
     public string? Pricebook__c { get; set; }
     public string? Volume_Tier__c { get; set; }
     public bool? Approved__c { get; set; }
+
+    // Configurator related fields
+    public string? EB_Configurator_Contact__c { get; set; }
+    public string? EB_Configurator_Contact_Override__c { get; set; }
+    public bool? EB_Configurator_PB_C_Visible__c { get; set; }
+    public double? EB_Configurator_Discount_Tier__c { get; set; }
+    public bool? EB_Configurator_PB_M_Visible__c { get; set; }
+    public bool? EB_Configurator_Pricing_MSRP_Visible__c { get; set; }
+    public bool? EB_Configurator_Visible__c { get; set; }
+    public bool? EB_Configurator_Pricing_WS_Visible__c { get; set; }
 }
