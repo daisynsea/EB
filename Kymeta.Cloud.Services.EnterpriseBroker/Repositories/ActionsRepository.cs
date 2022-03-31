@@ -33,7 +33,7 @@ public class ActionsRepository : IActionsRepository
 
     public async Task<IEnumerable<SalesforceActionTransaction>> GetActionRecords()
     {
-        var sqlQueryText = "SELECT * FROM c";
+        var sqlQueryText = "SELECT * FROM c ORDER BY c.createdOn DESC";
 
         QueryDefinition queryDefinition = new QueryDefinition(sqlQueryText);
         FeedIterator<SalesforceActionTransaction> queryResultSetIterator = this.Container.GetItemQueryIterator<SalesforceActionTransaction>(queryDefinition);

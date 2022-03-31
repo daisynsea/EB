@@ -1,10 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics.CodeAnalysis;
+
 namespace Kymeta.Cloud.Services.EnterpriseBroker.Controllers;
 
 [ApiController]
 [ApiVersion("1")]
 [Produces("application/json")]
 [Route("api/v{version:apiVersion}/contact")]
+[ExcludeFromCodeCoverage]
 public class BrokerContactController : ControllerBase
 {
     private readonly ILogger<BrokerContactController> _logger;
@@ -21,8 +25,8 @@ public class BrokerContactController : ControllerBase
     /// </summary>
     /// <param name="model">Incoming Payload</param>
     /// <returns>Response model</returns>
-    [HttpPost]
-    public async Task<ActionResult<ContactResponse>> ProcessContact([FromBody] SalesforceContactModel model)
+    [HttpPost, AllowAnonymous]
+    public async Task<ActionResult<UnifiedResponse>> ProcessContact([FromBody] SalesforceContactModel model)
     {
         try
         {

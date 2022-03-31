@@ -32,6 +32,11 @@ public class SalesforceActionTransaction
     [JsonProperty("objectId")]
     public string? ObjectId { get; set; }
     /// <summary>
+    /// Name of the Salesforce Object
+    /// </summary>
+    [JsonProperty("objectName")]
+    public string? ObjectName { get; set; }
+    /// <summary>
     /// Datetime the EnterpriseAction record was last updated on
     /// </summary>
     [JsonProperty("lastUpdatedOn")]
@@ -47,27 +52,13 @@ public class SalesforceActionTransaction
     [JsonProperty("transactionLog")]
     public List<SalesforceActionRecord>? TransactionLog { get; set; }
 
-    public SalesforceProcessResponse? Response { get; set; }
+    public UnifiedResponse? Response { get; set; }
 
-    [JsonIgnore]
-    public StatusType? OssStatus
-    {
-        get
-        {
-            var ossStatuses = TransactionLog?.Where(a => a.Action.ToString().ToLower().Contains("oss")).OrderByDescending(t => t.Timestamp);
-            return ossStatuses?.FirstOrDefault()?.Status ?? StatusType.Skipped;
-        }
-    }
+    [JsonProperty("ossStatus")]
+    public StatusType? OssStatus => string.IsNullOrEmpty(Response?.OSSStatus.ToString()) ? StatusType.Started : Response.OSSStatus;
 
-    [JsonIgnore]
-    public StatusType? OracleStatus
-    {
-        get
-        {
-            var oracleStatuses = TransactionLog?.Where(a => a.Action.ToString().ToLower().Contains("oracle")).OrderByDescending(t => t.Timestamp);
-            return oracleStatuses?.FirstOrDefault()?.Status ?? StatusType.Skipped;
-        }
-    }
+    [JsonProperty("oracleStatus")]
+    public StatusType? OracleStatus => string.IsNullOrEmpty(Response?.OracleStatus.ToString()) ? StatusType.Started : Response.OracleStatus;
 }
 
 public class SalesforceActionRecord
@@ -76,6 +67,7 @@ public class SalesforceActionRecord
     public SalesforceTransactionAction Action { get; set; }
     [JsonConverter(typeof(StringEnumConverter))]
     public StatusType Status { get; set; }
+    public ActionObjectType ObjectType { get; set; }
     public DateTime? Timestamp { get; set; }
     public string? ErrorMessage { get; set; }
     public string? EntityId { get; set; }
@@ -83,6 +75,14 @@ public class SalesforceActionRecord
 
 public enum SalesforceTransactionAction
 {
+    // Default
+    Default,
+    // Gets
+    GetOrganizationInOracleBySFID,
+    GetCustomerAccountBySFID,
+    GetCustomerProfileBySFID,
+    GetLocationBySalesforceId,
+    GetPersonBySalesforceId,
     // Create Account
     CreateAccountInOss,
     CreateOrganizationInOracle,
@@ -90,6 +90,8 @@ public enum SalesforceTransactionAction
     CreateCustomerProfileInOracle,
     // Create Address
     CreateLocationInOracle,
+    CreatePartySiteInOracle,
+    UpdatePartySiteInOracle,
     CreateCustomerAccountSiteInOracle,
     // Update Account
     UpdateAccountInOss,
@@ -99,13 +101,16 @@ public enum SalesforceTransactionAction
     UpdateCustomerProfileInOracle,
     // Update Address
     UpdateAddressInOss,
+    UpdateLocationInOracle,
     UpdateCustomerAccountSiteInOracle,
     // Create Contact
     CreatePersonInOracle,
-    CreateCustomerProfileContactInOracle,
+    CreateCustomerAccountContactInOracle,
     // Update Contact
     UpdatePersonInOracle,
-    UpdateCustomerProfileContactInOracle
+    UpdateCustomerContactContactInOracle,
+    // Validation
+    ValidateBusinessUnit
 }
 
 public enum ActionObjectType

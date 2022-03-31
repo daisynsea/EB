@@ -1,11 +1,16 @@
-﻿namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle
+﻿namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle;
+
+public class OracleCustomerAccount
 {
-    public class OracleCustomerAccount
-    {
-        // TODO: Fill this in
-        public string? PartyNumber { get; set; }
-        public string? PartyId { get; set; }
-        public List<OracleCustomerAccountContact> Persons { get; set; }
-        public List<OracleCustomerAccountSite> Locations { get; set; }
-    }
+    public string? AccountName { get; set; }
+    public uint? AccountNumber { get; set; }
+    public ulong? CustomerAccountId { get; set; }
+    public ulong? PartyId { get; set; }
+    public string? OrigSystemReference { get; set; }
+    public string? SalesforceId { get; set; }
+    public string? OssId { get; set; }
+    public string? AccountType { get; set; }
+    public string? AccountSubType { get; set; }
+    public List<OracleCustomerAccountContact>? Contacts { get; set; }
+    public List<OracleCustomerAccountSite>? Sites { get; set; }
 }

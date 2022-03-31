@@ -1,7 +1,6 @@
-﻿using System;
-using System.Xml.Serialization;
+﻿using System.Xml.Serialization;
 
-namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle;
+namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.SOAP.ResponseModels;
 
 // NOTE: This code was generated from XML (Oracle Response payload)
 
@@ -105,7 +104,7 @@ public class CreateCustomerAccountValue
     public object OrigSystem { get; set; }
 
     /// <remarks/>
-    public ulong OrigSystemReference { get; set; }
+    public string OrigSystemReference { get; set; }
 
     /// <remarks/>
     public string Status { get; set; }
@@ -196,14 +195,36 @@ public class CreateCustomerAccountValue
     public object SellingPartyId { get; set; }
 
     /// <remarks/>
-    public ValueOriginalSystemReference OriginalSystemReference { get; set; }
+    public UpdateCustomerAccountValueCustAcctInformation CustAcctInformation { get; set; }
+
+    /// <remarks/>
+    public CreateCustomerAccountValueOriginalSystemReference OriginalSystemReference { get; set; }
 }
 
 /// <remarks/>
 [Serializable]
 [System.ComponentModel.DesignerCategory("code")]
 [XmlType(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/")]
-public class ValueOriginalSystemReference
+public class ValueCustAcctInformation
+{
+    /// <remarks/>
+    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/flex/custAccount/")]
+    public ulong CustAccountId { get; set; }
+
+    /// <remarks/>
+    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/flex/custAccount/")]
+    public string salesforceId { get; set; }
+
+    /// <remarks/>
+    [XmlElement(Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/flex/custAccount/")]
+    public string ksnId { get; set; }
+}
+
+/// <remarks/>
+[Serializable]
+[System.ComponentModel.DesignerCategory("code")]
+[XmlType(AnonymousType = true, Namespace = "http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/")]
+public class CreateCustomerAccountValueOriginalSystemReference
 {
 
     /// <remarks/>

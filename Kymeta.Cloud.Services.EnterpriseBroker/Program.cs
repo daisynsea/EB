@@ -1,8 +1,10 @@
 using Kymeta.Cloud.Commons.AspNet.ApiVersion;
 using Kymeta.Cloud.Commons.AspNet.DistributedConfig;
 using Kymeta.Cloud.Commons.AspNet.Health;
+using Kymeta.Cloud.Commons.Databases.Redis;
 using Kymeta.Cloud.Logging;
 using Kymeta.Cloud.Services.EnterpriseBroker;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Diagnostics;
 using System.Text.Json.Serialization;
 
@@ -47,7 +49,48 @@ builder.Services.AddScoped<IAccountBrokerService, AccountBrokerService>();
 builder.Services.AddScoped<IAddressBrokerService, AddressBrokerService>();
 builder.Services.AddScoped<IContactBrokerService, ContactBrokerService>();
 builder.Services.AddScoped<IOracleService, OracleService>();
-// TODO: Add more here
+builder.Services.AddRedisClient(new RedisClientOptions
+{
+    ConnectionString = builder.Configuration.GetConnectionString("RedisCache")
+});
+builder.Services.AddHttpClient<ISalesforceClient, SalesforceClient>();
+
+builder.Services.AddAuthorization();
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, opts =>
+                {
+                    opts.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                    opts.LoginPath = "/Auth/Login";
+                    //opts.LogoutPath = "/auth/logout";
+                    opts.ClaimsIssuer = "kymetacloudservices";
+                    opts.ExpireTimeSpan = TimeSpan.FromHours(24);
+                })
+                .AddOpenIdConnect("oidc", options =>
+                {
+                    options.ClientId = "enterprisebroker";
+                    options.ClientSecret = builder.Configuration["Authentication:OidcSecret"] ?? "secret";
+                    options.Authority = builder.Configuration["Api:ApiAccess"] ?? "https://access.kymeta.io";
+                    options.ResponseType = "code";
+                    options.SignedOutCallbackPath = "/signout-callback-openid";
+                    options.SignedOutRedirectUri = "~/";
+                    options.SaveTokens = true;
+                    options.Scope.Clear();
+                    options.Scope.Add("email");
+                    options.Scope.Add("openid");
+                    options.Scope.Add("enterprisebroker");
+                    options.Events.OnAuthenticationFailed = ctx =>
+                    {
+                        ctx.HandleResponse();
+                        ctx.Response.Redirect("Unauthorized");
+                        return Task.FromResult(0);
+                    };
+                    options.Events.OnRemoteFailure = ctx =>
+                    {
+                        ctx.HandleResponse();
+                        ctx.Response.Redirect("Error");
+                        return Task.FromResult(0);
+                    };
+                });
 
 // Add health client
 builder.Services.AddHealthClient(new HealthServiceOptions
@@ -77,8 +120,16 @@ var app = builder.Build();
 //app.UseHttpsRedirection();
 app.UseApiVersionPathMiddleware();
 app.UseAuthKeyMiddleware();
+
+app.UseRouting();
+app.UseAuthentication();
 app.UseAuthorization();
-app.MapControllers();
-app.MapRazorPages();
-app.UseHealthChecks("/health");
+
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllers();
+    endpoints.MapRazorPages();
+    endpoints.MapHealthChecks("/health");
+});
+
 app.Run();

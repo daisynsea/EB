@@ -1,19 +1,22 @@
 ﻿using Kymeta.Cloud.Services.EnterpriseBroker.Models;
 using Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle;
+using Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.REST;
+using Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.SOAP.ResponseModels;
 using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Xml.Linq;
+using System.Xml.Serialization;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.HttpClients;
 
 public interface IOracleClient
 {
-    Task<Tuple<OracleOrganization, string>> CreateOrganization(string name);
-    Task<Tuple<OracleOrganization, string>> UpdateAccount(CreateOracleAccountViewModel model, string partyNumber);
+    Task<Tuple<OracleOrganizationResponse, string>> CreateOrganization(CreateOracleOrganizationModel model);
+    Task<Tuple<OracleOrganizationResponse, string>> UpdateOrganization(UpdateOracleOrganizationModel model, ulong partyNumber);
     Task<Tuple<OracleAddressObject, string>> CreateAddress(string accountNumber, CreateOracleAddressViewModel model);
     Task<Tuple<OracleAddressObject, string>> UpdateAddress(string accountNumber, CreateOracleAddressViewModel model, string partyNumber);
-    Task<Tuple<XDocument, string>> SendSoapRequest(string soapEnvelope, string oracleServiceUrl);
+    Task<Tuple<XDocument, string, string>> SendSoapRequest(string soapEnvelope, string oracleServiceUrl);
 }
 
 public class OracleClient : IOracleClient
@@ -39,13 +42,13 @@ public class OracleClient : IOracleClient
     /// <param name="soapEnvelope"></param>
     /// <param name="oracleServiceUrl"></param>
     /// <returns></returns>
-    public async Task<Tuple<XDocument, string>> SendSoapRequest(string soapEnvelope, string oracleServiceUrl)
+    public async Task<Tuple<XDocument, string, string>> SendSoapRequest(string soapEnvelope, string oracleServiceUrl)
     {
         try
         {
             // check for empty content
-            if (string.IsNullOrEmpty(soapEnvelope)) return new Tuple<XDocument, string>(null, $"soapEnvelope is required.");
-            if (string.IsNullOrEmpty(oracleServiceUrl)) return new Tuple<XDocument, string>(null, $"oracleServiceUrl is required.");
+            if (string.IsNullOrEmpty(soapEnvelope)) return new Tuple<XDocument, string, string>(null, $"soapEnvelope is required.", null);
+            if (string.IsNullOrEmpty(oracleServiceUrl)) return new Tuple<XDocument, string, string>(null, $"oracleServiceUrl is required.", null);
 
             // encode the XML envelope (payload)
             byte[] byteArray = Encoding.UTF8.GetBytes(soapEnvelope);
@@ -81,35 +84,48 @@ public class OracleClient : IOracleClient
                 doc = XDocument.Load(stream);
             }
             Console.WriteLine(doc);
-            return new Tuple<XDocument, string>(doc, null);
+            return new Tuple<XDocument, string, string>(doc, null, null);
         }
         catch (WebException wex)
         {
             using var stream = wex.Response.GetResponseStream();
             using var reader = new StreamReader(stream);
-            Console.WriteLine(reader.ReadToEnd());
-            return new Tuple<XDocument, string>(null, wex.Message);
+
+            try
+            {
+                // deserialize the xml response envelope
+                XmlSerializer serializer = new(typeof(FaultEnvelope));
+                var result = (FaultEnvelope)serializer.Deserialize(reader);
+                var faultMessage = result.Body.Fault.faultstring;
+
+                return new Tuple<XDocument, string, string>(null, wex.Message, faultMessage);
+            }
+            catch (Exception ex)
+            {
+                // additional catch-all in case the fault cannot be deserialized
+                return new Tuple<XDocument, string, string>(null, ex.Message, null);
+            }
         }
         catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
-            return new Tuple<XDocument, string>(null, ex.Message);
+            return new Tuple<XDocument, string, string>(null, ex.Message, null);
         }
     }
 
-    public async Task<Tuple<OracleOrganization, string>> CreateOrganization(string name)
+    public async Task<Tuple<OracleOrganizationResponse, string>> CreateOrganization(CreateOracleOrganizationModel model)
     {
-        var response = await _client.PostAsJsonAsync($"crmRestApi/resources/latest/accounts", new { name }, new JsonSerializerOptions { PropertyNameCaseInsensitive = false });
+        var response = await _client.PostAsJsonAsync($"crmRestApi/resources/latest/accounts", model, new JsonSerializerOptions { PropertyNameCaseInsensitive = false });
         string data = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode)
         {
-            _logger.LogCritical($"Failed AddAccount Oracle HTTP call: {(int)response.StatusCode} | {data} | Model sent: {JsonSerializer.Serialize(new { name })}");
-            return new Tuple<OracleOrganization, string>(null, data);
+            _logger.LogCritical($"Failed CreateOrganization Oracle HTTP call: {(int)response.StatusCode} | {data} | Model sent: {JsonSerializer.Serialize(model)}");
+            return new Tuple<OracleOrganizationResponse, string>(null, data);
         }
 
-        var deserializedObject = JsonSerializer.Deserialize<OracleOrganization>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-        return new Tuple<OracleOrganization, string>(deserializedObject, null);
+        var deserializedObject = JsonSerializer.Deserialize<OracleOrganizationResponse>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        return new Tuple<OracleOrganizationResponse, string>(deserializedObject, null);
     }
 
     public async Task<Tuple<OracleAddressObject, string>> CreateAddress(string accountNumber, CreateOracleAddressViewModel model)
@@ -127,7 +143,7 @@ public class OracleClient : IOracleClient
         return new Tuple<OracleAddressObject, string>(deserializedObject, null);
     }
 
-    public async Task<Tuple<OracleOrganization, string>> UpdateAccount(CreateOracleAccountViewModel model, string partyNumber)
+    public async Task<Tuple<OracleOrganizationResponse, string>> UpdateOrganization(UpdateOracleOrganizationModel model, ulong partyNumber)
     {
         var serialized = JsonSerializer.Serialize(model, new JsonSerializerOptions { PropertyNameCaseInsensitive = false });
         var content = new StringContent(serialized, Encoding.UTF8, "application/json");
@@ -139,11 +155,11 @@ public class OracleClient : IOracleClient
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogCritical($"Failed UpdateAccount Oracle HTTP call: {(int)response.StatusCode} | {data} | Model sent: {JsonSerializer.Serialize(model)}");
-            return new Tuple<OracleOrganization, string>(null, data);
+            return new Tuple<OracleOrganizationResponse, string>(null, $"{(int)response.StatusCode} | {data}");
         }
 
-        var deserializedObject = JsonSerializer.Deserialize<OracleOrganization>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-        return new Tuple<OracleOrganization, string>(deserializedObject, null);
+        var deserializedObject = JsonSerializer.Deserialize<OracleOrganizationResponse>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        return new Tuple<OracleOrganizationResponse, string>(deserializedObject, null);
     }
 
     public async Task<Tuple<OracleAddressObject, string>> UpdateAddress(string accountNumber, CreateOracleAddressViewModel model, string partyNumber)

@@ -18,13 +18,6 @@ public interface IOssService
     /// <returns></returns>
     Task<Tuple<Account, string>> UpdateAccount(SalesforceAccountModel model, SalesforceActionTransaction transaction);
     /// <summary>
-    /// Update an existing account's address
-    /// </summary>
-    /// <param name="model"></param>
-    /// <param name="transaction"></param>
-    /// <returns></returns>
-    Task<Tuple<Account, string>> UpdateAccountAddress(UpdateAddressModel model, SalesforceActionTransaction transaction);
-    /// <summary>
     /// Update an existing account's oracle id
     /// </summary>
     /// <param name="salesforceId"></param>
@@ -37,7 +30,7 @@ public interface IOssService
     /// </summary>
     /// <param name="salesforceId"></param>
     /// <returns></returns>
-    Task<Account> GetAccountBySalesforceId(string salesforceId);
+    Task<Account?> GetAccountBySalesforceId(string salesforceId);
 }
 
 public class OssService : IOssService
@@ -81,7 +74,7 @@ public class OssService : IOssService
         if (existingUser == null) existingUser = _systemUser;
 
         var billingAddress = model.Addresses?.FirstOrDefault(a => a.Type == "Billing & Shipping"); // This string is a picklist value in SF
-        var account = RemapSalesforceAccountToOssAccount(model.Name, model.ObjectId, existingUser.Id, null, model.ParentId, billingAddress);
+        var account = await RemapSalesforceAccountToOssAccount(model.Name, model.ObjectId, existingUser.Id, null, model.ParentId, model.Pricebook, model.VolumeTier);
         try
         {
             var added = await _accountsClient.AddAccount(account);
@@ -121,7 +114,7 @@ public class OssService : IOssService
         }
         if (existingUser == null) existingUser = _systemUser;
 
-        var account = RemapSalesforceAccountToOssAccount(model.Name, model.ObjectId, existingUser.Id, null, model.ParentId);
+        var account = await RemapSalesforceAccountToOssAccount(model.Name, model.ObjectId, existingUser.Id, null, model.ParentId);
         try
         {
             var updated = await _accountsClient.UpdateAccount(existingAccount.Id.GetValueOrDefault(), account);
@@ -138,47 +131,6 @@ public class OssService : IOssService
         {
             error = $"There was an error calling the OSS Accounts service: {ex.Message}";
             await LogAction(transaction, SalesforceTransactionAction.UpdateAccountInOss, ActionObjectType.Account, StatusType.Error, null, error);
-            return new Tuple<Account, string>(null, error);
-        }
-    }
-
-    public async Task<Tuple<Account, string>> UpdateAccountAddress(UpdateAddressModel model, SalesforceActionTransaction transaction)
-    {
-        await LogAction(transaction, SalesforceTransactionAction.UpdateAddressInOss, ActionObjectType.Account, StatusType.Started);
-        string error = null;
-
-        var existingAccount = await GetAccountBySalesforceId(model.ParentAccountId);
-        if (existingAccount == null) // Account doesn't exist, return from this action with an error
-        {
-            error = $"Account with Salesforce ID {model.ParentAccountId} does not exist in OSS.";
-            await LogAction(transaction, SalesforceTransactionAction.UpdateAddressInOss, ActionObjectType.Account, StatusType.Error, null, error);
-            return new Tuple<Account, string>(null, error);
-        }
-        // Get the user from OSS system
-        User existingUser = null;
-        if (!string.IsNullOrEmpty(model.UserName))
-        {
-            existingUser = await _usersClient.GetUserByEmail(model.UserName);
-        }
-        if (existingUser == null) existingUser = _systemUser;
-
-        var account = RemapSalesforceAddressToOssAccount(model.Address1, model.Address2, model.Country, existingUser.Id);
-        try
-        {
-            var updated = await _accountsClient.UpdateAccount(existingAccount.Id.GetValueOrDefault(), account);
-            if (!string.IsNullOrEmpty(updated.Item2))
-            {
-                error = $"There was an error updating the account in OSS: {updated.Item2}";
-                await LogAction(transaction, SalesforceTransactionAction.UpdateAddressInOss, ActionObjectType.Account, StatusType.Error, null, error);
-                return new Tuple<Account, string>(null, error);
-            }
-            await LogAction(transaction, SalesforceTransactionAction.UpdateAddressInOss, ActionObjectType.Account, StatusType.Successful, updated.Item1.Id.ToString());
-            return new Tuple<Account, string>(updated.Item1, string.Empty);
-        }
-        catch (Exception ex)
-        {
-            error = $"There was an error calling the OSS Accounts service: {ex.Message}";
-            await LogAction(transaction, SalesforceTransactionAction.UpdateAddressInOss, ActionObjectType.Account, StatusType.Error, null, error);
             return new Tuple<Account, string>(null, error);
         }
     }
@@ -205,7 +157,15 @@ public class OssService : IOssService
 
         try
         {
-            var updated = await _accountsClient.UpdateAccount(existingAccount.Id.GetValueOrDefault(), new Account { OracleAccountId = oracleId });
+            // construct the payload for the Account update
+            var accountChanges = new Account
+            {
+                ModifiedById = existingUser.Id,
+                ModifiedOn = DateTime.UtcNow,
+                OracleAccountId = oracleId
+            };
+
+            var updated = await _accountsClient.UpdateAccount(existingAccount.Id.GetValueOrDefault(), accountChanges);
             if (!string.IsNullOrEmpty(updated.Item2))
             {
                 error = $"There was an error updating the account oracle Id in OSS: {updated.Item2}";
@@ -223,18 +183,20 @@ public class OssService : IOssService
         }
     }
 
-    public async Task<Account> GetAccountBySalesforceId(string salesforceId)
+    public async virtual Task<Account> GetAccountBySalesforceId(string salesforceId)
     {
         return await _accountsClient.GetAccountBySalesforceId(salesforceId);
     }
 
-    private Account RemapSalesforceAccountToOssAccount(
+    public async virtual Task<Account> RemapSalesforceAccountToOssAccount(
         string name,
         string salesforceId,
         Guid userId,
         string? oracleAccountId = null,
         string? salesforceParentId = null,
-        SalesforceAddressModel? billingAddress = null)
+        string? priceBook = null,
+        string? volumeTier = null
+        )
     {
         var account = new Account
         {
@@ -246,44 +208,36 @@ public class OssService : IOssService
             ModifiedById = userId,
             OracleAccountId = oracleAccountId,
             ParentId = _config.GetValue<Guid>("KymetaAccountId"),
-            BillingAddressLine1 = billingAddress?.Address1,
-            BillingAddressLine2 = billingAddress?.Address2,
-            BillingCity = billingAddress?.City,
-            BillingPostalCode = billingAddress?.PostalCode,
-            BillingState = billingAddress?.StateProvince,
-            BillingCountryCode = billingAddress?.Country,
+            CommercialPriceBook = priceBook?.Contains("CPB"),
+            MilitaryPriceBook = priceBook?.Contains("MPB"),
+            DiscountTier = GetDiscountTierFromSalesforceAPIValue(volumeTier)
         };
         // Overwrite the default Kymeta ID if the parent Id is present
         if (!string.IsNullOrEmpty(salesforceParentId))
         {
-            account.ParentId = Guid.Parse(salesforceParentId);
+            var parentAccount = await _accountsClient.GetAccountBySalesforceId(salesforceParentId);
+            if (parentAccount != null) account.ParentId = parentAccount.Id;
         }
 
         return account;
     }
 
-    private Account RemapSalesforceAddressToOssAccount(
-        string address1,
-        string address2,
-        string country,
-        Guid userId
-        )
+    public int? GetDiscountTierFromSalesforceAPIValue(string? salesforceApiValue)
     {
-        var account = new Account
-        {
-            ModifiedById = userId,
-            BillingAddressLine1 = address1,
-            BillingAddressLine2 = address2,
-            BillingCountryCode = country
-        };
-
-        return account;
+        if (string.IsNullOrEmpty(salesforceApiValue)) return 1;
+        if (!salesforceApiValue.Contains("(")) return 1;
+        string firstPartOfValue = salesforceApiValue.Split('(')[0];
+        if (firstPartOfValue == null) return 1;
+        var justTheDigit = new string(firstPartOfValue.Where(char.IsDigit).ToArray());
+        if (justTheDigit.Length == 0) return 1;
+        return Convert.ToInt32(justTheDigit);
     }
 
-    private async Task LogAction(SalesforceActionTransaction transaction, SalesforceTransactionAction action, ActionObjectType objectType, StatusType status, string? entityId = null, string? errorMessage = null)
+    public async virtual Task LogAction(SalesforceActionTransaction transaction, SalesforceTransactionAction action, ActionObjectType objectType, StatusType status, string? entityId = null, string? errorMessage = null)
     {
         var actionRecord = new SalesforceActionRecord
         {
+            ObjectType = objectType,
             Action = action,
             Status = status,
             Timestamp = DateTime.UtcNow,
@@ -292,6 +246,6 @@ public class OssService : IOssService
         };
         if (transaction.TransactionLog == null) transaction.TransactionLog = new List<SalesforceActionRecord>();
         transaction.TransactionLog?.Add(actionRecord);
-        await _actionsRepository.AddTransactionRecord(transaction.Id, objectType.ToString() ?? "Unknown", actionRecord);
+        await _actionsRepository.AddTransactionRecord(transaction.Id, transaction.Object.ToString() ?? "Unknown", actionRecord);
     }
 }

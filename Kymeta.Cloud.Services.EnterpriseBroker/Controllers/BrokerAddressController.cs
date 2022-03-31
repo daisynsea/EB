@@ -1,10 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics.CodeAnalysis;
+
 namespace Kymeta.Cloud.Services.EnterpriseBroker.Controllers;
 
 [ApiController]
 [ApiVersion("1")]
 [Produces("application/json")]
 [Route("api/v{version:apiVersion}/address")]
+[ExcludeFromCodeCoverage]
 public class BrokerAddressController : ControllerBase
 {
     private readonly ILogger<BrokerAddressController> _logger;
@@ -21,8 +25,8 @@ public class BrokerAddressController : ControllerBase
     /// </summary>
     /// <param name="model">Incoming Payload</param>
     /// <returns>Response model</returns>
-    [HttpPost]
-    public async Task<ActionResult<AddressResponse>> ProcessAddress([FromBody] SalesforceAddressModel model)
+    [HttpPost, AllowAnonymous]
+    public async Task<ActionResult<UnifiedResponse>> ProcessAddress([FromBody] SalesforceAddressModel model)
     {
         try
         {

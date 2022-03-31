@@ -14,20 +14,16 @@ public class Account
 
     public string? SalesforceAccountId { get; set; }
     public string? OracleAccountId { get; set; }
-    public string? PrimaryContactName { get; set; }
-    public string? PrimaryContactEmail { get; set; }
-    public string? PrimaryContactPhone { get; set; }
-    public string? CustomerRelationshipType { get; set; }
-    // Comma delimited list of sub types
-    public string? CustomerRelationshipSubTypes { get; set; }
-    public string? BillingAddressLine1 { get; set; }
-    public string? BillingAddressLine2 { get; set; }
-    public string? BillingAddressLine3 { get; set; }
-    public string? BillingAddressLine4 { get; set; }
-    public string? BillingCity { get; set; }
-    public string? BillingState { get; set; }
-    public string? BillingPostalCode { get; set; }
-    public string? BillingCountryCode { get; set; }
+
+    public bool? MilitaryPriceBook { get; set; }
+    public bool? CommercialPriceBook { get; set; }
+    public int? DiscountTier { get; set; } = 1;
+    public decimal? DiscountPercentOverride { get; set; }
+    public decimal? DiscountFlatOverride { get; set; }
+    public bool? WholesalePricesVisible { get; set; }
+    public bool? MsrpPricesVisible { get; set; }
+    public bool? ConfiguratorVisible { get; set; }
+
     public CreatedOriginEnum? Origin { get; set; }
     public bool? Enabled { get; set; }
 

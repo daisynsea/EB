@@ -4,7 +4,10 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle;
 
 public class OracleCustomerAccountContact
 {
-    public string RelationshipId { get; set; }
-    public AddressType ResponsibilityType { get; set; }
-    public bool IsPrimary { get; set; }
+    public string? OrigSystemReference { get; set; }
+    public ulong? ContactPersonId { get; set; }
+    public ulong? RelationshipId { get; set; }
+    public List<string>? ResponsibilityTypes { get; set; }
+    public bool? IsPrimary { get; set; }
+    public ulong? CustomerAccountRoleId { get; set; }
 }
