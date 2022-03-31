@@ -80,8 +80,8 @@ public static class OracleSoapTemplates
                             <loc:Address2>{location.Address2}</loc:Address2>
                             <loc:Address3> </loc:Address3>
                             <loc:City>{location.City}</loc:City>
-                            <loc:State>{location.State}</loc:State>
-                            <loc:Province>{location.State}</loc:Province>
+                            <loc:State>{(string.IsNullOrEmpty(location.State) ? " " : location.State)}</loc:State>
+                            <loc:Province>{(string.IsNullOrEmpty(location.State) ? " " : location.State)}</loc:Province>
                             <loc:PostalCode>{location.PostalCode}</loc:PostalCode>
                             <loc:Country>{location.Country}</loc:Country>
                         </typ:location>
@@ -107,8 +107,8 @@ public static class OracleSoapTemplates
 				            <loc:Address2>{location.Address2}</loc:Address2>
 				            <loc:Address3> </loc:Address3>
 				            <loc:City>{location.City}</loc:City>
-                            <loc:State>{location.State}</loc:State>
-                            <loc:Province>{location.State}</loc:Province>
+                            <loc:State>{(string.IsNullOrEmpty(location.State) ? " " : location.State)}</loc:State>
+                            <loc:Province>{(string.IsNullOrEmpty(location.State) ? " " : location.State)}</loc:Province>
 				            <loc:PostalCode>{location.PostalCode}</loc:PostalCode>
 				            <loc:Country>{location.Country}</loc:Country>
 			            </typ:location>

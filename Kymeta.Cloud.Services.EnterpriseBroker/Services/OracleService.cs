@@ -898,7 +898,7 @@ public class OracleService : IOracleService
             await LogAction(transaction, SalesforceTransactionAction.ValidateBusinessUnit, ActionObjectType.Account, StatusType.Error, businessUnit, "Business unit not recognized.");
         }
         else {
-            await LogAction(transaction, SalesforceTransactionAction.ValidateBusinessUnit, ActionObjectType.Account, StatusType.Successful, businessUnit, result);
+            await LogAction(transaction, SalesforceTransactionAction.ValidateBusinessUnit, ActionObjectType.Account, StatusType.Successful, businessUnit);
         }
 
         // return the Oracle Address Set Id
