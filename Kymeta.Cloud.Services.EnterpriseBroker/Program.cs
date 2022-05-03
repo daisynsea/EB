@@ -49,6 +49,7 @@ builder.Services.AddScoped<IAccountBrokerService, AccountBrokerService>();
 builder.Services.AddScoped<IAddressBrokerService, AddressBrokerService>();
 builder.Services.AddScoped<IContactBrokerService, ContactBrokerService>();
 builder.Services.AddScoped<IOracleService, OracleService>();
+builder.Services.AddScoped<ISalesforceProductsRepository, SalesforceProductsRepository>();
 builder.Services.AddRedisClient(new RedisClientOptions
 {
     ConnectionString = builder.Configuration.GetConnectionString("RedisCache")
