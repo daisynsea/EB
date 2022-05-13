@@ -97,7 +97,7 @@ public class UpdateLocationValue
 
     /// <remarks/>
     [XmlElement(IsNullable = true)]
-    public object OrigSystem { get; set; }
+    public string OrigSystem { get; set; }
 
     /// <remarks/>
     public string OrigSystemReference { get; set; }
@@ -109,90 +109,91 @@ public class UpdateLocationValue
     public string Address1 { get; set; }
 
     /// <remarks/>
+    [XmlElement(IsNullable = true)]
     public string Address2 { get; set; }
 
     /// <remarks/>
     [XmlElement(IsNullable = true)]
-    public object Address3 { get; set; }
+    public string Address3 { get; set; }
 
     /// <remarks/>
     [XmlElement(IsNullable = true)]
-    public object Address4 { get; set; }
+    public string Address4 { get; set; }
 
     /// <remarks/>
     public string City { get; set; }
 
     /// <remarks/>
-    public uint? PostalCode { get; set; }
+    public string PostalCode { get; set; }
 
     /// <remarks/>
     public string State { get; set; }
 
     /// <remarks/>
     [XmlElement(IsNullable = true)]
-    public object Province { get; set; }
+    public string Province { get; set; }
 
     /// <remarks/>
     [XmlElement(IsNullable = true)]
-    public object County { get; set; }
+    public string County { get; set; }
 
     /// <remarks/>
     [XmlElement(IsNullable = true)]
-    public object AddressStyle { get; set; }
+    public string AddressStyle { get; set; }
 
     /// <remarks/>
     public bool ValidatedFlag { get; set; }
 
     /// <remarks/>
     [XmlElement(IsNullable = true)]
-    public object AddressLinesPhonetic { get; set; }
+    public string AddressLinesPhonetic { get; set; }
 
     /// <remarks/>
     [XmlElement(IsNullable = true)]
-    public object PostalPlus4Code { get; set; }
+    public string PostalPlus4Code { get; set; }
 
     /// <remarks/>
     [XmlElement(IsNullable = true)]
-    public object Position { get; set; }
+    public string Position { get; set; }
 
     /// <remarks/>
     [XmlElement(IsNullable = true)]
-    public object LocationDirections { get; set; }
+    public string LocationDirections { get; set; }
 
     /// <remarks/>
     [XmlElement(IsNullable = true)]
-    public object AddressEffectiveDate { get; set; }
+    public string AddressEffectiveDate { get; set; }
 
     /// <remarks/>
     [XmlElement(IsNullable = true)]
-    public object AddressExpirationDate { get; set; }
+    public string AddressExpirationDate { get; set; }
 
     /// <remarks/>
     [XmlElement(IsNullable = true)]
-    public object ClliCode { get; set; }
+    public string ClliCode { get; set; }
 
     /// <remarks/>
     [XmlElement(IsNullable = true)]
-    public object Language { get; set; }
+    public string Language { get; set; }
 
     /// <remarks/>
     [XmlElement(IsNullable = true)]
-    public object ShortDescription { get; set; }
+    public string ShortDescription { get; set; }
 
     /// <remarks/>
     [XmlElement(IsNullable = true)]
-    public object Description { get; set; }
+    public string Description { get; set; }
 
     /// <remarks/>
     [XmlElement(IsNullable = true)]
-    public object SalesTaxGeocode { get; set; }
+    public string SalesTaxGeocode { get; set; }
 
     /// <remarks/>
     public byte SalesTaxInsideCityLimits { get; set; }
 
     /// <remarks/>
     [XmlElement(IsNullable = true)]
-    public object FaLocationId { get; set; }
+    public string FaLocationId { get; set; }
 
     /// <remarks/>
     public byte ObjectVersionNumber { get; set; }
@@ -205,26 +206,25 @@ public class UpdateLocationValue
 
     /// <remarks/>
     [XmlElement(IsNullable = true)]
-    public object ValidationStatusCode { get; set; }
+    public string ValidationStatusCode { get; set; }
 
     /// <remarks/>
     [XmlElement(IsNullable = true)]
-    public object DateValidated { get; set; }
+    public string DateValidated { get; set; }
 
     /// <remarks/>
     [XmlElement(IsNullable = true)]
-    public object DoNotValidateFlag { get; set; }
+    public string DoNotValidateFlag { get; set; }
 
     /// <remarks/>
     [XmlElement(IsNullable = true)]
-    public object Comments { get; set; }
+    public string Comments { get; set; }
 
     /// <remarks/>
     [XmlElement(IsNullable = true)]
-    public object HouseType { get; set; }
+    public string HouseType { get; set; }
 
     /// <remarks/>
     [XmlElement(DataType = "date")]
     public System.DateTime EffectiveDate { get; set; }
 }
-

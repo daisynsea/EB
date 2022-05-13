@@ -551,7 +551,7 @@ public class OracleService : IOracleService
             LocationId = oracleResult?.LocationId,
             OrigSystemReference = oracleResult?.OrigSystemReference?.ToString(),
             Address1 = oracleResult?.Address1?.ToString(),
-            Address2 = oracleResult?.Address2.ToString(),
+            Address2 = oracleResult?.Address2?.ToString(),
             City = oracleResult?.City?.ToString(),
             State = oracleResult?.State?.ToString(),
             PostalCode = oracleResult?.PostalCode?.ToString(),
