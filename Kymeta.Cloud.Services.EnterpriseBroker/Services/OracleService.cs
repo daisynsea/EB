@@ -1,5 +1,6 @@
 ﻿using Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.SOAP;
 using Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.SOAP.ResponseModels;
+using System.Web;
 using System.Xml.Serialization;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.Services;
@@ -989,7 +990,7 @@ public class OracleService : IOracleService
             OrigSystemReference = model.ObjectId,
             FirstName = model.FirstName,
             LastName = model.LastName,
-            Title = model.Title
+            Title = HttpUtility.HtmlEncode(model.Title) // encode to account for special characters
         };
 
         // map email address into simplified oracle model
