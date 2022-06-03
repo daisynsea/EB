@@ -75,7 +75,14 @@ public class UsersClient : IUsersClient
 
         if (!response.IsSuccessStatusCode)
         {
-            _logger.LogCritical($"Failed GetUserByEmail HTTP call: {(int)response.StatusCode} | {data}");
+            if ((int)response.StatusCode >= 500 && (int)response.StatusCode <= 599)
+            {
+                _logger.LogCritical($"Failed GetUserByEmail HTTP call: {(int)response.StatusCode} | {data}");
+            } 
+            else
+            {
+                _logger.LogWarning($"Failed GetUserByEmail HTTP call: {(int)response.StatusCode} | {data}");
+            }
             return null;
         }
 
