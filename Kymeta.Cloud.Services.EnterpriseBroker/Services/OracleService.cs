@@ -910,7 +910,7 @@ public class OracleService : IOracleService
     {
         var organization = new CreateOracleOrganizationModel
         {
-            OrganizationName = model.Name,
+            OrganizationName = HttpUtility.HtmlEncode(model.Name), // encode to account for special characters
             TaxpayerIdentificationNumber = model.TaxId,
             SourceSystem = "SFDC",
             SourceSystemReferenceValue = model.ObjectId
@@ -923,7 +923,7 @@ public class OracleService : IOracleService
     {
         var organization = new UpdateOracleOrganizationModel
         {
-            OrganizationName = model.Name,
+            OrganizationName = HttpUtility.HtmlEncode(model.Name), // encode to account for special characters
             TaxpayerIdentificationNumber = model.TaxId,
             SourceSystemReferenceValue = model.ObjectId
         };
@@ -942,7 +942,7 @@ public class OracleService : IOracleService
     {
         var customerAccount = new OracleCustomerAccount
         {
-            AccountName = model.Name,
+            AccountName = HttpUtility.HtmlEncode(model.Name), // encode to account for special characters
             SalesforceId = model.ObjectId,
             OrigSystemReference = model.ObjectId,
             OssId = model.OssId
