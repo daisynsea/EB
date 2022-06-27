@@ -596,11 +596,24 @@ public static class OracleSoapTemplates
             var email = person.EmailAddresses.FirstOrDefault();
             if (email != null)
             {
-                personEnvelope +=
+                if (email.ContactPointId != null)
+                {
+                    personEnvelope +=
                                 $@"<per:Email>
                                     <con:ContactPointId>{email.ContactPointId}</con:ContactPointId>
                                     <con:EmailAddress>{email.EmailAddress}</con:EmailAddress>
                                 </per:Email>";
+                }
+                else
+                {
+                    personEnvelope +=
+                                $@"<per:Email>
+                                    <con:OwnerTableName>HZ_PARTIES</con:OwnerTableName>
+					                <con:CreatedByModule>HZ_WS</con:CreatedByModule>
+                                    <con:EmailAddress>{email.EmailAddress}</con:EmailAddress>
+                                    <con:ContactPointPurpose>BUSINESS</con:ContactPointPurpose>
+                                </per:Email>";
+                }
             }
         }
         personEnvelope +=
