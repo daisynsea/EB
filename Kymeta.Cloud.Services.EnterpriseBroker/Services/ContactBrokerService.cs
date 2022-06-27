@@ -103,8 +103,8 @@ public class ContactBrokerService : IContactBrokerService
                 var accountContacts = new List<OracleCustomerAccountContact>();
                 // fetch Person by Salesforce Id
                 var contactIds = new List<Tuple<string, ulong?>> {
-                new Tuple<string, ulong?>(model.ObjectId, model.OraclePartyId)
-            };
+                    new Tuple<string, ulong?>(model.ObjectId, model.OraclePartyId)
+                };
                 var personsResult = await _oracleService.GetPersonsById(contactIds, salesforceTransaction);
                 if (!personsResult.Item1)
                 {
