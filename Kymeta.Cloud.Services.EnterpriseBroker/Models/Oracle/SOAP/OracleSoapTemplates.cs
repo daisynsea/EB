@@ -610,6 +610,7 @@ public static class OracleSoapTemplates
                                 $@"<per:Email>
                                     <con:OwnerTableName>HZ_PARTIES</con:OwnerTableName>
 					                <con:CreatedByModule>HZ_WS</con:CreatedByModule>
+                                    <con:RelationshipId>{person.RelationshipId}</con:RelationshipId>
                                     <con:EmailAddress>{email.EmailAddress}</con:EmailAddress>
                                     <con:ContactPointPurpose>BUSINESS</con:ContactPointPurpose>
                                 </per:Email>";
