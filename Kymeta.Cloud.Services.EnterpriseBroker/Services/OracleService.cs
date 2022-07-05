@@ -568,9 +568,11 @@ public class OracleService : IOracleService
     public async Task<Tuple<List<OraclePartySite>, string>> CreateOrganizationPartySites(ulong organizationPartyId, List<OraclePartySite> partySites, SalesforceActionTransaction transaction)
     {
         await LogAction(transaction, SalesforceTransactionAction.CreatePartySiteInOracle, ActionObjectType.Account, StatusType.Started);
+        
+        var encodedPartySites = EncodePartySiteMetadata(partySites);
 
         // populate the template
-        var orgPartySiteEnvelope = OracleSoapTemplates.CreateOrganizationPartySites(organizationPartyId, partySites);
+        var orgPartySiteEnvelope = OracleSoapTemplates.CreateOrganizationPartySites(organizationPartyId, encodedPartySites);
 
         // create the Party Site via SOAP service
         var partySiteResponse = await _oracleClient.SendSoapRequest(orgPartySiteEnvelope, $"{_config["Oracle:Endpoint"]}/{_config["Oracle:Services:Organization"]}");
@@ -980,6 +982,18 @@ public class OracleService : IOracleService
         if (existingLocation != null) location.LocationId = existingLocation.LocationId;
 
         return location;
+    }
+
+    private List<OraclePartySite> EncodePartySiteMetadata(List<OraclePartySite> partySites)
+    {
+        if (partySites == null || !partySites.Any()) return partySites;
+
+        var encoded = new List<OraclePartySite>(partySites);
+        foreach (var site in encoded)
+        {
+            site.PartySiteName = HttpUtility.HtmlEncode(site.PartySiteName); // encode to account for special characters
+        }
+        return encoded;
     }
 
     private OraclePersonObject RemapSalesforceContactToOraclePerson(SalesforceContactModel model, OraclePersonObject? existingPerson = null)
