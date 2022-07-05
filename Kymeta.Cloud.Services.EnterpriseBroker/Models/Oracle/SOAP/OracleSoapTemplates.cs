@@ -892,7 +892,7 @@ public static class OracleSoapTemplates
 								<cus:PartySiteId>{site.PartySiteId}</cus:PartySiteId>
 								<cus:CustomerAccountId>{account.CustomerAccountId}</cus:CustomerAccountId>
 								<cus:CreatedByModule>HZ_WS</cus:CreatedByModule>
-								<cus:SetId>300000001127004</cus:SetId>
+								<cus:SetId>{site.SetId}</cus:SetId>
 								<cus:OrigSystemReference>{site.OrigSystemReference}</cus:OrigSystemReference>";
 
                 if (site.SiteUses != null)
@@ -991,14 +991,12 @@ public static class OracleSoapTemplates
         {
             foreach (var site in accountSites)
             {
-                // TODO: invesitgate SetId and how it should flow to here... there are two options AFAIK (Kymeta, KGS)
-                // TODO: see how critical it is to differentiate
                 customerAccountEnvelope +=
                             $@"<cus:CustomerAccountSite>
 								<cus:PartySiteId>{site.PartySiteId}</cus:PartySiteId>
 								<cus:CustomerAccountId>{account.CustomerAccountId}</cus:CustomerAccountId>
 								<cus:CreatedByModule>HZ_WS</cus:CreatedByModule>
-								<cus:SetId>300000001127004</cus:SetId>
+								<cus:SetId>{site.SetId}</cus:SetId>
 								<cus:OrigSystemReference>{site.OrigSystemReference}</cus:OrigSystemReference>";
 
                 // account for multiple site uses (purposes)
