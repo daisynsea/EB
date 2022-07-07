@@ -3,6 +3,7 @@ using Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce;
 using Kymeta.Cloud.Services.EnterpriseBroker.Services;
 using Moq;
 using System;
+using System.Collections.Generic;
 using Xunit;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests;
@@ -26,7 +27,7 @@ public class OssNegativeServiceTests : IClassFixture<TestFixture>
         var transaction = Helpers.BuildSalesforceTransaction();
 
         // Arrange
-        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object);
+        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object);
         ossService.CallBase = true;
         ossService.Setup(x => x.GetAccountBySalesforceId(It.IsAny<string>())).ReturnsAsync(new Account());
         ossService.Setup(x => x.LogAction(It.IsAny<SalesforceActionTransaction>(), It.IsAny<SalesforceTransactionAction>(), It.IsAny<ActionObjectType>(), It.IsAny<StatusType>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -50,7 +51,7 @@ public class OssNegativeServiceTests : IClassFixture<TestFixture>
         var transaction = Helpers.BuildSalesforceTransaction();
 
         // Arrange
-        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object);
+        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object);
         ossService.CallBase = true;
         ossService.Setup(x => x.GetAccountBySalesforceId(It.IsAny<string>())).ReturnsAsync((Account?)null);
         ossService.Setup(x => x.LogAction(It.IsAny<SalesforceActionTransaction>(), It.IsAny<SalesforceTransactionAction>(), It.IsAny<ActionObjectType>(), It.IsAny<StatusType>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -58,6 +59,12 @@ public class OssNegativeServiceTests : IClassFixture<TestFixture>
         _fixture.UsersClient
             .Setup(x => x.GetUserByEmail(It.IsAny<string>()))
             .ReturnsAsync(new User { Email = "primary@email.com" });
+        _fixture.UsersClient
+           .Setup(x => x.AddRole(It.IsAny<Role>()))
+           .ReturnsAsync(new Role { AccountId = Guid.NewGuid(), Name = $"Unit Test Account Admin", Description = "Owner of the account. Has all permissions" });
+        _fixture.UsersClient
+            .Setup(x => x.EditRolePermissions(It.IsAny<Guid>(), It.IsAny<List<Guid>>()))
+            .ReturnsAsync(new Role { AccountId = Guid.NewGuid(), Name = $"Unit Test Account Admin", Description = "Owner of the account. Has all permissions" });
         _fixture.AccountsClient
             .Setup(x => x.AddAccount(It.IsAny<Account>()))
             .ReturnsAsync(new Tuple<Account, string>(null, "Explosions"));
@@ -67,7 +74,7 @@ public class OssNegativeServiceTests : IClassFixture<TestFixture>
 
         // Assert
         Assert.Null(result.Item1);
-        Assert.Equal(result.Item2, $"There was an error adding the account to OSS: Explosions");
+        Assert.Equal(result.Item2, $"There was an error adding the Account to OSS: Explosions");
     }
 
     [Fact]
@@ -80,7 +87,7 @@ public class OssNegativeServiceTests : IClassFixture<TestFixture>
         var transaction = Helpers.BuildSalesforceTransaction();
 
         // Arrange
-        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object);
+        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object);
         ossService.CallBase = true;
         ossService.Setup(x => x.GetAccountBySalesforceId(It.IsAny<string>())).ReturnsAsync((Account?)null);
         ossService.Setup(x => x.LogAction(It.IsAny<SalesforceActionTransaction>(), It.IsAny<SalesforceTransactionAction>(), It.IsAny<ActionObjectType>(), It.IsAny<StatusType>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -111,7 +118,7 @@ public class OssNegativeServiceTests : IClassFixture<TestFixture>
         var account = new Account { Id = Guid.NewGuid() };
 
         // Arrange
-        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object);
+        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object);
         ossService.CallBase = true;
         ossService.Setup(x => x.GetAccountBySalesforceId(It.IsAny<string>())).ReturnsAsync((Account?)null);
         ossService.Setup(x => x.LogAction(It.IsAny<SalesforceActionTransaction>(), It.IsAny<SalesforceTransactionAction>(), It.IsAny<ActionObjectType>(), It.IsAny<StatusType>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -136,7 +143,7 @@ public class OssNegativeServiceTests : IClassFixture<TestFixture>
         var account = new Account { Id = Guid.NewGuid() };
 
         // Arrange
-        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object);
+        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object);
         ossService.CallBase = true;
         ossService.Setup(x => x.GetAccountBySalesforceId(It.IsAny<string>())).ReturnsAsync(account);
         ossService.Setup(x => x.LogAction(It.IsAny<SalesforceActionTransaction>(), It.IsAny<SalesforceTransactionAction>(), It.IsAny<ActionObjectType>(), It.IsAny<StatusType>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -167,7 +174,7 @@ public class OssNegativeServiceTests : IClassFixture<TestFixture>
         var account = new Account { Id = Guid.NewGuid() };
 
         // Arrange
-        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object);
+        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object);
         ossService.CallBase = true;
         ossService.Setup(x => x.GetAccountBySalesforceId(It.IsAny<string>())).ReturnsAsync(account);
         ossService.Setup(x => x.LogAction(It.IsAny<SalesforceActionTransaction>(), It.IsAny<SalesforceTransactionAction>(), It.IsAny<ActionObjectType>(), It.IsAny<StatusType>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -198,7 +205,7 @@ public class OssNegativeServiceTests : IClassFixture<TestFixture>
         string newOracleId = "123";
 
         // Arrange
-        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object);
+        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object);
         ossService.CallBase = true;
         ossService.Setup(x => x.GetAccountBySalesforceId(It.IsAny<string>())).ReturnsAsync((Account?)null);
         ossService.Setup(x => x.LogAction(It.IsAny<SalesforceActionTransaction>(), It.IsAny<SalesforceTransactionAction>(), It.IsAny<ActionObjectType>(), It.IsAny<StatusType>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -223,7 +230,7 @@ public class OssNegativeServiceTests : IClassFixture<TestFixture>
         string newOracleId = "123";
 
         // Arrange
-        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object);
+        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object);
         ossService.CallBase = true;
         ossService.Setup(x => x.GetAccountBySalesforceId(It.IsAny<string>())).ReturnsAsync(account);
         ossService.Setup(x => x.LogAction(It.IsAny<SalesforceActionTransaction>(), It.IsAny<SalesforceTransactionAction>(), It.IsAny<ActionObjectType>(), It.IsAny<StatusType>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -254,7 +261,7 @@ public class OssNegativeServiceTests : IClassFixture<TestFixture>
         string newOracleId = "123";
 
         // Arrange
-        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object);
+        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object);
         ossService.CallBase = true;
         ossService.Setup(x => x.GetAccountBySalesforceId(It.IsAny<string>())).ReturnsAsync(account);
         ossService.Setup(x => x.LogAction(It.IsAny<SalesforceActionTransaction>(), It.IsAny<SalesforceTransactionAction>(), It.IsAny<ActionObjectType>(), It.IsAny<StatusType>(), It.IsAny<string>(), It.IsAny<string>()))

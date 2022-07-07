@@ -1,4 +1,5 @@
-﻿using Kymeta.Cloud.Services.EnterpriseBroker.HttpClients;
+﻿using Kymeta.Cloud.Logging.Activity;
+using Kymeta.Cloud.Services.EnterpriseBroker.HttpClients;
 using Kymeta.Cloud.Services.EnterpriseBroker.Repositories;
 using Kymeta.Cloud.Services.EnterpriseBroker.Services;
 using Microsoft.Extensions.Configuration;
@@ -18,6 +19,8 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
         public Mock<IUsersClient> UsersClient = new Mock<IUsersClient>();
         public Mock<IOracleClient> OracleClient = new Mock<IOracleClient>();
         public Mock<IActionsRepository> ActionsRepository = new Mock<IActionsRepository>();
+        public Mock<IActivityLoggerClient> ActivityLoggerClient = new Mock<IActivityLoggerClient>();
+        public Mock<IActivityLogger> ActivityLogger = new Mock<IActivityLogger>();
         public Mock<IOssService> OssService = new Mock<IOssService>();
         public Mock<IOracleService> OracleService = new Mock<IOracleService>();
         public IConfiguration Configuration;
