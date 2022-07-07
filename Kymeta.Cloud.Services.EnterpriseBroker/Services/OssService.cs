@@ -1,4 +1,7 @@
-﻿namespace Kymeta.Cloud.Services.EnterpriseBroker.Services;
+﻿using Kymeta.Cloud.Logging.Activity;
+using Newtonsoft.Json;
+
+namespace Kymeta.Cloud.Services.EnterpriseBroker.Services;
 
 /// <summary>
 /// Service used to translate data between salesforce/oracle and OSS
@@ -39,9 +42,10 @@ public class OssService : IOssService
     private readonly IAccountsClient _accountsClient;
     private readonly IUsersClient _usersClient;
     private readonly IActionsRepository _actionsRepository;
+    private readonly IActivityLoggerClient _activityLoggerClient;
     private User _systemUser = new User { FirstName = "System", LastName = "User", Email = "kcssystemuser@kymeta.io" };
 
-    public OssService(IConfiguration config, IAccountsClient accountsClient, IUsersClient usersClient, IActionsRepository actionsRepository)
+    public OssService(IConfiguration config, IAccountsClient accountsClient, IUsersClient usersClient, IActionsRepository actionsRepository, IActivityLoggerClient activityLoggerClient)
     {
         _config = config;
         _accountsClient = accountsClient;
@@ -51,6 +55,7 @@ public class OssService : IOssService
         // system user configs
         _systemUser.Id = new Guid(config["SystemUserId"]);
         _systemUser.AccountId = new Guid(config["KymetaAccountId"]);
+        _activityLoggerClient = activityLoggerClient;
     }
 
     public async Task<Tuple<Account, string>> AddAccount(SalesforceAccountModel model, SalesforceActionTransaction transaction)
@@ -77,15 +82,43 @@ public class OssService : IOssService
         var account = await RemapSalesforceAccountToOssAccount(model.Name, model.ObjectId, existingUser.Id, null, model.ParentId, model.Pricebook, model.VolumeTier);
         try
         {
-            var added = await _accountsClient.AddAccount(account);
-            if (!string.IsNullOrEmpty(added.Item2)) 
+            // add the Account
+            var addedAccount = await _accountsClient.AddAccount(account);
+            if (!string.IsNullOrEmpty(addedAccount.Item2) || !addedAccount.Item1.Id.HasValue) 
             {
-                error = $"There was an error adding the account to OSS: {added.Item2}";
+                error = $"There was an error adding the Account to OSS: {addedAccount.Item2}";
                 await LogAction(transaction, SalesforceTransactionAction.CreateAccountInOss, ActionObjectType.Account, StatusType.Error, null, error);
                 return new Tuple<Account, string>(null, error);
             }
-            await LogAction(transaction, SalesforceTransactionAction.CreateAccountInOss, ActionObjectType.Account, StatusType.Successful, added.Item1.Id.ToString());
-            return new Tuple<Account, string>(added.Item1, string.Empty);
+
+            await LogAction(transaction, SalesforceTransactionAction.CreateAccountInOss, ActionObjectType.Account, StatusType.Successful, addedAccount.Item1.Id.ToString());
+            await _activityLoggerClient.AddActivity(ActivityEntityTypes.Accounts, existingUser.Id, existingUser.FullName, addedAccount.Item1.Id, $"{addedAccount.Item1.Name}", "addaccount", null, null, JsonConvert.SerializeObject(addedAccount));
+
+            // create an Account Admin role for the account
+            var addedRole = await _usersClient.AddRole(new Role { AccountId = addedAccount.Item1.Id.Value, Name = $"{addedAccount.Item1.Name} Account Admin", Description = "Owner of the account. Has all permissions" });
+            if (addedRole == null)
+            {
+                error = $"There was an error adding the Account role.";
+                await LogAction(transaction, SalesforceTransactionAction.CreateAccountInOss, ActionObjectType.Account, StatusType.Error, null, error);
+                return new Tuple<Account, string>(null, error);
+            }
+
+            await _activityLoggerClient.AddActivity(ActivityEntityTypes.Users, existingUser.Id, existingUser.FullName, addedRole.Id, addedRole.Name, "addrole", null, null, JsonConvert.SerializeObject(addedRole));
+
+            // add all permissions to this role
+            var permissions = await _usersClient.GetPermissions(null);
+            // everything user has access to, except system admin
+            var permissionsToAdd = permissions?.Where(p => existingUser.Permissions.Contains(p.Shortcode))?.Where(p => p.Shortcode != "SYSTEM_ADMIN" && p.Shortcode != "CONFIGURATOR_ACCESS")?.Select(p => p.Id)?.ToList();
+            // add the permissions
+            var updatedRole = await _usersClient.EditRolePermissions(addedRole.Id, permissionsToAdd);
+            if (updatedRole == null)
+            {
+                error = $"There was an error establishing the Account permissions.";
+                await LogAction(transaction, SalesforceTransactionAction.CreateAccountInOss, ActionObjectType.Account, StatusType.Error, null, error);
+                return new Tuple<Account, string>(null, error);
+            }
+
+            return new Tuple<Account, string>(addedAccount.Item1, string.Empty);
         } catch (Exception ex)
         {
             error = $"There was an error calling the OSS Accounts service: {ex.Message}";
