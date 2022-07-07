@@ -3,6 +3,7 @@ using Kymeta.Cloud.Commons.AspNet.DistributedConfig;
 using Kymeta.Cloud.Commons.AspNet.Health;
 using Kymeta.Cloud.Commons.Databases.Redis;
 using Kymeta.Cloud.Logging;
+using Kymeta.Cloud.Logging.Activity;
 using Kymeta.Cloud.Services.EnterpriseBroker;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Diagnostics;
@@ -42,6 +43,7 @@ builder.Services.AddHealthChecks();
 builder.Services.AddHttpClient<IAccountsClient, AccountsClient>();
 builder.Services.AddHttpClient<IOracleClient, OracleClient>();
 builder.Services.AddHttpClient<IUsersClient, UsersClient>();
+builder.Services.AddHttpClient<IActivityLoggerClient, ActivityLoggerClient>();
 builder.Services.AddCosmosDb(builder.Configuration.GetConnectionString("AzureCosmosDB"));
 builder.Services.AddScoped<IActionsRepository, ActionsRepository>();
 builder.Services.AddScoped<IOssService, OssService>();
@@ -55,6 +57,8 @@ builder.Services.AddRedisClient(new RedisClientOptions
     ConnectionString = builder.Configuration.GetConnectionString("RedisCache")
 });
 builder.Services.AddHttpClient<ISalesforceClient, SalesforceClient>();
+// Activity logger
+builder.Services.AddScoped<IActivityLogger>(provider => new ActivityLogger(new ActivityLoggerConfigurationOptions { ConnectionString = builder.Configuration.GetConnectionString("ActivityQueue") }));
 
 builder.Services.AddAuthorization();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
