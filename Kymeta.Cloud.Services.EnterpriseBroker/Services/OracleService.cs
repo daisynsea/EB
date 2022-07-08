@@ -613,8 +613,10 @@ public class OracleService : IOracleService
     {
         await LogAction(transaction, SalesforceTransactionAction.UpdatePartySiteInOracle, ActionObjectType.Account, StatusType.Started);
 
+        var encodedPartySites = EncodePartySiteMetadata(partySites);
+
         // populate the template
-        var orgPartySiteEnvelope = OracleSoapTemplates.UpdateOrganizationPartySites(organizationPartyId, partySites);
+        var orgPartySiteEnvelope = OracleSoapTemplates.UpdateOrganizationPartySites(organizationPartyId, encodedPartySites);
 
         // update the Party Sites via SOAP service
         var partySiteResponse = await _oracleClient.SendSoapRequest(orgPartySiteEnvelope, $"{_config["Oracle:Endpoint"]}/{_config["Oracle:Services:Organization"]}");
