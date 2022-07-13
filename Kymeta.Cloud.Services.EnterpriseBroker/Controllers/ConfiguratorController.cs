@@ -27,6 +27,7 @@ public class ConfiguratorController : ControllerBase
         try
         {
             var result = await _quoteRequestService.InsertQuoteRequest(model);
+            if(string.IsNullOrEmpty(result)) return new BadRequestObjectResult("Error occured creating quote record to db.");
             return result;
         }
         catch (Exception ex)

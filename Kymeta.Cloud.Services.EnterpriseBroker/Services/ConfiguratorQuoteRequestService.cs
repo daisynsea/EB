@@ -19,7 +19,9 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Services
         {
             model.Id = Guid.NewGuid();
             var documents = await _quotesRepository.GetQuoteRecords();
-            var latestOrderId = documents?.FirstOrDefault()?.OrderId ?? 10000;
+            if (documents == null) return null;
+            var documentsInOrderId = documents?.OrderByDescending(d => d.OrderId)?.ToList();
+            var latestOrderId = documentsInOrderId?.FirstOrDefault()?.OrderId;
             model.OrderId = latestOrderId + 1;
             model.CreatedOn = DateTime.UtcNow;
             var document =await _quotesRepository.InsertQuoteRecord(model);
