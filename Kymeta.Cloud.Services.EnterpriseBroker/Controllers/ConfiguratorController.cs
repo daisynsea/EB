@@ -31,7 +31,7 @@ public class ConfiguratorController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error processing address action due to an exception: {ex.Message}");
+            _logger.LogError(ex, $"Error creating quote request record to db, due to an exception: {ex.Message}");
             return StatusCode(500, ex.Message);
         }
     }
