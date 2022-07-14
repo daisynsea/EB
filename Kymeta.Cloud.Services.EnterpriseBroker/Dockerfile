@@ -17,6 +17,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:6.0-alpine AS final
 RUN apk add --no-cache icu-libs
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 WORKDIR /app
-EXPOSE 5071
+EXPOSE 443
+EXPOSE 80
 COPY --from=build /app/out .
 CMD ["dotnet", "Kymeta.Cloud.Services.EnterpriseBroker.dll"]

@@ -7,16 +7,31 @@ using Kymeta.Cloud.Logging.Activity;
 using Kymeta.Cloud.Services.EnterpriseBroker;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Diagnostics;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
-// Use a custom port (TODO: This doesn't work right now, known issue, fixed in RC2)
-// builder.WebHost.UseUrls("http://*:5098");
 // Default connection limit is 100 seconds, make it a lot longer just in case Oracle sucks
-//builder.WebHost.UseKestrel(options =>
-//{
-//    options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(5);
-//});
+builder.WebHost.UseKestrel(options =>
+{
+    options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(5);
+    // if dev env
+    var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
+    if (isDevelopment)
+    {
+        options.ListenAnyIP(5098);
+    }
+    else // not dev env
+    {
+        // if we're in kubernetes, use a real pfx
+        if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("IsKubernetes")) && Environment.GetEnvironmentVariable("IsKubernetes")?.ToLower() == "true")
+        {
+            var cert = new X509Certificate2("Certificate.pfx", "", X509KeyStorageFlags.MachineKeySet);
+            options.ListenAnyIP(80);
+            options.ListenAnyIP(443, configure => configure.UseHttps(cert));
+        }
+    }
+});
 // Setup configuration
 builder.Configuration.AddGrapevineConfiguration(new GrapevineConfigurationOptions
 {
@@ -124,6 +139,9 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 //app.UseHttpsRedirection();
 app.UseApiVersionPathMiddleware();
+// after version path, before the api key middleware
+app.UseHealthChecks("/health");
+
 app.UseAuthKeyMiddleware();
 
 app.UseRouting();
