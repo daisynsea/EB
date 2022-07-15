@@ -6,6 +6,7 @@ using Kymeta.Cloud.Logging;
 using Kymeta.Cloud.Logging.Activity;
 using Kymeta.Cloud.Services.EnterpriseBroker;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.HttpOverrides;
 using System.Diagnostics;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Serialization;
@@ -134,10 +135,15 @@ builder.Services.AddControllers()
 builder.Services.AddRazorPages();
 
 // END: ConfigureServices
+
 // START: Configure
 var app = builder.Build();
 // Configure the HTTP request pipeline.
-//app.UseHttpsRedirection();
+app.UseHttpsRedirection();
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
 app.UseApiVersionPathMiddleware();
 // after version path, before the api key middleware
 app.UseHealthChecks("/health");
