@@ -8,6 +8,7 @@ using Kymeta.Cloud.Services.EnterpriseBroker;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.HttpOverrides;
 using System.Diagnostics;
+using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Serialization;
 
@@ -139,7 +140,7 @@ builder.Services.AddRazorPages();
 // START: Configure
 var app = builder.Build();
 // Configure the HTTP request pipeline.
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
