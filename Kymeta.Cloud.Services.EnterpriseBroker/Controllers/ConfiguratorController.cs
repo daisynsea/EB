@@ -22,7 +22,7 @@ public class ConfiguratorController : ControllerBase
     }
 
     [HttpPost("createquoterecord"), AllowAnonymous]
-    public async Task<ActionResult<string>> CreateQuoteOrderId([FromBody] QuoteRequestViewModel model)
+    public async Task<ActionResult<string>> CreateOrderQuote([FromBody] QuoteRequestViewModel model)
     {
         try
         {
