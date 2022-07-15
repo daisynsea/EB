@@ -132,6 +132,11 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
     });
 
+builder.Services.AddHttpsRedirection(options =>
+{
+    options.RedirectStatusCode = (int)HttpStatusCode.TemporaryRedirect;
+});
+
 // Add Razor Pages
 builder.Services.AddRazorPages();
 
@@ -140,7 +145,7 @@ builder.Services.AddRazorPages();
 // START: Configure
 var app = builder.Build();
 // Configure the HTTP request pipeline.
-//app.UseHttpsRedirection();
+app.UseHttpsRedirection();
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
