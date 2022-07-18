@@ -139,17 +139,12 @@ builder.Services.AddRazorPages();
 
 // START: Configure
 var app = builder.Build();
-app.Use(async (context, next) =>
-{
-    context.Request.Scheme = "https";
-    await next.Invoke();
-});
-// Configure the HTTP request pipeline.
-app.UseHttpsRedirection();
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
 });
+// Configure the HTTP request pipeline.
+app.UseHttpsRedirection();
 app.UseApiVersionPathMiddleware();
 // after version path, before the api key middleware
 app.UseHealthChecks("/health");
