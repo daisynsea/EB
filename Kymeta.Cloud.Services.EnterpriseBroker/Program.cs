@@ -139,6 +139,11 @@ builder.Services.AddRazorPages();
 
 // START: Configure
 var app = builder.Build();
+app.Use(async (context, next) =>
+{
+    context.Request.Scheme = "https";
+    await next.Invoke();
+});
 // Configure the HTTP request pipeline.
 app.UseHttpsRedirection();
 app.UseForwardedHeaders(new ForwardedHeadersOptions
