@@ -15,6 +15,8 @@ public class SalesforceProductObjectModel
     public int? DiscountTier3Price { get; set; }
     public int? DiscountTier4Price { get; set; }
     public int? DiscountTier5Price { get; set; }
+    public bool? Mil { get; set; }
+    public bool? Comm { get; set; }
     [JsonConverter(typeof(StringEnumConverter))]
     public ProductType ProductType { get; set; }
     public int? Score { get; set; } // Connectivity Only
