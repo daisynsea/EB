@@ -406,6 +406,10 @@ public class AccountBrokerService : IAccountBrokerService
                             {
                                 // create PartySites failed for some reason
                                 Console.WriteLine($"[DEBUG] Error: {createPartySitesResult.Item2}");
+                                // fatal error occurred
+                                response.OracleStatus = StatusType.Error;
+                                response.OracleErrorMessage = createPartySitesResult.Item2;
+                                return response;
                             }
                             else
                             {

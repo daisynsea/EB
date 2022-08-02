@@ -43,7 +43,12 @@ public class OssService : IOssService
     private readonly IUsersClient _usersClient;
     private readonly IActionsRepository _actionsRepository;
     private readonly IActivityLoggerClient _activityLoggerClient;
-    private User _systemUser = new User { FirstName = "System", LastName = "User", Email = "kcssystemuser@kymeta.io" };
+    private User _systemUser = new()
+    { 
+        FirstName = "System", 
+        LastName = "User", 
+        Email = "kcssystemuser@kymeta.io" 
+    };
 
     public OssService(IConfiguration config, IAccountsClient accountsClient, IUsersClient usersClient, IActionsRepository actionsRepository, IActivityLoggerClient activityLoggerClient)
     {
@@ -107,8 +112,20 @@ public class OssService : IOssService
 
             // add all permissions to this role
             var permissions = await _usersClient.GetPermissions(null);
+            // if the system user was used, assign default permissions
+            if ((existingUser.Permissions == null || !existingUser.Permissions.Any()) && existingUser.Email == "kcssystemuser@kymeta.io")
+            {
+                // reduce the list to only default Permissions
+                existingUser.Permissions = permissions
+                    .Where(p => !p.ExcludeFromDefaultRoles)
+                    .Select(p => p.Shortcode);
+            }
             // everything user has access to, except system admin
-            var permissionsToAdd = permissions?.Where(p => existingUser.Permissions.Contains(p.Shortcode))?.Where(p => p.Shortcode != "SYSTEM_ADMIN" && p.Shortcode != "CONFIGURATOR_ACCESS")?.Select(p => p.Id)?.ToList();
+            var permissionsToAdd = permissions?
+                .Where(p => existingUser.Permissions != null && existingUser.Permissions.Contains(p.Shortcode))
+                ?.Where(p => p.Shortcode != "SYSTEM_ADMIN")
+                ?.Select(p => p.Id)
+                ?.ToList();
             // add the permissions
             var updatedRole = await _usersClient.EditRolePermissions(addedRole.Id, permissionsToAdd);
             if (updatedRole == null)
