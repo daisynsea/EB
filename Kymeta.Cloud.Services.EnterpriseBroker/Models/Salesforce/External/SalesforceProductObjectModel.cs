@@ -18,6 +18,7 @@ public class SalesforceProductObjectModel
     public bool? Mil { get; set; }
     public bool? Comm { get; set; }
     public string? Description { get; set; }
+    public bool? Unavailable { get; set; } = false;
     [JsonConverter(typeof(StringEnumConverter))]
     public ProductType ProductType { get; set; }
     public int? Score { get; set; } // Connectivity Only
