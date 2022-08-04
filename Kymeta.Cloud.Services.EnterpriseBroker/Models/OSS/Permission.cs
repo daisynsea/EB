@@ -9,4 +9,5 @@ public class Permission
     public string Category { get; set; }
     public string Description { get; set; }
     public bool Test { get; set; }
+    public bool ExcludeFromDefaultRoles { get; set; }
 }
