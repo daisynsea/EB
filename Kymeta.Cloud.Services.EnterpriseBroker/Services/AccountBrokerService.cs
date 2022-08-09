@@ -138,6 +138,9 @@ public class AccountBrokerService : IAccountBrokerService
                             response.OSSErrorMessage = updatedAccountTuple.Item2;
                             response.OSSStatus = StatusType.Error;
                         }
+
+                        // TODO: iterate the childAccounts & check to see that OSS parent references are pointed to ossAccountId
+                        // TODO: if parent reference is not correct, update children that require it
                     }
                     else
                     {
@@ -147,6 +150,9 @@ public class AccountBrokerService : IAccountBrokerService
                         {
                             response.OssAccountId = addedAccountTuple.Item1.Id.ToString();
                             ossAccountId = addedAccountTuple.Item1?.Id?.ToString();
+
+                            // TODO: iterate the childAccounts & check to see that OSS parent references are pointed to ossAccountId
+                            // TODO: if parent reference is not correct, update children that require it
                         }
                         else // Is error, do not EXIT..
                         {
