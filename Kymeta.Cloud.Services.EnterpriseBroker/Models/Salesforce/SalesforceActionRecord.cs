@@ -95,6 +95,7 @@ public enum SalesforceTransactionAction
     CreateCustomerAccountSiteInOracle,
     // Update Account
     UpdateAccountInOss,
+    UpdateChildAccountInOss,
     UpdateAccountOracleIdInOss,
     UpdateOrganizationInOracle,
     UpdateCustomerAccountInOracle,
