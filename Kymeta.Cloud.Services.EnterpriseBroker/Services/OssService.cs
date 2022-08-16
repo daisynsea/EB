@@ -36,7 +36,7 @@ public interface IOssService
     /// <param name="userName"></param>
     /// <param name="salesforceTransaction"></param>
     /// <returns></returns>
-    Task<Tuple<bool, string>> UpdateChildAccounts(Account existingAccount, SalesforceAccountModel model, SalesforceActionTransaction salesforceTransaction);
+    Task<Tuple<bool, List<Account>?, string>> UpdateChildAccounts(Account existingAccount, SalesforceAccountModel model, SalesforceActionTransaction salesforceTransaction);
     /// <summary>
     /// Update an existing account's oracle id
     /// </summary>
@@ -359,7 +359,7 @@ public class OssService : IOssService
         await _actionsRepository.AddTransactionRecord(transaction.Id, transaction.Object.ToString() ?? "Unknown", actionRecord);
     }
 
-    public async virtual Task<Tuple<bool, string>> UpdateChildAccounts(Account existingAccount, SalesforceAccountModel model, SalesforceActionTransaction salesforceTransaction)
+    public async virtual Task<Tuple<bool, List<Account>?, string>> UpdateChildAccounts(Account existingAccount, SalesforceAccountModel model, SalesforceActionTransaction salesforceTransaction)
     {
         // fetch the child Account metadata from OSS
         var childAccountSalesforceIds = model.ChildAccounts.Select(ca => ca.ObjectId).ToList();
@@ -379,7 +379,8 @@ public class OssService : IOssService
             }
         }
 
-        Tuple<bool, string> result = new(true, null);
+        List<Account> updatedChildrenAccounts = new();
+        Tuple<bool, List<Account>?, string> result = new(true, updatedChildrenAccounts, null);
         // check to see if we need to update any children
         if (updateAccountTasks.Any())
         {
@@ -394,12 +395,13 @@ public class OssService : IOssService
                 if (childUpdateResult.Item1 == null)
                 {
                     // something went wrong updating a child, return the error message
-                    return new Tuple<bool, string>(false, childUpdateResult.Item2);
+                    return new Tuple<bool, List<Account>?, string>(false, null, childUpdateResult.Item2);
                 }
+                updatedChildrenAccounts.Add(childUpdateResult.Item1);
             }
         }
 
         // everything was updated as we intend, return success
-        return new Tuple<bool, string>(true, null);
+        return new Tuple<bool, List<Account>?, string>(true, updatedChildrenAccounts, null);
     }
 }

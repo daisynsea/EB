@@ -146,9 +146,11 @@ public class AccountBrokerService : IAccountBrokerService
                             if (!updateChildrenResult.Item1)
                             {
                                 // update the response to indicate an error took place
-                                response.OSSErrorMessage = updateChildrenResult.Item2;
+                                response.OSSErrorMessage = updateChildrenResult.Item3;
                                 response.OSSStatus = StatusType.Error;
                             }
+                            // append the updated children to the response
+                            response.ChildAccounts = updateChildrenResult.Item2;
                         }
                     }
                     else
@@ -167,9 +169,11 @@ public class AccountBrokerService : IAccountBrokerService
                                 if (!updateChildrenResult.Item1)
                                 {
                                     // update the response to indicate an error took place
-                                    response.OSSErrorMessage = updateChildrenResult.Item2;
+                                    response.OSSErrorMessage = updateChildrenResult.Item3;
                                     response.OSSStatus = StatusType.Error;
                                 }
+                                // append the updated children to the response
+                                response.ChildAccounts = updateChildrenResult.Item2;
                             }
                         }
                         else // Is error, do not EXIT..
