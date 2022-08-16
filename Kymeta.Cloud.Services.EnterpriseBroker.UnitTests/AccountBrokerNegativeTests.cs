@@ -36,6 +36,9 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             _fixture.OssService
                 .Setup(oss => oss.GetAccountBySalesforceId(It.IsAny<string>()))
                 .ReturnsAsync(accountFromOss);
+            _fixture.OssService
+                .Setup(oss => oss.UpdateChildAccounts(It.IsAny<Account>(), It.IsAny<SalesforceAccountModel>(), It.IsAny<SalesforceActionTransaction>()))
+                .ReturnsAsync(new Tuple<bool, List<Account>?, string>(true, null, null));
             // Because the account is found above, we're doing an update
             _fixture.OssService
                 .Setup(oss => oss.UpdateAccount(It.IsAny<SalesforceAccountModel>(), It.IsAny<SalesforceActionTransaction>()))
