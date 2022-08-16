@@ -29,6 +29,15 @@ public interface IOssService
     /// <returns></returns>
     Task<Tuple<Account, string>> UpdateChildAccount(Account account, string userName, SalesforceActionTransaction transaction);
     /// <summary>
+    /// Utility method to update a list of child Accounts in OSS
+    /// </summary>
+    /// <param name="existingAccount"></param>
+    /// <param name="children"></param>
+    /// <param name="userName"></param>
+    /// <param name="salesforceTransaction"></param>
+    /// <returns></returns>
+    Task<Tuple<bool, string>> UpdateChildAccounts(Account existingAccount, SalesforceAccountModel model, SalesforceActionTransaction salesforceTransaction);
+    /// <summary>
     /// Update an existing account's oracle id
     /// </summary>
     /// <param name="salesforceId"></param>
@@ -48,15 +57,6 @@ public interface IOssService
     /// <param name="salesforceIds">List of strings which are Salesforce object Ids</param>
     /// <returns></returns>
     Task<List<Account>> GetAccountsByManySalesforceIds(List<string> salesforceIds);
-    /// <summary>
-    /// Utility method to update a list of child Accounts in OSS
-    /// </summary>
-    /// <param name="existingAccount"></param>
-    /// <param name="children"></param>
-    /// <param name="userName"></param>
-    /// <param name="salesforceTransaction"></param>
-    /// <returns></returns>
-    Task<Tuple<bool, string>> UpdateChildAccounts(Account existingAccount, List<SalesforceAccountModel> children, string userName, SalesforceActionTransaction salesforceTransaction);
 }
 
 public class OssService : IOssService
@@ -359,10 +359,10 @@ public class OssService : IOssService
         await _actionsRepository.AddTransactionRecord(transaction.Id, transaction.Object.ToString() ?? "Unknown", actionRecord);
     }
 
-    public async virtual Task<Tuple<bool, string>> UpdateChildAccounts(Account existingAccount, List<SalesforceAccountModel> children, string userName, SalesforceActionTransaction salesforceTransaction)
+    public async virtual Task<Tuple<bool, string>> UpdateChildAccounts(Account existingAccount, SalesforceAccountModel model, SalesforceActionTransaction salesforceTransaction)
     {
         // fetch the child Account metadata from OSS
-        var childAccountSalesforceIds = children.Select(ca => ca.ObjectId).ToList();
+        var childAccountSalesforceIds = model.ChildAccounts.Select(ca => ca.ObjectId).ToList();
         var childAccounts = await GetAccountsByManySalesforceIds(childAccountSalesforceIds);
 
         List<Task<Tuple<Account, string>>> updateAccountTasks = new();
@@ -375,7 +375,7 @@ public class OssService : IOssService
                 // if parent reference is not correct, update child account
                 childAccount.ParentId = existingAccount.Id;
                 // add to list of Tasks to update children in parallel 
-                updateAccountTasks.Add(UpdateChildAccount(childAccount, userName, salesforceTransaction)); // need a method that only updates account and doesn't have context of the transaction
+                updateAccountTasks.Add(UpdateChildAccount(childAccount, model.UserName, salesforceTransaction)); // need a method that only updates account and doesn't have context of the transaction
             }
         }
 

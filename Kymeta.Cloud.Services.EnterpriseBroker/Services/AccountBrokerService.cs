@@ -142,7 +142,7 @@ public class AccountBrokerService : IAccountBrokerService
                         // if children accounts are present, make sure they reference the correct parent Account in OSS
                         if (model.ChildAccounts != null && model.ChildAccounts.Any())
                         {
-                            var updateChildrenResult = await _ossService.UpdateChildAccounts(existingAccount, model.ChildAccounts, model.UserName, salesforceTransaction);
+                            var updateChildrenResult = await _ossService.UpdateChildAccounts(existingAccount, model, salesforceTransaction);
                             if (!updateChildrenResult.Item1)
                             {
                                 // update the response to indicate an error took place
@@ -163,7 +163,7 @@ public class AccountBrokerService : IAccountBrokerService
                             // if children accounts are present, make sure they reference the correct parent in OSS
                             if (model.ChildAccounts != null && model.ChildAccounts.Any())
                             {
-                                var updateChildrenResult = await _ossService.UpdateChildAccounts(addedAccountTuple.Item1, model.ChildAccounts, model.UserName, salesforceTransaction);
+                                var updateChildrenResult = await _ossService.UpdateChildAccounts(addedAccountTuple.Item1, model, salesforceTransaction);
                                 if (!updateChildrenResult.Item1)
                                 {
                                     // update the response to indicate an error took place
