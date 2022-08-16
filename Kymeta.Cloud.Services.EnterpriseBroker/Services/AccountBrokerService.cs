@@ -128,8 +128,8 @@ public class AccountBrokerService : IAccountBrokerService
                     if (existingAccount != null)
                     {
                         // If the account exists, we can set the Id early
-                        response.OssAccountId = existingAccount?.Id?.ToString();
-                        ossAccountId = existingAccount?.Id.ToString();
+                        response.OssAccountId = existingAccount.Id?.ToString();
+                        ossAccountId = existingAccount.Id.ToString();
                         // Update the account
                         var updatedAccountTuple = await _ossService.UpdateAccount(model, salesforceTransaction);
                         // Item1 is the account object -- if it's null, we have a problem
@@ -137,6 +137,20 @@ public class AccountBrokerService : IAccountBrokerService
                         {
                             response.OSSErrorMessage = updatedAccountTuple.Item2;
                             response.OSSStatus = StatusType.Error;
+                        }
+
+                        // if children accounts are present, make sure they reference the correct parent Account in OSS
+                        if (model.ChildAccounts != null && model.ChildAccounts.Any())
+                        {
+                            var updateChildrenResult = await _ossService.UpdateChildAccounts(existingAccount, model, salesforceTransaction);
+                            if (!updateChildrenResult.Item1)
+                            {
+                                // update the response to indicate an error took place
+                                response.OSSErrorMessage = updateChildrenResult.Item3;
+                                response.OSSStatus = StatusType.Error;
+                            }
+                            // append the updated children to the response
+                            response.ChildAccounts = updateChildrenResult.Item2;
                         }
                     }
                     else
@@ -147,6 +161,20 @@ public class AccountBrokerService : IAccountBrokerService
                         {
                             response.OssAccountId = addedAccountTuple.Item1.Id.ToString();
                             ossAccountId = addedAccountTuple.Item1?.Id?.ToString();
+
+                            // if children accounts are present, make sure they reference the correct parent in OSS
+                            if (model.ChildAccounts != null && model.ChildAccounts.Any())
+                            {
+                                var updateChildrenResult = await _ossService.UpdateChildAccounts(addedAccountTuple.Item1, model, salesforceTransaction);
+                                if (!updateChildrenResult.Item1)
+                                {
+                                    // update the response to indicate an error took place
+                                    response.OSSErrorMessage = updateChildrenResult.Item3;
+                                    response.OSSStatus = StatusType.Error;
+                                }
+                                // append the updated children to the response
+                                response.ChildAccounts = updateChildrenResult.Item2;
+                            }
                         }
                         else // Is error, do not EXIT..
                         {

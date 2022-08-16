@@ -65,6 +65,24 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                         ParentAccountId = "acc30001",
                         Role = "Bill To Contact"
                     }
+                },
+                ChildAccounts = new List<SalesforceAccountModel>
+                {
+                    new SalesforceAccountModel
+                    {
+                        Name = "Child Account One",
+                        ObjectId = "acc70001"
+                    },
+                    new SalesforceAccountModel
+                    {
+                        Name = "Child Account Two",
+                        ObjectId = "acc70002"
+                    },
+                    new SalesforceAccountModel
+                    {
+                        Name = "Child Account Three",
+                        ObjectId = "acc70003"
+                    }
                 }
             };
         }

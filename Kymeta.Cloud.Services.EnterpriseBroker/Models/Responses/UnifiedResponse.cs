@@ -22,6 +22,7 @@ public class UnifiedResponse : SalesforceProcessResponse
     // Optional when creating an account
     public IEnumerable<AccountChildResponse>? Contacts { get; set; }
     public IEnumerable<AccountChildResponse>? Addresses { get; set; }
+    public IEnumerable<Account>? ChildAccounts { get; set; }
 
     public string? OracleAddressId { get; set; }
 

@@ -21,6 +21,23 @@ public interface IOssService
     /// <returns></returns>
     Task<Tuple<Account, string>> UpdateAccount(SalesforceAccountModel model, SalesforceActionTransaction transaction);
     /// <summary>
+    /// Update an existing child account to OSS
+    /// </summary>
+    /// <param name="account"></param>
+    /// <param name="transaction"></param>
+    /// <param name="userName"></param>
+    /// <returns></returns>
+    Task<Tuple<Account, string>> UpdateChildAccount(Account account, string userName, SalesforceActionTransaction transaction);
+    /// <summary>
+    /// Utility method to update a list of child Accounts in OSS
+    /// </summary>
+    /// <param name="existingAccount"></param>
+    /// <param name="children"></param>
+    /// <param name="userName"></param>
+    /// <param name="salesforceTransaction"></param>
+    /// <returns></returns>
+    Task<Tuple<bool, List<Account>?, string>> UpdateChildAccounts(Account existingAccount, SalesforceAccountModel model, SalesforceActionTransaction salesforceTransaction);
+    /// <summary>
     /// Update an existing account's oracle id
     /// </summary>
     /// <param name="salesforceId"></param>
@@ -34,6 +51,12 @@ public interface IOssService
     /// <param name="salesforceId"></param>
     /// <returns></returns>
     Task<Account?> GetAccountBySalesforceId(string salesforceId);
+    /// <summary>
+    /// Get a list of OSS Accounts by many Salesforce Ids
+    /// </summary>
+    /// <param name="salesforceIds">List of strings which are Salesforce object Ids</param>
+    /// <returns></returns>
+    Task<List<Account>> GetAccountsByManySalesforceIds(List<string> salesforceIds);
 }
 
 public class OssService : IOssService
@@ -156,13 +179,9 @@ public class OssService : IOssService
             await LogAction(transaction, SalesforceTransactionAction.UpdateAccountInOss, ActionObjectType.Account, StatusType.Error, null, error);
             return new Tuple<Account, string>(null, error);
         }
-        // Get the user from OSS system
-        User existingUser = null;
-        if (!string.IsNullOrEmpty(model.UserName))
-        {
-            existingUser = await _usersClient.GetUserByEmail(model.UserName);
-        }
-        if (existingUser == null) existingUser = _systemUser;
+
+        // Get the user from OSS system or default to system user when not found
+        User existingUser = await _usersClient.GetUserByEmail(model.UserName) ?? _systemUser;
 
         var account = await RemapSalesforceAccountToOssAccount(model.Name, model.ObjectId, existingUser.Id, null, model.ParentId);
         try
@@ -181,6 +200,42 @@ public class OssService : IOssService
         {
             error = $"There was an error calling the OSS Accounts service: {ex.Message}";
             await LogAction(transaction, SalesforceTransactionAction.UpdateAccountInOss, ActionObjectType.Account, StatusType.Error, null, error);
+            return new Tuple<Account, string>(null, error);
+        }
+    }
+
+    public async Task<Tuple<Account, string>> UpdateChildAccount(Account account, string userName, SalesforceActionTransaction transaction)
+    {
+        await LogAction(transaction, SalesforceTransactionAction.UpdateChildAccountInOss, ActionObjectType.Account, StatusType.Started);
+        string error = null;
+
+        var existingAccount = await GetAccountBySalesforceId(account.SalesforceAccountId);
+        if (existingAccount == null) // Account doesn't exist, return from this action with an error
+        {
+            error = $"Account with OSS ID {account.Id} does not exist in OSS.";
+            return new Tuple<Account, string>(null, error);
+        }
+        
+        // get the user from OSS system or default to system user when not found
+        User existingUser = await _usersClient.GetUserByEmail(userName) ?? _systemUser;
+        account.ModifiedById = existingUser.Id;
+
+        try
+        {
+            var updated = await _accountsClient.UpdateAccount(existingAccount.Id.GetValueOrDefault(), account);
+            if (!string.IsNullOrEmpty(updated.Item2))
+            {
+                error = $"There was an error updating the account in OSS: {updated.Item2}";
+                if (transaction != null) await LogAction(transaction, SalesforceTransactionAction.UpdateChildAccountInOss, ActionObjectType.Account, StatusType.Error, existingAccount.Id.ToString(), error);
+                return new Tuple<Account, string>(null, error);
+            }
+            await LogAction(transaction, SalesforceTransactionAction.UpdateChildAccountInOss, ActionObjectType.Account, StatusType.Successful, updated.Item1.Id.ToString());
+            return new Tuple<Account, string>(updated.Item1, string.Empty);
+        }
+        catch (Exception ex)
+        {
+            error = $"There was an error calling the OSS Accounts service: {ex.Message}";
+            if (transaction != null) await LogAction(transaction, SalesforceTransactionAction.UpdateChildAccountInOss, ActionObjectType.Account, StatusType.Error, existingAccount.Id.ToString(), error);
             return new Tuple<Account, string>(null, error);
         }
     }
@@ -236,6 +291,11 @@ public class OssService : IOssService
     public async virtual Task<Account> GetAccountBySalesforceId(string salesforceId)
     {
         return await _accountsClient.GetAccountBySalesforceId(salesforceId);
+    }
+
+    public async virtual Task<List<Account>> GetAccountsByManySalesforceIds(List<string> salesforceIds)
+    {
+        return await _accountsClient.GetAccountsByManySalesforceIds(salesforceIds);
     }
 
     public async virtual Task<Account> RemapSalesforceAccountToOssAccount(
@@ -297,5 +357,51 @@ public class OssService : IOssService
         if (transaction.TransactionLog == null) transaction.TransactionLog = new List<SalesforceActionRecord>();
         transaction.TransactionLog?.Add(actionRecord);
         await _actionsRepository.AddTransactionRecord(transaction.Id, transaction.Object.ToString() ?? "Unknown", actionRecord);
+    }
+
+    public async virtual Task<Tuple<bool, List<Account>?, string>> UpdateChildAccounts(Account existingAccount, SalesforceAccountModel model, SalesforceActionTransaction salesforceTransaction)
+    {
+        // fetch the child Account metadata from OSS
+        var childAccountSalesforceIds = model.ChildAccounts.Select(ca => ca.ObjectId).ToList();
+        var childAccounts = await GetAccountsByManySalesforceIds(childAccountSalesforceIds);
+
+        List<Task<Tuple<Account, string>>> updateAccountTasks = new();
+        // iterate the childAccounts & check to see that OSS parent references are pointed to ossAccountId
+        for (int i = 0; i < childAccounts.Count; i++)
+        {
+            var childAccount = childAccounts[i];
+            if (childAccount.ParentId != existingAccount.Id)
+            {
+                // if parent reference is not correct, update child account
+                childAccount.ParentId = existingAccount.Id;
+                // add to list of Tasks to update children in parallel 
+                updateAccountTasks.Add(UpdateChildAccount(childAccount, model.UserName, salesforceTransaction)); // need a method that only updates account and doesn't have context of the transaction
+            }
+        }
+
+        List<Account> updatedChildrenAccounts = new();
+        Tuple<bool, List<Account>?, string> result = new(true, updatedChildrenAccounts, null);
+        // check to see if we need to update any children
+        if (updateAccountTasks.Any())
+        {
+            // execute requests to create Locations in async fashion
+            await Task.WhenAll(updateAccountTasks);
+            // get the response data
+            var updateChildAccountResults = updateAccountTasks.Select(t => t.Result).ToList();
+            for (int i = 0; i < updateChildAccountResults.Count; i++)
+            {
+                // fetch child update result
+                var childUpdateResult = updateChildAccountResults[i];
+                if (childUpdateResult.Item1 == null)
+                {
+                    // something went wrong updating a child, return the error message
+                    return new Tuple<bool, List<Account>?, string>(false, null, childUpdateResult.Item2);
+                }
+                updatedChildrenAccounts.Add(childUpdateResult.Item1);
+            }
+        }
+
+        // everything was updated as we intend, return success
+        return new Tuple<bool, List<Account>?, string>(true, updatedChildrenAccounts, null);
     }
 }
