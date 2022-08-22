@@ -14,5 +14,6 @@
         public string? OssId { get; set; }
         public List<SalesforceAddressModel>? Addresses { get; set; }
         public List<SalesforceContactModel>? Contacts { get; set; }
+        public List<SalesforceAccountModel>? ChildAccounts { get; set; }
     }
 }
