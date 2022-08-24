@@ -13,11 +13,13 @@ public class BrokerProductsController : ControllerBase
 {
     private readonly ILogger<BrokerProductsController> _logger;
     private readonly ISalesforceProductsRepository _sfProductsRepo;
+    private readonly IProductsBrokerService _sfProductBrokerService;
 
-    public BrokerProductsController(ILogger<BrokerProductsController> logger, ISalesforceProductsRepository sfProductsRepo)
+    public BrokerProductsController(ILogger<BrokerProductsController> logger, ISalesforceProductsRepository sfProductsRepo, IProductsBrokerService sfProductsBrokerService)
     {
         _logger = logger;
         _sfProductsRepo = sfProductsRepo;
+        _sfProductBrokerService = sfProductsBrokerService;
     }
 
     [HttpGet]
@@ -31,6 +33,21 @@ public class BrokerProductsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Error fetching products from Cosmos DB due to an exception: {ex.Message}");
+            return StatusCode(500, ex.Message);
+        }
+    }
+
+    [HttpGet("ProductsReportSF")]
+    public async Task<ActionResult<List<SalesforceProductObjectModel>>> GetProductReportFromSF()
+    {
+        try
+        {
+            var result = await _sfProductBrokerService.GetSalesforceProductReport();
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error fetching Products Report from SF due to an exception: {ex.Message}");
             return StatusCode(500, ex.Message);
         }
     }

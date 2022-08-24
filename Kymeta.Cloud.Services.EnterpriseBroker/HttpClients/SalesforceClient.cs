@@ -10,6 +10,7 @@ public interface ISalesforceClient
     Task<SalesforceContactObjectModel> GetContactFromSalesforce(string contactId);
     Task<SalesforceAccountObjectModel> GetAccountFromSalesforce(string accountId);
     Task<SalesforceUserObjectModel> GetUserFromSalesforce(string userId);
+    Task<SalesforceProductReportResultModel> GetProductReportFromSalesforce();
 }
 
 public class SalesforceClient : ISalesforceClient
@@ -129,7 +130,31 @@ public class SalesforceClient : ISalesforceClient
             return null;
         }
     }
+    public async Task<SalesforceProductReportResultModel> GetProductReportFromSalesforce()
+    {
+        try
+        {
+            var tokenAndUrl = await GetTokenAndUrl();
+            var token = tokenAndUrl?.Item1;
+            var url = tokenAndUrl?.Item2;
+            var productsReportId = _config["Salesforce:ProductsReportId"];
 
+            _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+            var response = await _client.GetAsync($"{url}/services/data/v53.0/analytics/reports/{productsReportId}"); //prod : 00O3j000007n2CREAY, cloudDev : 00O0r000000SnZtEAK
+            var stringResponse = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode) return null;
+
+            var productObject = JsonConvert.DeserializeObject<SalesforceProductReportResultModel>(stringResponse);
+
+            return productObject;
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"[EB] Exception thrown when fetching Products Report from Salesforce: {ex.Message}");
+            return null;
+        }
+    }
     private async Task<Tuple<string, string>?> GetTokenAndUrl()
     {
         var token = _redis.StringGet<string>("EB:SFToken");
