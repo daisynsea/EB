@@ -48,17 +48,17 @@ public class ProductsBrokerService : IProductsBrokerService
         for (int i = 0; i < rowDataCells?.Count; i++)
         {
             var row = rowDataCells[i];
-            var productCode         = row?.dataCells[indexOfProductCode.GetValueOrDefault()]?.label;            // var productCodeValueType        = row?.dataCells[0]?.value?.GetType(); //String
-            var stage               = row?.dataCells[indexOfStage.GetValueOrDefault()]?.label;            // var stageValueType              = row?.dataCells[1]?.value?.GetType(); //String
-            var productName         = row?.dataCells[indexOfProductName.GetValueOrDefault()]?.label;            // var productNameValueType        = row?.dataCells[2]?.value?.GetType(); //String
-            var productGen          = row?.dataCells[indexOfProductGen.GetValueOrDefault()]?.label;            // var productGenValueType         = row?.dataCells[3]?.value?.GetType(); //Array
-            var productType         = row?.dataCells[indexOfProductType.GetValueOrDefault()]?.label;            // var productTypeValueType        = row?.dataCells[4]?.value?.GetType(); //String
-            var productFamily       = row?.dataCells[indexOfProductFamily.GetValueOrDefault()]?.label;            // var productFamilyValueType      = row?.dataCells[5]?.value?.GetType(); //String
-            var terminalCategory    = row?.dataCells[indexOfTerminalCategory.GetValueOrDefault()]?.label;            // var terminalCategoryValueType   = row?.dataCells[6]?.value?.GetType(); //String
-            var priceBookName       = row?.dataCells[indexOfPriceBookName.GetValueOrDefault()]?.label;            // var priceBookNameValueType      = row?.dataCells[7]?.value?.GetType(); //String
-            var listPrice           = row?.dataCells[indexOfListPrice.GetValueOrDefault()]?.label;            // var listPriceValueType          = row?.dataCells[8]?.value?.GetType(); //Object
-            var itemDetail          = row?.dataCells[indexOfItemDetail.GetValueOrDefault()]?.label;            // var itemDetailValueType         = row?.dataCells[9]?.value?.GetType(); //String
-            var productDesc         = row?.dataCells[indexOfProductDesc.GetValueOrDefault()]?.label;           // var productDescValueType        = row?.dataCells[10]?.value?.GetType();//String
+            var productCode         = row?.dataCells[indexOfProductCode.GetValueOrDefault()]?.label;      
+            var stage               = row?.dataCells[indexOfStage.GetValueOrDefault()]?.label;            
+            var productName         = row?.dataCells[indexOfProductName.GetValueOrDefault()]?.label;      
+            var productGen          = row?.dataCells[indexOfProductGen.GetValueOrDefault()]?.label;       
+            var productType         = row?.dataCells[indexOfProductType.GetValueOrDefault()]?.label;      
+            var productFamily       = row?.dataCells[indexOfProductFamily.GetValueOrDefault()]?.label;    
+            var terminalCategory    = row?.dataCells[indexOfTerminalCategory.GetValueOrDefault()]?.label; 
+            var priceBookName       = row?.dataCells[indexOfPriceBookName.GetValueOrDefault()]?.label;    
+            var listPrice           = row?.dataCells[indexOfListPrice.GetValueOrDefault()]?.label;        
+            var itemDetail          = row?.dataCells[indexOfItemDetail.GetValueOrDefault()]?.label;       
+            var productDesc         = row?.dataCells[indexOfProductDesc.GetValueOrDefault()]?.label;      
 
             var listPriceObj = row?.dataCells[indexOfListPrice.GetValueOrDefault()]?.value;
 
