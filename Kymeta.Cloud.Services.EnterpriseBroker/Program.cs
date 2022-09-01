@@ -68,7 +68,7 @@ builder.Services.AddScoped<IAccountBrokerService, AccountBrokerService>();
 builder.Services.AddScoped<IAddressBrokerService, AddressBrokerService>();
 builder.Services.AddScoped<IContactBrokerService, ContactBrokerService>();
 builder.Services.AddScoped<IOracleService, OracleService>();
-builder.Services.AddScoped<ISalesforceProductsRepository, SalesforceProductsRepository>();
+builder.Services.AddScoped<ISalesforceRepository, SalesforceRepository>();
 builder.Services.AddScoped<IQuotesRepository, QuotesRepository>();
 builder.Services.AddScoped<IConfiguratorQuoteRequestService, ConfiguratorQuoteRequestService>();
 builder.Services.AddRedisClient(new RedisClientOptions

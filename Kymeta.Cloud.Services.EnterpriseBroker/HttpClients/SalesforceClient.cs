@@ -10,6 +10,7 @@ public interface ISalesforceClient
     Task<SalesforceContactObjectModel> GetContactFromSalesforce(string contactId);
     Task<SalesforceAccountObjectModel> GetAccountFromSalesforce(string accountId);
     Task<SalesforceUserObjectModel> GetUserFromSalesforce(string userId);
+    Task<SalesforceConfiguratorMetadataModel> GetSalesforceConfiguratorMetadataModel();
 }
 
 public class SalesforceClient : ISalesforceClient
@@ -126,6 +127,33 @@ public class SalesforceClient : ISalesforceClient
         catch (Exception ex)
         {
             _logger.LogError($"[EB] Exception thrown when fetching User from Salesforce: {ex.Message}");
+            return null;
+        }
+    }
+
+    public async Task<SalesforceConfiguratorMetadataModel> GetSalesforceConfiguratorMetadataModel()
+    {
+        try
+        {
+            var tokenAndUrl = await GetTokenAndUrl();
+            var token = tokenAndUrl?.Item1;
+            var url = tokenAndUrl?.Item2;
+
+            _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+            var metadataObjectId = _config.GetValue<string>("ConfiguratorMetadataObjectId") ?? "m0I0r000000Cba0"; // TODO: Add this to GV
+            var response = await _client.GetAsync($"{url}/services/data/v53.0/sobjects/Configurator_Metadata__mdt/{metadataObjectId}");
+            var stringResponse = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode) return null;
+
+            var result = JsonConvert.DeserializeObject<SalesforceConfiguratorMetadataModel>(stringResponse);
+
+            return result;
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"[EB] Exception thrown when fetching Configurator Metadata from Salesforce: {ex.Message}");
             return null;
         }
     }

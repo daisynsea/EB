@@ -12,12 +12,12 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Controllers;
 public class BrokerProductsController : ControllerBase
 {
     private readonly ILogger<BrokerProductsController> _logger;
-    private readonly ISalesforceProductsRepository _sfProductsRepo;
+    private readonly ISalesforceRepository _salesforceRepository;
 
-    public BrokerProductsController(ILogger<BrokerProductsController> logger, ISalesforceProductsRepository sfProductsRepo)
+    public BrokerProductsController(ILogger<BrokerProductsController> logger, ISalesforceRepository sfProductsRepo)
     {
         _logger = logger;
-        _sfProductsRepo = sfProductsRepo;
+        _salesforceRepository = sfProductsRepo;
     }
 
     [HttpGet]
@@ -25,7 +25,7 @@ public class BrokerProductsController : ControllerBase
     {
         try
         {
-            var result = await _sfProductsRepo.GetProducts();
+            var result = await _salesforceRepository.GetProducts();
             return result?.ToList();
         }
         catch (Exception ex)
