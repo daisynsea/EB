@@ -42,6 +42,7 @@ builder.Configuration.AddGrapevineConfiguration(new GrapevineConfigurationOption
     Secret = builder.Configuration["Configuration:Secret"]
 }, new CancellationTokenSource().Token);
 if (builder.Environment.IsDevelopment()) builder.Configuration.AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true);
+builder.Configuration.AddEnvironmentVariables();
 // Setup logging
 string? instanceId = Environment.GetEnvironmentVariable("WEBSITE_INSTANCE_ID");
 string pid = String.Format("{0}", Process.GetCurrentProcess().Id);
@@ -93,7 +94,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
                 {
                     options.ClientId = "enterprisebroker";
                     options.ClientSecret = builder.Configuration["Authentication:OidcSecret"] ?? "secret";
-                    options.Authority = builder.Configuration["Api:ApiAccess"] ?? "https://access.kymeta.io";
+                    options.Authority = builder.Configuration["Authentication:OidcAuthority"] ?? "https://access.kymeta.io";
                     options.ResponseType = "code";
                     options.SignedOutCallbackPath = "/signout-callback-openid";
                     options.SignedOutRedirectUri = "~/";
