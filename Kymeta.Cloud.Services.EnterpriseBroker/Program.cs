@@ -41,6 +41,10 @@ builder.Configuration.AddGrapevineConfiguration(new GrapevineConfigurationOption
     ConfigSourceUrl = builder.Configuration["ServiceHealthUrl"],
     Secret = builder.Configuration["Configuration:Secret"]
 }, new CancellationTokenSource().Token);
+if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("IsKubernetes")) && Environment.GetEnvironmentVariable("IsKubernetes")?.ToLower() == "true")
+{
+    builder.Configuration.AddJsonFile("appsettings.Kube.json", optional: true, reloadOnChange: true);
+}
 if (builder.Environment.IsDevelopment()) builder.Configuration.AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true);
 builder.Configuration.AddEnvironmentVariables();
 // Setup logging
