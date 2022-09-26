@@ -8,7 +8,8 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce.External;
 public class SalesforceProductObjectModel
 {
     public string Id { get; set; }
-    public string Name { get; set; }
+    public string? ProductCode { get; set; }
+    public string? Name { get; set; }
     public int? WholesalePrice { get; set; }
     public int? MsrpPrice { get; set; }
     public int? DiscountTier2Price { get; set; }

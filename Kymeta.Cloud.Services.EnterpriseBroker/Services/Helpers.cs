@@ -32,4 +32,23 @@ public static class Helpers
         }
         return siteUseTypes;
     }
+
+    /// <summary>
+    /// Find all indexes in a string.
+    /// </summary>
+    /// <param name="str">The string to process</param>
+    /// <param name="value">The value to match within the string.</param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException"></exception>
+    public static List<int> AllIndexesOf(this string str, string value)
+    {
+        if (string.IsNullOrEmpty(value)) throw new ArgumentException("The string to find may not be empty", nameof(value));
+        List<int> indexes = new();
+        for (int index = 0; ; index += value.Length)
+        {
+            index = str.IndexOf(value, index);
+            if (index == -1) return indexes;
+            indexes.Add(index);
+        }
+    }
 }

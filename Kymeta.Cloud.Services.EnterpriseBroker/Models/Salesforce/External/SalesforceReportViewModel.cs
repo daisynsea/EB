@@ -2,6 +2,7 @@
 {
     public class SalesforceReportViewModel
     {
+        public string? RecordId { get; set; }
         public string? ProductCode      { get; set; }
         public string? Stage            { get; set; }
         public string? ProductName      { get; set; }

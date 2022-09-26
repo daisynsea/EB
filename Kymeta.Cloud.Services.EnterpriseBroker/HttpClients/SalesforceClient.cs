@@ -11,6 +11,7 @@ public interface ISalesforceClient
     Task<SalesforceAccountObjectModel> GetAccountFromSalesforce(string accountId);
     Task<SalesforceUserObjectModel> GetUserFromSalesforce(string userId);
     Task<SalesforceProductReportResultModel> GetProductReportFromSalesforce();
+    Task<IEnumerable<SalesforceProductObjectModelV2>> GetProductsByManyIds(IEnumerable<string> productIds);
 }
 
 public class SalesforceClient : ISalesforceClient
@@ -152,6 +153,52 @@ public class SalesforceClient : ISalesforceClient
         catch (Exception ex)
         {
             _logger.LogError($"[EB] Exception thrown when fetching Products Report from Salesforce: {ex.Message}");
+            return null;
+        }
+    }
+    public async Task<IEnumerable<SalesforceProductObjectModelV2>> GetProductsByManyIds(IEnumerable<string> productIds)
+    {
+        try
+        {
+            // if no productIds were provided, return empty list
+            if (productIds == null || !productIds.Any()) return new List<SalesforceProductObjectModelV2>();
+
+            var tokenAndUrl = await GetTokenAndUrl();
+            var token = tokenAndUrl?.Item1;
+            var url = tokenAndUrl?.Item2;
+
+            // define the payload the Salesforce endpoint accepts
+            var payload = new SalesforceProductCompositeObjectModel()
+            {
+                Ids = productIds.ToList(),
+                Fields = new List<string>()
+                {
+                    "Id",
+                    "Name__c",
+                    "ItemDetails__c",
+                    "Terminal_Category__c"
+                }
+            };
+
+            // append auth token
+            _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+            // send the request
+            var response = await _client.PostAsJsonAsync($"{url}/services/data/v53.0/composite/sobjects/Product2", payload);
+            var stringResponse = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode)
+            {
+                // the request failed
+                _logger.LogError($"The attempt to fetch Products from Salesforce failed: {stringResponse}", productIds);
+                return null;
+            }
+
+            var products = JsonConvert.DeserializeObject<List<SalesforceProductObjectModelV2>>(stringResponse);
+            return products;
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"[EB] Exception thrown when fetching Products from Salesforce: {ex.Message}");
             return null;
         }
     }

@@ -13,7 +13,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Services;
 /// </summary>
 public interface IProductsBrokerService
 {
-    Task<List<SalesforceProductObjectModel>> GetSalesforceProductReport();
+    Task<List<Models.Salesforce.External.SalesforceProductObjectModel>> GetSalesforceProductReport();
 }
 
 public class ProductsBrokerService : IProductsBrokerService
@@ -25,9 +25,8 @@ public class ProductsBrokerService : IProductsBrokerService
         _sfClient = salesforceClient;
     }
 
-    public async Task<List<SalesforceProductObjectModel>> GetSalesforceProductReport()
+    public async Task<List<Models.Salesforce.External.SalesforceProductObjectModel>> GetSalesforceProductReport()
     {
-
         var productReport = await _sfClient.GetProductReportFromSalesforce();
         var rowDataCells = productReport?.factMap?.TT?.rows?.ToList();
         var reportColumns = productReport?.reportMetadata?.detailColumns?.ToList();
@@ -48,7 +47,8 @@ public class ProductsBrokerService : IProductsBrokerService
         for (int i = 0; i < rowDataCells?.Count; i++)
         {
             var row = rowDataCells[i];
-            var productCode         = row?.dataCells[indexOfProductCode.GetValueOrDefault()]?.label;      
+            var productCode         = row?.dataCells[indexOfProductCode.GetValueOrDefault()]?.label;
+            var recordId            = row?.dataCells[indexOfProductCode.GetValueOrDefault()]?.recordId;
             var stage               = row?.dataCells[indexOfStage.GetValueOrDefault()]?.label;            
             var productName         = row?.dataCells[indexOfProductName.GetValueOrDefault()]?.label;      
             var productGen          = row?.dataCells[indexOfProductGen.GetValueOrDefault()]?.label;       
@@ -65,6 +65,7 @@ public class ProductsBrokerService : IProductsBrokerService
             listPrice = Convert.ToString(((JValue)((JProperty)((JContainer)listPriceObj).First).Value).Value);
             reportData.Add(new SalesforceReportViewModel
             {
+                RecordId            = Convert.ToString(recordId),
                 ProductCode         = Convert.ToString(productCode),
                 Stage               = Convert.ToString(stage),
                 ProductName         = Convert.ToString(productName),
@@ -82,20 +83,22 @@ public class ProductsBrokerService : IProductsBrokerService
 
         var accessories = reportData?.Where(r => r.ProductFamily == "Accessories")?.ToList();
         var distinctAccessories = accessories?.DistinctBy(a => a.ProductCode)?.ToList();
-        var products = new List<SalesforceProductObjectModel>();
+        var products = new List<Models.Salesforce.External.SalesforceProductObjectModel>();
         for (int i = 0; i < distinctAccessories?.Count; i++)
         {
             SalesforceReportViewModel? reportProduct = distinctAccessories[i];
+            if (reportProduct == null) continue;
             // there will be two records for product code, with Wholesale price, MSRP price
-            var wholesalePrice = accessories?.Where(a => a?.PriceBookName == "Wholesale" && a?.ProductCode == reportProduct?.ProductCode)?.Select(a => a?.ListPrice)?.FirstOrDefault();
+            var wholesalePrice = accessories?.Where(a => a?.PriceBookName == "Wholesale" && a?.ProductCode == reportProduct.ProductCode)?.Select(a => a?.ListPrice)?.FirstOrDefault();
             var isWholesalePriceInt = int.TryParse(wholesalePrice, out int wholesalePriceInt);
-            var msrpPrice = accessories?.Where(a => a?.PriceBookName == "MSRP" && a?.ProductCode == reportProduct?.ProductCode)?.Select(a => a?.ListPrice)?.FirstOrDefault();
+            var msrpPrice = accessories?.Where(a => a?.PriceBookName == "MSRP" && a?.ProductCode == reportProduct.ProductCode)?.Select(a => a?.ListPrice)?.FirstOrDefault();
             var isMsrpPriceInt = int.TryParse(msrpPrice, out int msrpPriceInt);
-            var kitStr = accessories?.Where(a => a?.ProductCode == reportProduct?.ProductCode)?.Select(a => a?.ProductDesc)?.FirstOrDefault();
-            products.Add(new SalesforceProductObjectModel
+            var kitStr = accessories?.Where(a => a?.ProductCode == reportProduct.ProductCode)?.Select(a => a?.ProductDesc)?.FirstOrDefault();
+            products.Add(new Models.Salesforce.External.SalesforceProductObjectModel
             {
-                Id = reportProduct?.ProductCode,
-                Name = reportProduct?.ProductName,
+                Id = reportProduct.RecordId,
+                ProductCode = reportProduct.ProductCode,
+                Name = reportProduct.ProductName,
                 WholesalePrice = wholesalePriceInt,
                 MsrpPrice = msrpPriceInt,
                 ProductType = ProductType.accessory,
