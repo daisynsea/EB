@@ -39,6 +39,6 @@ public enum ProductType
 public enum ProductSubtype
 {
     accessory,
-    fru,
+    component,
     cable
 }
