@@ -10,6 +10,7 @@ public interface IAccountsClient
     Task<Tuple<Account, string>> AddAccount(Account model);
     Task<Tuple<Account, string>> UpdateAccount(Guid id, Account model);
     Task<Account> GetAccountBySalesforceId(string sfid);
+    Task<List<Account>> GetAccountsByManySalesforceIds(List<string> salesforceIds);
 }
 public class AccountsClient : IAccountsClient
 {
@@ -62,5 +63,15 @@ public class AccountsClient : IAccountsClient
         if (!response.IsSuccessStatusCode) return null;
 
         return JsonSerializer.Deserialize<Account>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+    }
+
+    public async Task<List<Account>> GetAccountsByManySalesforceIds(List<string> salesforceIds)
+    {
+        var response = await _client.PostAsJsonAsync($"v1/sfid", salesforceIds);
+        string data = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode) return null;
+
+        return JsonSerializer.Deserialize<List<Account>>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
     }
 }

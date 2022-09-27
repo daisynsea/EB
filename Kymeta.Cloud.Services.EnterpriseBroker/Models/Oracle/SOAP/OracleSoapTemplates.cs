@@ -1097,7 +1097,7 @@ public static class OracleSoapTemplates
     {
         { "kymeta", "300000001127004" },
         { "kgs", "300000001127005" },
-        { "kymetakgs", "300000099575380" }
+        { "kymetakgs", "300000104202523" }
     };
 
     public static readonly Dictionary<string, string> CountryShortcodes = new()

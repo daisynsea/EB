@@ -90,6 +90,41 @@ public class OssServiceTests : IClassFixture<TestFixture>
     [Fact]
     [Trait("Category", "OssTests")]
     [Trait("Category", "OssServiceTests")]
+    public async void UpdateAccount_WithValidInput_ReturnsUpdatedChildrenAccounts()
+    {
+        var model = Helpers.BuildSalesforceAccountModel();
+        model.ParentId = "abc123";
+        var transaction = Helpers.BuildSalesforceTransaction();
+        var account = new Account { Id = Guid.NewGuid(), ParentId = Guid.NewGuid() };
+
+        // Arrange
+        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object);
+        ossService.CallBase = true;
+        ossService.Setup(x => x.GetAccountBySalesforceId(It.IsAny<string>())).ReturnsAsync(account);
+        ossService.Setup(x => x.LogAction(It.IsAny<SalesforceActionTransaction>(), It.IsAny<SalesforceTransactionAction>(), It.IsAny<ActionObjectType>(), It.IsAny<StatusType>(), It.IsAny<string>(), It.IsAny<string>()))
+            .Verifiable();
+        ossService.Setup(x => x.UpdateChildAccounts(It.IsAny<Account>(), It.IsAny<SalesforceAccountModel>(), It.IsAny<SalesforceActionTransaction>()))
+            .ReturnsAsync(new Tuple<bool, List<Account>?, string>(true, null, null));
+        _fixture.UsersClient
+            .Setup(x => x.GetUserByEmail(It.IsAny<string>()))
+            .ReturnsAsync(new User { Email = "primary@email.com" });
+        _fixture.AccountsClient
+            .Setup(x => x.UpdateAccount(It.IsAny<Guid>(), It.IsAny<Account>()))
+            .ReturnsAsync(new Tuple<Account, string>(account, string.Empty));
+        _fixture.ActivityLoggerClient
+            .Setup(x => x.AddActivity(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()));
+
+        // Act
+        var result = await ossService.Object.UpdateAccount(model, transaction);
+
+        // Assert
+        Assert.NotNull(result.Item1);
+        Assert.Equal(result.Item2, string.Empty);
+    }
+
+    [Fact]
+    [Trait("Category", "OssTests")]
+    [Trait("Category", "OssServiceTests")]
     public async void UpdateAccountOracleId_WithValidInput_ReturnsUpdatedAccount()
     {
         var model = Helpers.BuildSalesforceAccountModel();

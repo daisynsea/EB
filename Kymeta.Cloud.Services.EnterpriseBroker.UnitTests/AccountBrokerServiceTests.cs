@@ -39,6 +39,9 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
         _fixture.OssService
             .Setup(oss => oss.UpdateAccount(It.IsAny<SalesforceAccountModel>(), It.IsAny<SalesforceActionTransaction>()))
             .ReturnsAsync(new Tuple<Account, string>(accountFromOss, string.Empty));
+        _fixture.OssService
+            .Setup(oss => oss.UpdateChildAccounts(It.IsAny<Account>(), It.IsAny<SalesforceAccountModel>(), It.IsAny<SalesforceActionTransaction>()))
+            .ReturnsAsync(new Tuple<bool, List<Account>?, string>(true, null, null));
 
         // Act
         var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object, _fixture.SalesforceClient.Object);
@@ -75,6 +78,9 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
         _fixture.OssService
             .Setup(oss => oss.AddAccount(It.IsAny<SalesforceAccountModel>(), It.IsAny<SalesforceActionTransaction>()))
             .ReturnsAsync(new Tuple<Account, string>(accountFromOss, string.Empty));
+        _fixture.OssService
+            .Setup(oss => oss.UpdateChildAccounts(It.IsAny<Account>(), It.IsAny<SalesforceAccountModel>(), It.IsAny<SalesforceActionTransaction>()))
+            .ReturnsAsync(new Tuple<bool, List<Account>?, string>(true, null, null));
 
         // Act
         var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object, _fixture.SalesforceClient.Object);
@@ -111,6 +117,9 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
         _fixture.OssService
             .Setup(oss => oss.UpdateAccount(It.IsAny<SalesforceAccountModel>(), It.IsAny<SalesforceActionTransaction>()))
             .ReturnsAsync(new Tuple<Account, string>(accountFromOss, string.Empty));
+        _fixture.OssService
+            .Setup(oss => oss.UpdateChildAccounts(It.IsAny<Account>(), It.IsAny<SalesforceAccountModel>(), It.IsAny<SalesforceActionTransaction>()))
+            .ReturnsAsync(new Tuple<bool, List<Account>?, string>(true, null, null));
         // Mock Oracle portion of the request
         var oracleOrg = Helpers.BuildOracleOrganization();
         _fixture.OracleService
@@ -196,6 +205,9 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
         _fixture.OssService
             .Setup(oss => oss.UpdateAccount(It.IsAny<SalesforceAccountModel>(), It.IsAny<SalesforceActionTransaction>()))
             .ReturnsAsync(new Tuple<Account, string>(accountFromOss, string.Empty));
+        _fixture.OssService
+            .Setup(oss => oss.UpdateChildAccounts(It.IsAny<Account>(), It.IsAny<SalesforceAccountModel>(), It.IsAny<SalesforceActionTransaction>()))
+            .ReturnsAsync(new Tuple<bool, List<Account>?, string>(true, null, null));
         // Mock Oracle portion of the request
         var oracleOrg = new OracleOrganization
         {

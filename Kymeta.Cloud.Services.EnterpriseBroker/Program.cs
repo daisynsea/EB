@@ -22,6 +22,7 @@ builder.WebHost.UseKestrel(options =>
     if (isDevelopment)
     {
         options.ListenAnyIP(5098);
+        options.ListenAnyIP(5099, configure => configure.UseHttps());
     }
     else // not dev env
     {
@@ -41,7 +42,12 @@ builder.Configuration.AddGrapevineConfiguration(new GrapevineConfigurationOption
     ConfigSourceUrl = builder.Configuration["ServiceHealthUrl"],
     Secret = builder.Configuration["Configuration:Secret"]
 }, new CancellationTokenSource().Token);
+if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("IsKubernetes")) && Environment.GetEnvironmentVariable("IsKubernetes")?.ToLower() == "true")
+{
+    builder.Configuration.AddJsonFile("appsettings.Kube.json", optional: true, reloadOnChange: true);
+}
 if (builder.Environment.IsDevelopment()) builder.Configuration.AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true);
+builder.Configuration.AddEnvironmentVariables();
 // Setup logging
 string? instanceId = Environment.GetEnvironmentVariable("WEBSITE_INSTANCE_ID");
 string pid = String.Format("{0}", Process.GetCurrentProcess().Id);
@@ -81,40 +87,40 @@ builder.Services.AddScoped<IActivityLogger>(provider => new ActivityLogger(new A
 
 builder.Services.AddAuthorization();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-                .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, opts =>
-                {
-                    opts.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-                    opts.LoginPath = "/Auth/Login";
-                    //opts.LogoutPath = "/auth/logout";
-                    opts.ClaimsIssuer = "kymetacloudservices";
-                    opts.ExpireTimeSpan = TimeSpan.FromHours(24);
-                })
-                .AddOpenIdConnect("oidc", options =>
-                {
-                    options.ClientId = "enterprisebroker";
-                    options.ClientSecret = builder.Configuration["Authentication:OidcSecret"] ?? "secret";
-                    options.Authority = builder.Configuration["Api:ApiAccess"] ?? "https://access.kymeta.io";
-                    options.ResponseType = "code";
-                    options.SignedOutCallbackPath = "/signout-callback-openid";
-                    options.SignedOutRedirectUri = "~/";
-                    options.SaveTokens = true;
-                    options.Scope.Clear();
-                    options.Scope.Add("email");
-                    options.Scope.Add("openid");
-                    options.Scope.Add("enterprisebroker");
-                    options.Events.OnAuthenticationFailed = ctx =>
-                    {
-                        ctx.HandleResponse();
-                        ctx.Response.Redirect("Unauthorized");
-                        return Task.FromResult(0);
-                    };
-                    options.Events.OnRemoteFailure = ctx =>
-                    {
-                        ctx.HandleResponse();
-                        ctx.Response.Redirect("Error");
-                        return Task.FromResult(0);
-                    };
-                });
+    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, opts =>
+    {
+        opts.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        opts.LoginPath = "/Auth/Login";
+        //opts.LogoutPath = "/auth/logout";
+        opts.ClaimsIssuer = "kymetacloudservices";
+        opts.ExpireTimeSpan = TimeSpan.FromHours(24);
+    })
+    .AddOpenIdConnect("oidc", options =>
+    {
+        options.ClientId = "enterprisebroker";
+        options.ClientSecret = builder.Configuration["Authentication:OidcSecret"] ?? "secret";
+        options.Authority = builder.Configuration["Authentication:OidcAuthority"] ?? "https://access.kymeta.io";
+        options.ResponseType = "code";
+        options.SignedOutCallbackPath = "/signout-callback-openid";
+        options.SignedOutRedirectUri = "~/";
+        options.SaveTokens = true;
+        options.Scope.Clear();
+        options.Scope.Add("email");
+        options.Scope.Add("openid");
+        options.Scope.Add("enterprisebroker");
+        options.Events.OnAuthenticationFailed = ctx =>
+        {
+            ctx.HandleResponse();
+            ctx.Response.Redirect("Unauthorized");
+            return Task.FromResult(0);
+        };
+        options.Events.OnRemoteFailure = ctx =>
+        {
+            ctx.HandleResponse();
+            ctx.Response.Redirect("Error");
+            return Task.FromResult(0);
+        };
+    });
 
 // Add health client
 builder.Services.AddHealthClient(new HealthServiceOptions
