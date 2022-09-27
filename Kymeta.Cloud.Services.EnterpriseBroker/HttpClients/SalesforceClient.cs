@@ -12,6 +12,7 @@ public interface ISalesforceClient
     Task<SalesforceUserObjectModel> GetUserFromSalesforce(string userId);
     Task<SalesforceProductReportResultModel> GetProductReportFromSalesforce();
     Task<IEnumerable<SalesforceProductObjectModelV2>> GetProductsByManyIds(IEnumerable<string> productIds);
+    Task<SalesforceFileResponseModel?> GetFileMetadataByManyIds(IEnumerable<string> objectIds);
 }
 
 public class SalesforceClient : ISalesforceClient
@@ -199,6 +200,44 @@ public class SalesforceClient : ISalesforceClient
         catch (Exception ex)
         {
             _logger.LogError($"[EB] Exception thrown when fetching Products from Salesforce: {ex.Message}");
+            return null;
+        }
+    }
+    public async Task<SalesforceFileResponseModel?> GetFileMetadataByManyIds(IEnumerable<string> objectIds)
+    {
+        try
+        {
+            // if no objectIds were provided, return empty list
+            if (objectIds == null || !objectIds.Any()) return null;
+
+            var tokenAndUrl = await GetTokenAndUrl();
+            var token = tokenAndUrl?.Item1;
+            var url = tokenAndUrl?.Item2;
+
+            // TODO: need to accommodate greater than 100 items in URL query
+            if (objectIds.Count() > 100) throw new ArgumentOutOfRangeException(nameof(objectIds));
+
+            var payload = string.Join(",", objectIds);
+
+            // append auth token
+            _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+            // send the request
+            var response = await _client.GetAsync($"{url}/services/data/v43.0/connect/files/batch/{payload}");
+            var stringResponse = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode)
+            {
+                // the request failed
+                _logger.LogError($"The attempt to fetch Files from Salesforce failed: {stringResponse}", objectIds);
+                return null;
+            }
+
+            var files = JsonConvert.DeserializeObject<SalesforceFileResponseModel>(stringResponse);
+            return files;
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"[EB] Exception thrown when fetching Files from Salesforce: {ex.Message}");
             return null;
         }
     }

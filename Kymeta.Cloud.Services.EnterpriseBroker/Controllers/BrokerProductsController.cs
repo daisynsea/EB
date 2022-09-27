@@ -57,44 +57,63 @@ public class BrokerProductsController : ControllerBase
             // if no products, return empty list
             if (salesforceProducts == null || !salesforceProducts.Any()) return new List<SalesforceProductObjectModel>();
 
-            // fetch image data (using URL from salesforceProducts ItemDetails__c)
-            // TODO: this feels VERY hacky.... prone to errors depending on how images are placed in rich text field
-            foreach (var product in salesforceProducts)
-            {
-                var itemDetails = product.ItemDetails;
-                if (itemDetails == null) continue;
-                Console.WriteLine(itemDetails);
-                
-                // parse out the refId so we can send request to fetch image data
-                var refIdIndexes = Helpers.AllIndexesOf(itemDetails, "refid");
-                var refIds = new List<string>();
-                foreach (var refIdx in refIdIndexes)
-                {
-                    // substring, starting at beginning of refid value, offset by the `refid=` text (6 chars)
-                    var refSub = itemDetails.Substring(refIdx + 6);
-                    var idEndIndex = refSub.IndexOf("\"");
-                    // identify the refId for the image
-                    var refId = refSub.Substring(0, idEndIndex);
-                    Console.WriteLine($"refId: {refId}");
-                    refIds.Add(refId);
+            #region ItemDetails__c
+            //// fetch image data (using URL from salesforceProducts ItemDetails__c)
+            //// TODO: this feels VERY hacky.... prone to errors depending on how images are placed in rich text field
+            //foreach (var product in salesforceProducts)
+            //{
+            //    var itemDetails = product.ItemDetails;
+            //    if (itemDetails == null) continue;
+            //    Console.WriteLine(itemDetails);
 
-                    // extract the alt text value (file name)
-                    // TODO: OR - use the productId and just name them product.Id (with version appended)
-                    var altIndex = refSub.IndexOf("alt");
-                    var altSub = refSub.Substring(altIndex + 5);
-                    var altEndIndex = altSub.IndexOf("\"");
-                    var altValue = altSub.Substring(0, altEndIndex);
-                    Console.WriteLine($"alt: {altValue}");
-                }
-                Console.WriteLine($"refIds: {refIds}");
-            }
+            //    // parse out the refId so we can send request to fetch image data
+            //    var refIdIndexes = Helpers.AllIndexesOf(itemDetails, "refid");
+            //    var refIds = new List<string>();
+            //    foreach (var refIdx in refIdIndexes)
+            //    {
+            //        // substring, starting at beginning of refid value, offset by the `refid=` text (6 chars)
+            //        var refSub = itemDetails.Substring(refIdx + 6);
+            //        var idEndIndex = refSub.IndexOf("\"");
+            //        // identify the refId for the image
+            //        var refId = refSub.Substring(0, idEndIndex);
+            //        Console.WriteLine($"refId: {refId}");
+            //        refIds.Add(refId);
 
-            
-            
+            //        // extract the alt text value (file name)
+            //        // TODO: OR - use the productId and just name them product.Id (with version appended)
+            //        var altIndex = refSub.IndexOf("alt");
+            //        var altSub = refSub.Substring(altIndex + 5);
+            //        var altEndIndex = altSub.IndexOf("\"");
+            //        var altValue = altSub.Substring(0, altEndIndex);
+            //        Console.WriteLine($"alt: {altValue}");
+            //    }
+            //    Console.WriteLine($"refIds: {refIds}");
+            //}
+            #endregion
+
+            #region Files (Related List)
             // TODO: OR - PROVE THIS OUT
             // TODO: fetch related files based on Product Ids (limit to 100 per request)
             // TODO: fetch file data for each file
+            // fetch Product files
+            var productsFilesResult = await _salesforceClient.GetFileMetadataByManyIds(productIds);
+            // if no products, return empty list
+            if (productsFilesResult != null)
+            {
+                foreach (var fileResult in productsFilesResult.Results)
+                {
+                    // check for any errors & log the result if present
+                    if (fileResult?.StatusCode != 200)
+                    {
+                        _logger.LogError($"Error fetching file metadata. [{fileResult?.Result?.ErrorCode}] : {fileResult?.Result?.Message}");
+                        continue;
+                    }
 
+                    // download file data
+                    Console.WriteLine(fileResult.Result);
+                }
+            }
+            #endregion
 
 
 
