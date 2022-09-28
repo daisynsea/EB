@@ -12,7 +12,8 @@ public interface ISalesforceClient
     Task<SalesforceUserObjectModel> GetUserFromSalesforce(string userId);
     Task<SalesforceProductReportResultModel> GetProductReportFromSalesforce();
     Task<IEnumerable<SalesforceProductObjectModelV2>> GetProductsByManyIds(IEnumerable<string> productIds);
-    Task<SalesforceFileResponseModel?> GetFileMetadataByManyIds(IEnumerable<string> objectIds);
+    Task<SalesforceQueryObjectModel> GetRelatedFiles(IEnumerable<string> objectIds);
+    Task<SalesforceFileResponseModel?> GetFileMetadataByManyIds(IEnumerable<string> fileIds);
 }
 
 public class SalesforceClient : ISalesforceClient
@@ -203,7 +204,7 @@ public class SalesforceClient : ISalesforceClient
             return null;
         }
     }
-    public async Task<SalesforceFileResponseModel?> GetFileMetadataByManyIds(IEnumerable<string> objectIds)
+    public async Task<SalesforceQueryObjectModel> GetRelatedFiles(IEnumerable<string> objectIds)
     {
         try
         {
@@ -217,17 +218,54 @@ public class SalesforceClient : ISalesforceClient
             // TODO: need to accommodate greater than 100 items in URL query
             if (objectIds.Count() > 100) throw new ArgumentOutOfRangeException(nameof(objectIds));
 
-            var payload = string.Join(",", objectIds);
+            var formattedIds = objectIds.Select(id => $"'{id}'");
+            var payload = string.Join(",", formattedIds);
 
             // append auth token
-            _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+            if (!_client.DefaultRequestHeaders.Any(drh => drh.Key == "Authorization")) _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+            // send the request
+            var response = await _client.GetAsync($"{url}/services/data/v43.0/query?q=select id, LinkedEntityId,ContentDocumentId from ContentDocumentLink where LinkedEntityId IN ({payload})");
+            var stringResponse = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode)
+            {
+                // the request failed
+                _logger.LogError($"The attempt to fetch Related Files from Salesforce failed: {stringResponse}", objectIds);
+                return null;
+            }
+            var result = JsonConvert.DeserializeObject<SalesforceQueryObjectModel>(stringResponse);
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"[EB] Exception thrown when fetching Related Files from Salesforce: {ex.Message}", objectIds);
+            throw;
+        }
+    }
+    public async Task<SalesforceFileResponseModel?> GetFileMetadataByManyIds(IEnumerable<string> fileIds)
+    {
+        try
+        {
+            // if no objectIds were provided, return empty list
+            if (fileIds == null || !fileIds.Any()) return null;
+
+            var tokenAndUrl = await GetTokenAndUrl();
+            var token = tokenAndUrl?.Item1;
+            var url = tokenAndUrl?.Item2;
+
+            // TODO: need to accommodate greater than 100 items in URL query
+            if (fileIds.Count() > 100) throw new ArgumentOutOfRangeException(nameof(fileIds));
+
+            var payload = string.Join(",", fileIds);
+
+            // append auth token
+            if (!_client.DefaultRequestHeaders.Any(drh => drh.Key == "Authorization")) _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
             // send the request
             var response = await _client.GetAsync($"{url}/services/data/v43.0/connect/files/batch/{payload}");
             var stringResponse = await response.Content.ReadAsStringAsync();
             if (!response.IsSuccessStatusCode)
             {
                 // the request failed
-                _logger.LogError($"The attempt to fetch Files from Salesforce failed: {stringResponse}", objectIds);
+                _logger.LogError($"The attempt to fetch Files from Salesforce failed: {stringResponse}", fileIds);
                 return null;
             }
 

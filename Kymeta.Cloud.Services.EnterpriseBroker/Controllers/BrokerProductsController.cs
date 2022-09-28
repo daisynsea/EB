@@ -96,21 +96,30 @@ public class BrokerProductsController : ControllerBase
             // TODO: fetch related files based on Product Ids (limit to 100 per request)
             // TODO: fetch file data for each file
             // fetch Product files
-            var productsFilesResult = await _salesforceClient.GetFileMetadataByManyIds(productIds);
-            // if no products, return empty list
-            if (productsFilesResult != null)
+            var productFiles = await _salesforceClient.GetRelatedFiles(productIds);
+            if (productFiles == null)
             {
-                foreach (var fileResult in productsFilesResult.Results)
+                _logger.LogError($"Error fetching related files.");
+                return new BadRequestObjectResult($"Unable to fetch related files.");
+            }
+            var fileIds = productFiles.Records.Select(pf => pf.ContentDocumentId);
+            // fetch file metadata for all files
+            var fileMetadataResult = await _salesforceClient.GetFileMetadataByManyIds(fileIds);
+            // if no products, return empty list
+            if (fileMetadataResult != null)
+            {
+                foreach (var file in fileMetadataResult.Results)
                 {
                     // check for any errors & log the result if present
-                    if (fileResult?.StatusCode != 200)
+                    if (file.StatusCode != 200)
                     {
-                        _logger.LogError($"Error fetching file metadata. [{fileResult?.Result?.ErrorCode}] : {fileResult?.Result?.Message}");
+                        _logger.LogError($"Error fetching file metadata. [{file.Result?.ErrorCode}] : {file.Result?.Message}");
                         continue;
                     }
 
                     // download file data
-                    Console.WriteLine(fileResult.Result);
+                    Console.WriteLine(file.Result);
+
                 }
             }
             #endregion
@@ -123,7 +132,7 @@ public class BrokerProductsController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error fetching products from Cosmos DB due to an exception: {ex.Message}");
+            _logger.LogError(ex, $"Error fetching products from Salesforce due to an exception: {ex.Message}");
             return StatusCode(500, ex.Message);
         }
     }
