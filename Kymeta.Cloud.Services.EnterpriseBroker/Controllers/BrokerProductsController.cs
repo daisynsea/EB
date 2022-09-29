@@ -92,9 +92,6 @@ public class BrokerProductsController : ControllerBase
             #endregion
 
             #region Files (Related List)
-            // TODO: OR - PROVE THIS OUT
-            // TODO: fetch related files based on Product Ids (limit to 100 per request)
-            // TODO: fetch file data for each file
             // fetch Product files
             var productFiles = await _salesforceClient.GetRelatedFiles(productIds);
             if (productFiles == null)
@@ -108,17 +105,21 @@ public class BrokerProductsController : ControllerBase
             // if no products, return empty list
             if (fileMetadataResult != null)
             {
+                // iterate through file results
                 foreach (var file in fileMetadataResult.Results)
                 {
-                    // check for any errors & log the result if present
+                    // check for any errors
                     if (file.StatusCode != 200)
                     {
                         _logger.LogError($"Error fetching file metadata. [{file.Result?.ErrorCode}] : {file.Result?.Message}");
+                        // skip this file
                         continue;
                     }
 
                     // download file data
-                    Console.WriteLine(file.Result);
+                    var fileContent = await _salesforceClient.DownloadFile(file.Result.DownloadUrl);
+                    Console.WriteLine(fileContent);
+                    // call service to upload to blob storage account for CDN
 
                 }
             }

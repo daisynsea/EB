@@ -14,6 +14,7 @@ public interface ISalesforceClient
     Task<IEnumerable<SalesforceProductObjectModelV2>> GetProductsByManyIds(IEnumerable<string> productIds);
     Task<SalesforceQueryObjectModel> GetRelatedFiles(IEnumerable<string> objectIds);
     Task<SalesforceFileResponseModel?> GetFileMetadataByManyIds(IEnumerable<string> fileIds);
+    Task<Stream> DownloadFile(string downloadUrl);
 }
 
 public class SalesforceClient : ISalesforceClient
@@ -271,6 +272,38 @@ public class SalesforceClient : ISalesforceClient
 
             var files = JsonConvert.DeserializeObject<SalesforceFileResponseModel>(stringResponse);
             return files;
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"[EB] Exception thrown when fetching Files from Salesforce: {ex.Message}");
+            return null;
+        }
+    }
+    public async Task<Stream> DownloadFile(string downloadUrl)
+    {
+        try
+        {
+            // if no objectIds were provided, return empty list
+            if (string.IsNullOrEmpty(downloadUrl)) return null;
+
+            var tokenAndUrl = await GetTokenAndUrl();
+            var token = tokenAndUrl?.Item1;
+            var url = tokenAndUrl?.Item2;
+
+            // append auth token
+            if (!_client.DefaultRequestHeaders.Any(drh => drh.Key == "Authorization")) _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+            // send the request
+            var response = await _client.GetAsync($"{url}/{downloadUrl}");
+            if (!response.IsSuccessStatusCode)
+            {
+                var stringResponse = await response.Content.ReadAsStringAsync();
+                // the request failed
+                _logger.LogError($"The attempt to fetch Files from Salesforce failed: {stringResponse}", downloadUrl);
+                return null;
+            }
+            var streamResponse = await response.Content.ReadAsStreamAsync();
+            return streamResponse;
 
         }
         catch (Exception ex)
