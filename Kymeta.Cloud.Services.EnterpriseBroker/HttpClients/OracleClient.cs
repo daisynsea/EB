@@ -88,7 +88,7 @@ public class OracleClient : IOracleClient
         }
         catch (WebException wex)
         {
-            using var stream = wex.Response.GetResponseStream();
+            using var stream = wex.Response?.GetResponseStream();
             using var reader = new StreamReader(stream);
 
             try
@@ -96,7 +96,7 @@ public class OracleClient : IOracleClient
                 // deserialize the xml response envelope
                 XmlSerializer serializer = new(typeof(FaultEnvelope));
                 var result = (FaultEnvelope)serializer.Deserialize(reader);
-                var faultMessage = result.Body.Fault.faultstring;
+                var faultMessage = result?.Body.Fault.faultstring;
 
                 return new Tuple<XDocument, string, string>(null, wex.Message, faultMessage);
             }

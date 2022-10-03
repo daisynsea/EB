@@ -22,10 +22,10 @@ public class BrokerAccountController : ControllerBase
     }
 
     /// <summary>
-    /// This endpoint accepts a payload including Contacts and Addresses
+    /// This endpoint accepts an Account payload including Contacts and Addresses
     /// </summary>
     /// <param name="model">Incoming Payload</param>
-    /// <returns>Response model</returns>
+    /// <returns>UnifiedResponse model with context about the created/updated objects.</returns>
     [HttpPost, AllowAnonymous]
     public async Task<ActionResult<UnifiedResponse>> ProcessAccount([FromBody] SalesforceAccountModel model)
     {
@@ -41,6 +41,11 @@ public class BrokerAccountController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Fetch Salesforce Account metadata directly from Salesforce
+    /// </summary>
+    /// <param name="accountId">The unique identifier for the Account to fetch.</param>
+    /// <returns>Account metadata pertaining to the Account specified.</returns>
     [HttpGet("{accountId}"), AllowAnonymous]
     public async Task<ActionResult<SalesforceAccountObjectModel>> GetSalesforceAccount(string accountId)
     {
