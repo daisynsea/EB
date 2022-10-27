@@ -12,17 +12,21 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Controllers;
 [ExcludeFromCodeCoverage]
 public class BrokerProductsController : ControllerBase
 {
+    private readonly IConfiguration _config;
     private readonly ILogger<BrokerProductsController> _logger;
     private readonly ISalesforceProductsRepository _sfProductsRepo;
     private readonly IProductsBrokerService _sfProductBrokerService;
     private readonly ISalesforceClient _salesforceClient;
+    private readonly IFileStorageClient _fileStorageClient;
 
-    public BrokerProductsController(ILogger<BrokerProductsController> logger, ISalesforceProductsRepository sfProductsRepo, IProductsBrokerService sfProductsBrokerService, ISalesforceClient salesforceClient)
+    public BrokerProductsController(IConfiguration config, ILogger<BrokerProductsController> logger, ISalesforceProductsRepository sfProductsRepo, IProductsBrokerService sfProductsBrokerService, ISalesforceClient salesforceClient, IFileStorageClient fileStorageClient)
     {
+        _config = config;
         _logger = logger;
         _sfProductsRepo = sfProductsRepo;
         _sfProductBrokerService = sfProductsBrokerService;
         _salesforceClient = salesforceClient;
+        _fileStorageClient = fileStorageClient;
     }
 
     [HttpGet]
@@ -52,88 +56,105 @@ public class BrokerProductsController : ControllerBase
 
             var productsReport = productsReportResult.ToList();
             var productIds = productsReport.Select(pr => pr.Id);
-            // fetch Product metadata for all Products in report
-            var salesforceProducts = await _salesforceClient.GetProductsByManyIds(productIds);
-            // if no products, return empty list
-            if (salesforceProducts == null || !salesforceProducts.Any()) return new List<SalesforceProductObjectModel>();
-
-            #region ItemDetails__c
-            //// fetch image data (using URL from salesforceProducts ItemDetails__c)
-            //// TODO: this feels VERY hacky.... prone to errors depending on how images are placed in rich text field
-            //foreach (var product in salesforceProducts)
-            //{
-            //    var itemDetails = product.ItemDetails;
-            //    if (itemDetails == null) continue;
-            //    Console.WriteLine(itemDetails);
-
-            //    // parse out the refId so we can send request to fetch image data
-            //    var refIdIndexes = Helpers.AllIndexesOf(itemDetails, "refid");
-            //    var refIds = new List<string>();
-            //    foreach (var refIdx in refIdIndexes)
-            //    {
-            //        // substring, starting at beginning of refid value, offset by the `refid=` text (6 chars)
-            //        var refSub = itemDetails.Substring(refIdx + 6);
-            //        var idEndIndex = refSub.IndexOf("\"");
-            //        // identify the refId for the image
-            //        var refId = refSub.Substring(0, idEndIndex);
-            //        Console.WriteLine($"refId: {refId}");
-            //        refIds.Add(refId);
-
-            //        // extract the alt text value (file name)
-            //        // TODO: OR - use the productId and just name them product.Id (with version appended)
-            //        var altIndex = refSub.IndexOf("alt");
-            //        var altSub = refSub.Substring(altIndex + 5);
-            //        var altEndIndex = altSub.IndexOf("\"");
-            //        var altValue = altSub.Substring(0, altEndIndex);
-            //        Console.WriteLine($"alt: {altValue}");
-            //    }
-            //    Console.WriteLine($"refIds: {refIds}");
-            //}
-            #endregion
-
-            #region Files (Related List)
-            // fetch Product files
-            var productFiles = await _salesforceClient.GetRelatedFiles(productIds);
-            if (productFiles == null)
-            {
-                _logger.LogError($"Error fetching related files.");
-                return new BadRequestObjectResult($"Unable to fetch related files.");
-            }
-            var fileIds = productFiles.Records.Select(pf => pf.ContentDocumentId);
-            // fetch file metadata for all files
-            var fileMetadataResult = await _salesforceClient.GetFileMetadataByManyIds(fileIds);
-            // if no products, return empty list
-            if (fileMetadataResult != null)
-            {
-                // iterate through file results
-                foreach (var file in fileMetadataResult.Results)
-                {
-                    // check for any errors
-                    if (file.StatusCode != 200)
-                    {
-                        _logger.LogError($"Error fetching file metadata. [{file.Result?.ErrorCode}] : {file.Result?.Message}");
-                        // skip this file
-                        continue;
-                    }
-
-                    // download file data
-                    var fileContent = await _salesforceClient.DownloadFile(file.Result.DownloadUrl);
-                    Console.WriteLine(fileContent);
-                    // call service to upload to blob storage account for CDN
-
-                }
-            }
-            #endregion
 
 
 
-
-
-            return Ok();
+            return productsReportResult;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Error fetching products from Salesforce due to an exception: {ex.Message}");
+            return StatusCode(500, ex.Message);
+        }
+    }
+
+    [HttpGet("files")]
+    public async Task<ActionResult<List<string>>> GetProductFiles()
+    {
+        try
+        {
+            // fetch the active Products from the Product Report
+            var productsReportResult = await _sfProductBrokerService.GetSalesforceProductReport();
+            if (productsReportResult == null) return new BadRequestObjectResult($"An error occurred while attempting to fetch the Products report.");
+
+            var productsReport = productsReportResult.ToList();
+            // isolate the Ids from the report objects
+            var productIds = productsReport.Select(pr => pr.Id);
+            if (productIds == null || !productIds.Any()) return NotFound();
+
+            // fetch all the uploaded assets (Related Files) for the Products & upload them to blob storage
+            var assetsUploaded = await _sfProductBrokerService.GetLatestProductFiles(productIds);
+
+            #region Files (Related List)
+            //// fetch Product files
+            //var productRelatedFiles = await _salesforceClient.GetRelatedFiles(productIds);
+            //if (productRelatedFiles == null)
+            //{
+            //    _logger.LogError($"Error fetching related files.");
+            //    return new BadRequestObjectResult($"Unable to fetch related files for Products.");
+            //}
+            //// map files to simplified Tuple containing ProductId and ContentDocumentId (FileId)
+            //var productRelatedFileIds = productRelatedFiles.Records.Select(pf => new Tuple<string, string>(pf.LinkedEntityId, pf.ContentDocumentId));
+            //// flatten to just a list of file Ids
+            //var fileIdsIsolated = productRelatedFileIds.Select(pfi => pfi.Item2);
+            //// fetch file metadata for all files
+            //var fileMetadataResult = await _salesforceClient.GetFileMetadataByManyIds(fileIdsIsolated);
+            //var assetsUploaded = new List<string>();
+            //// verify we received file metadata
+            //if (fileMetadataResult != null)
+            //{
+            //    // iterate through file results
+            //    foreach (var file in fileMetadataResult.Results)
+            //    {
+            //        // check for any errors
+            //        if (file.StatusCode != 200 || file.Result == null)
+            //        {
+            //            _logger.LogError($"Error fetching file metadata. [{file.Result?.ErrorCode}] : {file.Result?.Message}");
+            //            // skip this file
+            //            continue;
+            //        }
+            //        // locate matching productId
+            //        var productId = productRelatedFileIds.FirstOrDefault(pfi => pfi.Item2 == file.Result.Id)?.Item1;
+            //        // bypass if productId is not found... should never happen
+            //        if (productId == null) continue;
+            //        // acquire specific product from report
+            //        var product = productsReport.FirstOrDefault(pr => pr.Id == productId);
+            //        // bypass if product is not found... should never happen
+            //        if (product == null) continue;
+
+            //        // download file data
+            //        using var fileContent = await _salesforceClient.DownloadFileContent(file.Result.DownloadUrl);
+            //        Console.WriteLine(fileContent);
+
+            //        // upload only catalogimg assets
+            //        if (file.Result.Name.Contains("catalogimg"))
+            //        {
+            //            // call FileStorage service to upload to blob storage account for CDN
+            //            var fileName = $"{file.Result.Name}.{file.Result.FileExtension}";
+            //            var isFileUploaded = await _fileStorageClient.UploadBlobFile(fileContent, fileName, _config["AzureStorage:Accounts:KymetaCloudCdn"], "assets", "images");
+            //            Console.WriteLine(isFileUploaded);
+
+            //            // append reference to product.Assets for image paths
+            //            var assetPath = $"/assets/images/{fileName}";
+            //            if (product.Assets == null)
+            //            {
+            //                product.Assets = new List<string> { assetPath };
+            //            }
+            //            else
+            //            {
+            //                product.Assets.Append(assetPath);
+            //            }
+            //            assetsUploaded.Add(assetPath);
+            //        }
+            //    }
+            //}
+            #endregion
+
+            return new JsonResult(assetsUploaded);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error fetching Product files from Salesforce due to an exception: {ex.Message}");
             return StatusCode(500, ex.Message);
         }
     }

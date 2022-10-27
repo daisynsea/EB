@@ -21,8 +21,8 @@ public class SalesforceProductObjectModel
     public string? Description { get; set; }
     public bool? Unavailable { get; set; } = false;
     [JsonConverter(typeof(StringEnumConverter))]
-    public ProductType ProductType { get; set; }
-    public ProductSubtype ProductSubtype { get; set; }
+    public string? ProductType { get; set; }
+    public string? ProductFamily { get; set; }
     public int? Score { get; set; } // Connectivity Only
     public IEnumerable<string> Assets { get; set; } // Terminal, Accessory Only
     public IEnumerable<string> Kit { get; set; } // Accessory Only
@@ -30,11 +30,11 @@ public class SalesforceProductObjectModel
 
 public enum ProductType
 {
-    connectivity,
-    terminal,
-    warranty,
-    odu,
-    accessory
+    Connectivity,
+    Terminal,
+    Warranty,
+    Odu,
+    Accessory
 }
 
 public enum ProductSubtype

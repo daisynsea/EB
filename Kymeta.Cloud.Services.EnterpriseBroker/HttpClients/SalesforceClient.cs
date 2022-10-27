@@ -14,7 +14,7 @@ public interface ISalesforceClient
     Task<IEnumerable<SalesforceProductObjectModelV2>> GetProductsByManyIds(IEnumerable<string> productIds);
     Task<SalesforceQueryObjectModel> GetRelatedFiles(IEnumerable<string> objectIds);
     Task<SalesforceFileResponseModel?> GetFileMetadataByManyIds(IEnumerable<string> fileIds);
-    Task<Stream> DownloadFile(string downloadUrl);
+    Task<Stream> DownloadFileContent(string downloadUrl);
 }
 
 public class SalesforceClient : ISalesforceClient
@@ -253,7 +253,7 @@ public class SalesforceClient : ISalesforceClient
             var token = tokenAndUrl?.Item1;
             var url = tokenAndUrl?.Item2;
 
-            // TODO: need to accommodate greater than 100 items in URL query
+            // TODO: do we need to accommodate greater than 100 items in URL query?
             if (fileIds.Count() > 100) throw new ArgumentOutOfRangeException(nameof(fileIds));
 
             var payload = string.Join(",", fileIds);
@@ -280,7 +280,7 @@ public class SalesforceClient : ISalesforceClient
             return null;
         }
     }
-    public async Task<Stream> DownloadFile(string downloadUrl)
+    public async Task<Stream> DownloadFileContent(string downloadUrl)
     {
         try
         {
@@ -299,7 +299,7 @@ public class SalesforceClient : ISalesforceClient
             {
                 var stringResponse = await response.Content.ReadAsStringAsync();
                 // the request failed
-                _logger.LogError($"The attempt to fetch Files from Salesforce failed: {stringResponse}", downloadUrl);
+                _logger.LogError($"The attempt to fetch File content from Salesforce failed: {stringResponse}", downloadUrl);
                 return null;
             }
             var streamResponse = await response.Content.ReadAsStreamAsync();

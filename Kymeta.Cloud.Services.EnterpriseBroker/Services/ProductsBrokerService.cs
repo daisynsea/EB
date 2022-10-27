@@ -13,23 +13,33 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Services;
 /// </summary>
 public interface IProductsBrokerService
 {
-    Task<List<Models.Salesforce.External.SalesforceProductObjectModel>> GetSalesforceProductReport();
+    Task<List<SalesforceProductObjectModel>> GetSalesforceProductReport();
+    Task<List<string>> GetLatestProductFiles(IEnumerable<string> productIds);
 }
 
 public class ProductsBrokerService : IProductsBrokerService
 {
-    private readonly ISalesforceClient _sfClient;
+    private readonly IConfiguration _config;
+    private readonly ILogger<ProductsBrokerService> _logger;
+    private readonly ISalesforceClient _salesforceClient;
+    private readonly IFileStorageClient _fileStorageClient;
 
-    public ProductsBrokerService(ISalesforceClient salesforceClient)
+    public ProductsBrokerService(IConfiguration config, ILogger<ProductsBrokerService> logger, ISalesforceClient salesforceClient, IFileStorageClient fileStorageClient)
     {
-        _sfClient = salesforceClient;
+        _config = config;
+        _logger = logger;
+        _salesforceClient = salesforceClient;
+        _fileStorageClient = fileStorageClient;
     }
 
-    public async Task<List<Models.Salesforce.External.SalesforceProductObjectModel>> GetSalesforceProductReport()
+    public async Task<List<SalesforceProductObjectModel>> GetSalesforceProductReport()
     {
-        var productReport = await _sfClient.GetProductReportFromSalesforce();
-        var rowDataCells = productReport?.factMap?.TT?.rows?.ToList();
-        var reportColumns = productReport?.reportMetadata?.detailColumns?.ToList();
+        var productResults = new List<SalesforceProductObjectModel>();
+        var productReport = await _salesforceClient.GetProductReportFromSalesforce();
+        // validate that we received data from Salesforce, if not return null to throw error
+        if (productReport == null) return null;
+        var rowDataCells = productReport.factMap?.TT?.rows?.ToList();
+        var reportColumns = productReport.reportMetadata?.detailColumns?.ToList();
         // find index to get labels and values for rowDataCells
         var indexOfProductCode          = reportColumns?.FindIndex(x => x == "CUSTOMER_PRODUCT_ID");
         var indexOfStage                = reportColumns?.FindIndex(x => x == "Product2.Stage__c");
@@ -81,31 +91,101 @@ public class ProductsBrokerService : IProductsBrokerService
 
         }
 
-        var accessories = reportData?.Where(r => r.ProductFamily == "Accessories")?.ToList();
-        var distinctAccessories = accessories?.DistinctBy(a => a.ProductCode)?.ToList();
-        var products = new List<Models.Salesforce.External.SalesforceProductObjectModel>();
-        for (int i = 0; i < distinctAccessories?.Count; i++)
+        var productFamilies = new List<string> { "Accessories", "Components", "Cables" };
+        var products = reportData.Where(r => productFamilies.Contains(r.ProductFamily))?.ToList();
+        if (products == null) return productResults;
+        
+        // isolate the products into distinct elements in the list
+        var distinctProducts = products.DistinctBy(a => a.ProductCode).ToList();
+        foreach (var reportProduct in distinctProducts)
         {
-            SalesforceReportViewModel? reportProduct = distinctAccessories[i];
             if (reportProduct == null) continue;
             // there will be two records for product code, with Wholesale price, MSRP price
-            var wholesalePrice = accessories?.Where(a => a?.PriceBookName == "Wholesale" && a?.ProductCode == reportProduct.ProductCode)?.Select(a => a?.ListPrice)?.FirstOrDefault();
+            var wholesalePrice = products
+                .Where(a => a?.PriceBookName == "Wholesale" && a?.ProductCode == reportProduct.ProductCode)?
+                .Select(a => a?.ListPrice)?
+                .FirstOrDefault();
             var isWholesalePriceInt = int.TryParse(wholesalePrice, out int wholesalePriceInt);
-            var msrpPrice = accessories?.Where(a => a?.PriceBookName == "MSRP" && a?.ProductCode == reportProduct.ProductCode)?.Select(a => a?.ListPrice)?.FirstOrDefault();
+            var msrpPrice = products
+                .Where(a => a?.PriceBookName == "MSRP" && a?.ProductCode == reportProduct.ProductCode)?
+                .Select(a => a?.ListPrice)?
+                .FirstOrDefault();
             var isMsrpPriceInt = int.TryParse(msrpPrice, out int msrpPriceInt);
-            var kitStr = accessories?.Where(a => a?.ProductCode == reportProduct.ProductCode)?.Select(a => a?.ProductDesc)?.FirstOrDefault();
-            products.Add(new Models.Salesforce.External.SalesforceProductObjectModel
+            var kitStr = products
+                .Where(a => a?.ProductCode == reportProduct.ProductCode)
+                .Select(a => a?.ProductDesc)?
+                .FirstOrDefault();
+            productResults.Add(new Models.Salesforce.External.SalesforceProductObjectModel
             {
                 Id = reportProduct.RecordId,
                 ProductCode = reportProduct.ProductCode,
                 Name = reportProduct.ProductName,
+                Description = reportProduct.ProductDesc,
                 WholesalePrice = wholesalePriceInt,
                 MsrpPrice = msrpPriceInt,
-                ProductType = ProductType.accessory,
+                ProductType = reportProduct.ProductType,
+                ProductFamily = reportProduct.ProductFamily,
                 Kit = kitStr?.Split(",")
             });
         }
 
-        return products;
+        return productResults;
+    }
+
+    public async Task<List<string>> GetLatestProductFiles(IEnumerable<string> productIds)
+    {
+        // fetch Product files
+        var productRelatedFiles = await _salesforceClient.GetRelatedFiles(productIds);
+        if (productRelatedFiles == null)
+        {
+            _logger.LogError($"Error fetching related files for Products.", productIds);
+            throw new BadHttpRequestException($"Unable to fetch related files for Products.");
+        }
+        // map files to simplified Tuple containing ProductId and ContentDocumentId (FileId)
+        var productRelatedFileIds = productRelatedFiles.Records.Select(pf => new Tuple<string, string>(pf.LinkedEntityId, pf.ContentDocumentId));
+        // flatten to just a list of file Ids
+        var fileIdsIsolated = productRelatedFileIds.Select(pfi => pfi.Item2);
+        // fetch file metadata for all files
+        var fileMetadataResult = await _salesforceClient.GetFileMetadataByManyIds(fileIdsIsolated);
+        var assetsUploaded = new List<string>();
+        // verify we received file metadata
+        if (fileMetadataResult != null)
+        {
+            // iterate through file results
+            foreach (var file in fileMetadataResult.Results)
+            {
+                // check for any errors
+                if (file.StatusCode != 200 || file.Result == null)
+                {
+                    _logger.LogError($"Error fetching file metadata. [{file.Result?.ErrorCode}] : {file.Result?.Message}");
+                    // skip this file
+                    continue;
+                }
+
+                // download file data
+                using var fileContent = await _salesforceClient.DownloadFileContent(file.Result.DownloadUrl);
+                if (fileContent == null)
+                {
+                    _logger.LogError($"Error fetching file content for `{file.Result.Name}` with URL `{file.Result.DownloadUrl}`.");
+                    // skip this file
+                    continue;
+                }
+
+                // upload only catalogimg assets
+                if (file.Result.Name.Contains("catalogimg"))
+                {
+                    // call FileStorage service to upload to blob storage account for CDN
+                    var fileName = $"{file.Result.Name}.{file.Result.FileExtension}";
+                    var isFileUploaded = await _fileStorageClient.UploadBlobFile(fileContent, fileName, _config["AzureStorage:Accounts:KymetaCloudCdn"], "assets", "images");
+                    Console.WriteLine(isFileUploaded);
+
+                    // append reference to response to indicate file was uploaded to Blob storage (CDN)
+                    var assetPath = $"/assets/images/{fileName}";
+                    assetsUploaded.Add(assetPath);
+                }
+            }
+        }
+
+        return assetsUploaded;
     }
 }

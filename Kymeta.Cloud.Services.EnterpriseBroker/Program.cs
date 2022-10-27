@@ -67,6 +67,7 @@ builder.Services.AddHttpClient<IAccountsClient, AccountsClient>();
 builder.Services.AddHttpClient<IOracleClient, OracleClient>();
 builder.Services.AddHttpClient<IUsersClient, UsersClient>();
 builder.Services.AddHttpClient<IActivityLoggerClient, ActivityLoggerClient>();
+builder.Services.AddHttpClient<IFileStorageClient, FileStorageClient>();
 builder.Services.AddCosmosDb(builder.Configuration.GetConnectionString("AzureCosmosDB"));
 builder.Services.AddScoped<IActionsRepository, ActionsRepository>();
 builder.Services.AddScoped<IOssService, OssService>();
