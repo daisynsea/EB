@@ -79,6 +79,7 @@ builder.Services.AddScoped<ISalesforceProductsRepository, SalesforceProductsRepo
 builder.Services.AddScoped<IQuotesRepository, QuotesRepository>();
 builder.Services.AddScoped<IConfiguratorQuoteRequestService, ConfiguratorQuoteRequestService>();
 builder.Services.AddScoped<IProductsBrokerService, ProductsBrokerService>();
+builder.Services.AddScoped<IFileStorageService, FileStorageService>();
 builder.Services.AddRedisClient(new RedisClientOptions
 {
     ConnectionString = builder.Configuration.GetConnectionString("RedisCache")

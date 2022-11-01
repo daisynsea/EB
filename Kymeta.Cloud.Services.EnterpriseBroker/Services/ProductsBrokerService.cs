@@ -14,7 +14,8 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Services;
 public interface IProductsBrokerService
 {
     Task<List<SalesforceProductObjectModel>> GetSalesforceProductReport();
-    Task<List<string>> GetLatestProductFiles(IEnumerable<string> productIds);
+    Task<SalesforceFileResponseModel> GetProductsRelatedFiles(IEnumerable<string> productIds);
+    Task<List<string>> UploadSalesforceAssetFiles(List<SalesforceFileObjectModel> salesforceFiles);
 }
 
 public class ProductsBrokerService : IProductsBrokerService
@@ -132,7 +133,7 @@ public class ProductsBrokerService : IProductsBrokerService
         return productResults;
     }
 
-    public async Task<List<string>> GetLatestProductFiles(IEnumerable<string> productIds)
+    public async Task<SalesforceFileResponseModel> GetProductsRelatedFiles(IEnumerable<string> productIds)
     {
         // fetch Product files
         var productRelatedFiles = await _salesforceClient.GetRelatedFiles(productIds);
@@ -147,42 +148,54 @@ public class ProductsBrokerService : IProductsBrokerService
         var fileIdsIsolated = productRelatedFileIds.Select(pfi => pfi.Item2);
         // fetch file metadata for all files
         var fileMetadataResult = await _salesforceClient.GetFileMetadataByManyIds(fileIdsIsolated);
+
+        return fileMetadataResult;
+    }
+
+    public async Task<List<string>> UploadSalesforceAssetFiles(List<SalesforceFileObjectModel> salesforceFiles)
+    {
         var assetsUploaded = new List<string>();
         // verify we received file metadata
-        if (fileMetadataResult != null)
+        if (salesforceFiles == null || !salesforceFiles.Any()) return assetsUploaded;
+
+        // iterate through file results
+        foreach (var file in salesforceFiles)
         {
-            // iterate through file results
-            foreach (var file in fileMetadataResult.Results)
+            if (string.IsNullOrEmpty(file.DownloadUrl))
             {
-                // check for any errors
-                if (file.StatusCode != 200 || file.Result == null)
+                _logger.LogError($"Download URL missing for file: [{file.Name}]");
+                // skip this file
+                continue;
+            }
+
+            // download file data
+            using var fileContent = await _salesforceClient.DownloadFileContent(file.DownloadUrl);
+            if (fileContent == null)
+            {
+                _logger.LogError($"Error fetching file content for `{file.Name}` with URL `{file.DownloadUrl}`.");
+                // skip this file
+                continue;
+            }
+
+            // upload only catalogimg assets
+            if (!string.IsNullOrEmpty(file.Name) && file.Name.Contains("catalogimg"))
+            {
+                // call FileStorage service to upload to blob storage account for CDN
+                var fileName = $"{file.Name}.{file.FileExtension}";
+                var isFileUploaded = await _fileStorageClient.UploadBlobFile(fileContent, fileName, _config["AzureStorage:Accounts:KymetaCloudCdn"], "assets", "images");
+                Console.WriteLine(isFileUploaded);
+
+                if (!isFileUploaded)
                 {
-                    _logger.LogError($"Error fetching file metadata. [{file.Result?.ErrorCode}] : {file.Result?.Message}");
-                    // skip this file
+                    // file failed to upload to blob storage
+                    _logger.LogCritical($"Failed to upload file '{fileName}' to blob storage (CDN).");
+                    // continue to process remaining files
                     continue;
                 }
 
-                // download file data
-                using var fileContent = await _salesforceClient.DownloadFileContent(file.Result.DownloadUrl);
-                if (fileContent == null)
-                {
-                    _logger.LogError($"Error fetching file content for `{file.Result.Name}` with URL `{file.Result.DownloadUrl}`.");
-                    // skip this file
-                    continue;
-                }
-
-                // upload only catalogimg assets
-                if (file.Result.Name.Contains("catalogimg"))
-                {
-                    // call FileStorage service to upload to blob storage account for CDN
-                    var fileName = $"{file.Result.Name}.{file.Result.FileExtension}";
-                    var isFileUploaded = await _fileStorageClient.UploadBlobFile(fileContent, fileName, _config["AzureStorage:Accounts:KymetaCloudCdn"], "assets", "images");
-                    Console.WriteLine(isFileUploaded);
-
-                    // append reference to response to indicate file was uploaded to Blob storage (CDN)
-                    var assetPath = $"/assets/images/{fileName}";
-                    assetsUploaded.Add(assetPath);
-                }
+                // append reference to response to indicate file was uploaded to Blob storage (CDN)
+                var assetPath = $"/assets/images/{fileName}";
+                assetsUploaded.Add(assetPath);
             }
         }
 

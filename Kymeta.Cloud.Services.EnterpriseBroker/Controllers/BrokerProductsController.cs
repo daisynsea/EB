@@ -1,4 +1,5 @@
-﻿using Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce.External;
+﻿using Kymeta.Cloud.Services.EnterpriseBroker.Models.External.FileStorage;
+using Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce.External;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics.CodeAnalysis;
 
@@ -16,17 +17,15 @@ public class BrokerProductsController : ControllerBase
     private readonly ILogger<BrokerProductsController> _logger;
     private readonly ISalesforceProductsRepository _sfProductsRepo;
     private readonly IProductsBrokerService _sfProductBrokerService;
-    private readonly ISalesforceClient _salesforceClient;
-    private readonly IFileStorageClient _fileStorageClient;
+    private readonly IFileStorageService _fileStorageService;
 
-    public BrokerProductsController(IConfiguration config, ILogger<BrokerProductsController> logger, ISalesforceProductsRepository sfProductsRepo, IProductsBrokerService sfProductsBrokerService, ISalesforceClient salesforceClient, IFileStorageClient fileStorageClient)
+    public BrokerProductsController(IConfiguration config, ILogger<BrokerProductsController> logger, ISalesforceProductsRepository sfProductsRepo, IProductsBrokerService sfProductsBrokerService, IFileStorageService fileStorageService)
     {
         _config = config;
         _logger = logger;
         _sfProductsRepo = sfProductsRepo;
         _sfProductBrokerService = sfProductsBrokerService;
-        _salesforceClient = salesforceClient;
-        _fileStorageClient = fileStorageClient;
+        _fileStorageService = fileStorageService;
     }
 
     [HttpGet]
@@ -50,26 +49,24 @@ public class BrokerProductsController : ControllerBase
     {
         try
         {
-            // fetch the active Products from the Product Report
-            var productsReportResult = await _sfProductBrokerService.GetSalesforceProductReport();
-            if (productsReportResult == null) return new BadRequestObjectResult($"An error occurred while attempting to fetch the Products report.");
+            // TODO: check redis for hash key, if not present, then trigger sync
+            // TODO: continue
 
-            var productsReport = productsReportResult.ToList();
-            var productIds = productsReport.Select(pr => pr.Id);
+            // TODO: if Products are not available from Redis & cannot rebuild cache hash key then return error to configurator
 
-
-
-            return productsReportResult;
+            // TODO: fetch asset references for Products from REDIS
+            return null;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error fetching products from Salesforce due to an exception: {ex.Message}");
+            _logger.LogError(ex, $"Error fetching Products due to an exception: {ex.Message}");
             return StatusCode(500, ex.Message);
         }
     }
 
-    [HttpGet("files")]
-    public async Task<ActionResult<List<string>>> GetProductFiles()
+    // TODO: change to "synchronize products" endpoint which includes file fetching/sync
+    [HttpGet("sync")]
+    public async Task<ActionResult<List<string>>> SynchronizeProductsFromSalesforce()
     {
         try
         {
@@ -80,75 +77,88 @@ public class BrokerProductsController : ControllerBase
             var productsReport = productsReportResult.ToList();
             // isolate the Ids from the report objects
             var productIds = productsReport.Select(pr => pr.Id);
-            if (productIds == null || !productIds.Any()) return NotFound();
+            if (productIds == null || !productIds.Any()) return new BadRequestObjectResult($"No products contained in the Product Report from Salesforce.");
+
+            // fetch existing assets blob storage
+            var existingBlobAssets = await _fileStorageService.GetBlobs("KymetaCloudCdn", _config["AzureStorage:Accounts:KymetaCloudCdn"], _config["AzureStorage:Containers:CdnAssets"]);
 
             // fetch all the uploaded assets (Related Files) for the Products & upload them to blob storage
-            var assetsUploaded = await _sfProductBrokerService.GetLatestProductFiles(productIds);
+            var productsRelatedFiles = await _sfProductBrokerService.GetProductsRelatedFiles(productIds);
+            if (productsRelatedFiles.HasErrors)
+            {
+                _logger.LogCritical($"Error fetching Salesforce Products related files.", productsRelatedFiles.Results);
+                return new BadRequestObjectResult(new { Message = $"Unable to fetch Salesforce Products related files.", Results = productsRelatedFiles.Results });
+            }
 
-            #region Files (Related List)
-            //// fetch Product files
-            //var productRelatedFiles = await _salesforceClient.GetRelatedFiles(productIds);
-            //if (productRelatedFiles == null)
-            //{
-            //    _logger.LogError($"Error fetching related files.");
-            //    return new BadRequestObjectResult($"Unable to fetch related files for Products.");
-            //}
-            //// map files to simplified Tuple containing ProductId and ContentDocumentId (FileId)
-            //var productRelatedFileIds = productRelatedFiles.Records.Select(pf => new Tuple<string, string>(pf.LinkedEntityId, pf.ContentDocumentId));
-            //// flatten to just a list of file Ids
-            //var fileIdsIsolated = productRelatedFileIds.Select(pfi => pfi.Item2);
-            //// fetch file metadata for all files
-            //var fileMetadataResult = await _salesforceClient.GetFileMetadataByManyIds(fileIdsIsolated);
-            //var assetsUploaded = new List<string>();
-            //// verify we received file metadata
-            //if (fileMetadataResult != null)
-            //{
-            //    // iterate through file results
-            //    foreach (var file in fileMetadataResult.Results)
-            //    {
-            //        // check for any errors
-            //        if (file.StatusCode != 200 || file.Result == null)
-            //        {
-            //            _logger.LogError($"Error fetching file metadata. [{file.Result?.ErrorCode}] : {file.Result?.Message}");
-            //            // skip this file
-            //            continue;
-            //        }
-            //        // locate matching productId
-            //        var productId = productRelatedFileIds.FirstOrDefault(pfi => pfi.Item2 == file.Result.Id)?.Item1;
-            //        // bypass if productId is not found... should never happen
-            //        if (productId == null) continue;
-            //        // acquire specific product from report
-            //        var product = productsReport.FirstOrDefault(pr => pr.Id == productId);
-            //        // bypass if product is not found... should never happen
-            //        if (product == null) continue;
+            // iterate through Salesforce file metadata results
+            var filesToUpload = new List<SalesforceFileObjectModel>();
+            foreach (var file in productsRelatedFiles.Results)
+            {
+                if (file.StatusCode != 200 || file.Result == null)
+                {
+                    _logger.LogError($"There was a problem fetching file metadata from Salesforce.", file.Result);
+                    continue;
+                }
 
-            //        // download file data
-            //        using var fileContent = await _salesforceClient.DownloadFileContent(file.Result.DownloadUrl);
-            //        Console.WriteLine(fileContent);
+                // bypass files that aren't `catalogimg` because they are not relevant
+                if (!string.IsNullOrEmpty(file.Result.Name) && !file.Result.Name.ToLower().Contains("catalogimg"))
+                {
+                    continue;
+                }
 
-            //        // upload only catalogimg assets
-            //        if (file.Result.Name.Contains("catalogimg"))
-            //        {
-            //            // call FileStorage service to upload to blob storage account for CDN
-            //            var fileName = $"{file.Result.Name}.{file.Result.FileExtension}";
-            //            var isFileUploaded = await _fileStorageClient.UploadBlobFile(fileContent, fileName, _config["AzureStorage:Accounts:KymetaCloudCdn"], "assets", "images");
-            //            Console.WriteLine(isFileUploaded);
+                // concat full filename for comparison
+                var fileName = $"{file.Result.Name}.{file.Result.FileExtension}";
+                // check if blob exist & compare modified date
+                var existingBlobMatch = existingBlobAssets.FirstOrDefault(blob => blob.FileName == fileName);
+                // include the file only if it does not exist or has a modified date newer than what is currently in blob storage
+                if (existingBlobMatch == null || existingBlobMatch.ModifiedOn < file.Result.ModifiedDate)
+                {
+                    filesToUpload.Add(file.Result);
+                }
+            }
 
-            //            // append reference to product.Assets for image paths
-            //            var assetPath = $"/assets/images/{fileName}";
-            //            if (product.Assets == null)
-            //            {
-            //                product.Assets = new List<string> { assetPath };
-            //            }
-            //            else
-            //            {
-            //                product.Assets.Append(assetPath);
-            //            }
-            //            assetsUploaded.Add(assetPath);
-            //        }
-            //    }
-            //}
-            #endregion
+            // upload the files that either do not exist or are newer versions than what blob storage contains
+            var assetsUploaded = await _sfProductBrokerService.UploadSalesforceAssetFiles(filesToUpload);
+
+
+            // clean up assets that no longer remain in Salesforce
+            var blobsToDelete = new List<FileItem>();
+            foreach (var blob in existingBlobAssets)
+            {
+                // search for match from Salesforce results
+                var salesforceFileMatch = productsRelatedFiles.Results.FirstOrDefault(file =>
+                {
+                    var fileName = $"{file.Result.Name}.{file.Result.FileExtension}";
+                    return blob.FileName == fileName;
+                });
+
+                // if no match is found, append the file to the list to be deleted
+                if (salesforceFileMatch == null) blobsToDelete.Add(blob);
+            }
+
+            // check to see if we have any items to delete from blob storage
+            if (blobsToDelete.Any())
+            {
+                // extract blob path from fully qualified URI
+                var blobPaths = blobsToDelete.Select(blob => {
+                    var imagesIndex = blob.Uri.IndexOf("images");
+                    var path = blob.Uri.Substring(imagesIndex);
+                    return path;
+                });
+                // delete the blobs from Azure Storage
+                var cleanupResult = await _fileStorageService.DeleteBlobs("KymetaCloudCdn", _config["AzureStorage:Accounts:KymetaCloudCdn"], _config["AzureStorage:Containers:CdnAssets"], blobPaths);
+                if (!cleanupResult)
+                {
+                    // an error occurred with one or more deletions, log critical error to prompt an investigation
+                    _logger.LogCritical($"Encountered an error while attempting to delete a file from blob storage.");
+                }
+            }
+
+
+            
+            // TODO: add to Redis all the Product Metadata & their asset references (Blob storage (CDN))
+
+
 
             return new JsonResult(assetsUploaded);
         }

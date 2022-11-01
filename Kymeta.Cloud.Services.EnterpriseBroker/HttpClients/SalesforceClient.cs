@@ -284,7 +284,7 @@ public class SalesforceClient : ISalesforceClient
     {
         try
         {
-            // if no objectIds were provided, return empty list
+            // if no URL was provided, return null
             if (string.IsNullOrEmpty(downloadUrl)) return null;
 
             var tokenAndUrl = await GetTokenAndUrl();
