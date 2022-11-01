@@ -77,6 +77,7 @@ builder.Services.AddScoped<IContactBrokerService, ContactBrokerService>();
 builder.Services.AddScoped<IOracleService, OracleService>();
 builder.Services.AddScoped<ISalesforceProductsRepository, SalesforceProductsRepository>();
 builder.Services.AddScoped<IQuotesRepository, QuotesRepository>();
+builder.Services.AddScoped<ICacheRepository, CacheRepository>();
 builder.Services.AddScoped<IConfiguratorQuoteRequestService, ConfiguratorQuoteRequestService>();
 builder.Services.AddScoped<IProductsBrokerService, ProductsBrokerService>();
 builder.Services.AddScoped<IFileStorageService, FileStorageService>();
