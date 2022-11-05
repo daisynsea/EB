@@ -10,7 +10,8 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Repositories;
 
 public interface ISalesforceProductsRepository
 {
-    Task<IEnumerable<Models.Salesforce.External.SalesforceProductObjectModel>> GetProducts();
+    Task<IEnumerable<SalesforceProductObjectModel>> GetProducts();
+    Task<IEnumerable<SalesforceProductObjectModelV2>> GetProductsV2();
 }
 
 public class SalesforceProductsRepository : ISalesforceProductsRepository
@@ -27,19 +28,40 @@ public class SalesforceProductsRepository : ISalesforceProductsRepository
         Container = cosmosClient.GetContainer(databaseName, containerName);
     }
 
-    public async Task<IEnumerable<Models.Salesforce.External.SalesforceProductObjectModel>> GetProducts()
+    public async Task<IEnumerable<SalesforceProductObjectModel>> GetProducts()
     {
         var sqlQueryText = "SELECT * FROM c";
 
         QueryDefinition queryDefinition = new QueryDefinition(sqlQueryText);
-        FeedIterator<Models.Salesforce.External.SalesforceProductObjectModel> queryResultSetIterator = this.Container.GetItemQueryIterator<Models.Salesforce.External.SalesforceProductObjectModel>(queryDefinition);
+        FeedIterator<SalesforceProductObjectModel> queryResultSetIterator = this.Container.GetItemQueryIterator<SalesforceProductObjectModel>(queryDefinition);
 
-        List<Models.Salesforce.External.SalesforceProductObjectModel> records = new List<Models.Salesforce.External.SalesforceProductObjectModel>();
+        List<SalesforceProductObjectModel> records = new List<SalesforceProductObjectModel>();
 
         while (queryResultSetIterator.HasMoreResults)
         {
-            FeedResponse<Models.Salesforce.External.SalesforceProductObjectModel> currentResultSet = await queryResultSetIterator.ReadNextAsync();
-            foreach (Models.Salesforce.External.SalesforceProductObjectModel record in currentResultSet)
+            FeedResponse<SalesforceProductObjectModel> currentResultSet = await queryResultSetIterator.ReadNextAsync();
+            foreach (SalesforceProductObjectModel record in currentResultSet)
+            {
+                records.Add(record);
+            }
+        }
+
+        return records;
+    }
+
+    public async Task<IEnumerable<SalesforceProductObjectModelV2>> GetProductsV2()
+    {
+        var sqlQueryText = "SELECT * FROM c";
+
+        QueryDefinition queryDefinition = new QueryDefinition(sqlQueryText);
+        FeedIterator<SalesforceProductObjectModelV2> queryResultSetIterator = this.Container.GetItemQueryIterator<SalesforceProductObjectModelV2>(queryDefinition);
+
+        List<SalesforceProductObjectModelV2> records = new List<SalesforceProductObjectModelV2>();
+
+        while (queryResultSetIterator.HasMoreResults)
+        {
+            FeedResponse<SalesforceProductObjectModelV2> currentResultSet = await queryResultSetIterator.ReadNextAsync();
+            foreach (SalesforceProductObjectModelV2 record in currentResultSet)
             {
                 records.Add(record);
             }

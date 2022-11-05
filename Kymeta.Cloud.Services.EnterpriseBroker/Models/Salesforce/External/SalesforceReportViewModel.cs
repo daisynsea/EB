@@ -15,4 +15,10 @@
         public string? ItemDetail       { get; set; }
         public string? ProductDesc      { get; set; }
     }
+
+    public class SalesforceReportListPriceViewModel
+    {
+        public string Amount { get; set; }
+        public string Currency { get; set; }
+    }
 }

@@ -3,8 +3,6 @@ using Newtonsoft.Json.Converters;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce.External;
 
-// TODO: Actually convert this to a real response from SF
-// Then pass it to Partner API and convert it into this model there
 public class SalesforceProductObjectModel
 {
     public string Id { get; set; }
@@ -21,8 +19,8 @@ public class SalesforceProductObjectModel
     public string? Description { get; set; }
     public bool? Unavailable { get; set; } = false;
     [JsonConverter(typeof(StringEnumConverter))]
-    public string? ProductType { get; set; }
-    public string? ProductFamily { get; set; }
+    public ProductType? ProductType { get; set; }
+    public ProductSubtype? ProductFamily { get; set; }
     public int? Score { get; set; } // Connectivity Only
     public IEnumerable<string> Assets { get; set; } // Terminal, Accessory Only
     public IEnumerable<string> Kit { get; set; } // Accessory Only

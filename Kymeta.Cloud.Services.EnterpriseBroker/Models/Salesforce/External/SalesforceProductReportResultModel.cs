@@ -31,14 +31,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce.External
 
         public class TT
         {
-            public Aggregate[] aggregates { get; set; }
             public Row[] rows { get; set; }
-        }
-
-        public class Aggregate
-        {
-            public string label { get; set; }
-            public int value { get; set; }
         }
 
         public class Row

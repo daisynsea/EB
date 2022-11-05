@@ -17,13 +17,15 @@ public class BrokerProductsController : ControllerBase
     private readonly ILogger<BrokerProductsController> _logger;
     private readonly ISalesforceProductsRepository _sfProductsRepo;
     private readonly IProductsBrokerService _sfProductBrokerService;
+    private readonly ICacheRepository _cacheRepo;
 
-    public BrokerProductsController(IConfiguration config, ILogger<BrokerProductsController> logger, ISalesforceProductsRepository sfProductsRepo, IProductsBrokerService sfProductsBrokerService)
+    public BrokerProductsController(IConfiguration config, ILogger<BrokerProductsController> logger, ISalesforceProductsRepository sfProductsRepo, IProductsBrokerService sfProductsBrokerService, ICacheRepository cacheRepository)
     {
         _config = config;
         _logger = logger;
         _sfProductsRepo = sfProductsRepo;
         _sfProductBrokerService = sfProductsBrokerService;
+        _cacheRepo = cacheRepository;
     }
 
     [HttpGet]
@@ -32,7 +34,7 @@ public class BrokerProductsController : ControllerBase
         try
         {
             var result = await _sfProductsRepo.GetProducts();
-            return result?.ToList();
+            return new JsonResult(result);
         }
         catch (Exception ex)
         {
@@ -43,17 +45,24 @@ public class BrokerProductsController : ControllerBase
 
     [MapToApiVersion("2")]
     [HttpGet]
-    public async Task<ActionResult<List<SalesforceProductObjectModel>>> GetProductsV2()
+    public async Task<ActionResult<List<SalesforceProductObjectModelV2>>> GetProductsV2()
     {
         try
         {
-            // TODO: check redis for hash key, if not present, then trigger sync
-            // TODO: continue
+            // check redis for hash key, if not present, then trigger sync
+            var cachedProducts = _cacheRepo.GetProducts();
+            // attempt to re-hydrate cache if SalesforceProducts HashKey is missing or null
+            if (cachedProducts == null)
+            {
+                await SynchronizeProductsFromSalesforce();
+                // attempt from cache again
+                cachedProducts = _cacheRepo.GetProducts();
+                // if still no Products, we were unable to re-hydrate
+                if (cachedProducts == null) return new BadRequestObjectResult($"Unable to fetch Products.");
+            }
 
-            // TODO: if Products are not available from Redis & cannot rebuild cache hash key then return error to configurator
-
-            // TODO: fetch asset references for Products from REDIS
-            return null;
+            // return cached Products
+            return new JsonResult(cachedProducts);
         }
         catch (Exception ex)
         {
@@ -67,13 +76,12 @@ public class BrokerProductsController : ControllerBase
     /// </summary>
     /// <returns></returns>
     [HttpGet("sync")]
-    public async Task<ActionResult<List<SalesforceProductObjectModel>>> SynchronizeProductsFromSalesforce()
+    public async Task<ActionResult<List<SalesforceProductObjectModelV2>>> SynchronizeProductsFromSalesforce()
     {
         try
         {
             var productsSynchronized = await _sfProductBrokerService.SynchronizeProducts();
             if (productsSynchronized == null || !productsSynchronized.Any()) return new BadRequestObjectResult($"Encountered an error while attempting to synchronize Products from Salesforce.");
-
             return productsSynchronized.ToList();
         }
         catch (SynchronizeProductsException spex)
@@ -91,7 +99,7 @@ public class BrokerProductsController : ControllerBase
     }
 
     [HttpGet("report")]
-    public async Task<ActionResult<List<SalesforceProductObjectModel>>> GetProductReport()
+    public async Task<ActionResult<List<SalesforceProductObjectModelV2>>> GetProductReport()
     {
         try
         {

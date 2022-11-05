@@ -11,8 +11,8 @@ public interface ISalesforceClient
     Task<SalesforceAccountObjectModel> GetAccountFromSalesforce(string accountId);
     Task<SalesforceUserObjectModel> GetUserFromSalesforce(string userId);
     Task<SalesforceProductReportResultModel> GetProductReportFromSalesforce();
-    Task<IEnumerable<SalesforceProductObjectModelV2>> GetProductsByManyIds(IEnumerable<string> productIds);
-    Task<SalesforceQueryObjectModel> GetRelatedFiles(IEnumerable<string> objectIds);
+    Task<IEnumerable<SalesforceProductObjectModel>> GetProductsByManyIds(IEnumerable<string> productIds);
+    Task<SalesforceQueryObjectModel> GetRelatedFiles(IEnumerable<string> salesforceIds);
     Task<SalesforceFileResponseModel?> GetFileMetadataByManyIds(IEnumerable<string> fileIds);
     Task<Stream> DownloadFileContent(string downloadUrl);
 }
@@ -144,6 +144,7 @@ public class SalesforceClient : ISalesforceClient
             var productsReportId = _config["Salesforce:ProductsReportId"];
 
             _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+            //_client.DefaultRequestHeaders.Add("Accept", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"); // receive data as Excel file stream
             var response = await _client.GetAsync($"{url}/services/data/v53.0/analytics/reports/{productsReportId}"); //prod : 00O3j000007n2CREAY, cloudDev : 00O0r000000SnZtEAK
             var stringResponse = await response.Content.ReadAsStringAsync();
             if (!response.IsSuccessStatusCode) return null;
@@ -159,12 +160,12 @@ public class SalesforceClient : ISalesforceClient
             return null;
         }
     }
-    public async Task<IEnumerable<SalesforceProductObjectModelV2>> GetProductsByManyIds(IEnumerable<string> productIds)
+    public async Task<IEnumerable<SalesforceProductObjectModel>> GetProductsByManyIds(IEnumerable<string> productIds)
     {
         try
         {
             // if no productIds were provided, return empty list
-            if (productIds == null || !productIds.Any()) return new List<SalesforceProductObjectModelV2>();
+            if (productIds == null || !productIds.Any()) return new List<SalesforceProductObjectModel>();
 
             var tokenAndUrl = await GetTokenAndUrl();
             var token = tokenAndUrl?.Item1;
@@ -195,7 +196,7 @@ public class SalesforceClient : ISalesforceClient
                 return null;
             }
 
-            var products = JsonConvert.DeserializeObject<List<SalesforceProductObjectModelV2>>(stringResponse);
+            var products = JsonConvert.DeserializeObject<List<SalesforceProductObjectModel>>(stringResponse);
             return products;
 
         }
@@ -205,21 +206,21 @@ public class SalesforceClient : ISalesforceClient
             return null;
         }
     }
-    public async Task<SalesforceQueryObjectModel> GetRelatedFiles(IEnumerable<string> objectIds)
+    public async Task<SalesforceQueryObjectModel> GetRelatedFiles(IEnumerable<string> salesforceIds)
     {
         try
         {
             // if no objectIds were provided, return empty list
-            if (objectIds == null || !objectIds.Any()) return null;
+            if (salesforceIds == null || !salesforceIds.Any()) return null;
 
             var tokenAndUrl = await GetTokenAndUrl();
             var token = tokenAndUrl?.Item1;
             var url = tokenAndUrl?.Item2;
 
             // TODO: need to accommodate greater than 100 items in URL query
-            if (objectIds.Count() > 100) throw new ArgumentOutOfRangeException(nameof(objectIds));
+            if (salesforceIds.Count() > 100) throw new ArgumentOutOfRangeException(nameof(salesforceIds));
 
-            var formattedIds = objectIds.Select(id => $"'{id}'");
+            var formattedIds = salesforceIds.Select(id => $"'{id}'");
             var payload = string.Join(",", formattedIds);
 
             // append auth token
@@ -230,7 +231,7 @@ public class SalesforceClient : ISalesforceClient
             if (!response.IsSuccessStatusCode)
             {
                 // the request failed
-                _logger.LogError($"The attempt to fetch Related Files from Salesforce failed: {stringResponse}", objectIds);
+                _logger.LogError($"The attempt to fetch Related Files from Salesforce failed: {stringResponse}", salesforceIds);
                 return null;
             }
             var result = JsonConvert.DeserializeObject<SalesforceQueryObjectModel>(stringResponse);
@@ -238,7 +239,7 @@ public class SalesforceClient : ISalesforceClient
         }
         catch (Exception ex)
         {
-            _logger.LogError($"[EB] Exception thrown when fetching Related Files from Salesforce: {ex.Message}", objectIds);
+            _logger.LogError($"[EB] Exception thrown when fetching Related Files from Salesforce: {ex.Message}", salesforceIds);
             throw;
         }
     }

@@ -3,10 +3,7 @@ using Kymeta.Cloud.Services.EnterpriseBroker.Models.External.FileStorage;
 using Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce.External;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System.Collections;
-using System.Reflection;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.Services;
@@ -16,9 +13,9 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Services;
 /// </summary>
 public interface IProductsBrokerService
 {
-    Task<IEnumerable<SalesforceProductObjectModel>> SynchronizeProducts();
-    Task<List<SalesforceProductObjectModel>> GetSalesforceProductReport();
-    Task<SalesforceFileResponseModel> GetProductsRelatedFiles(IEnumerable<string> productIds);
+    Task<IEnumerable<SalesforceProductObjectModelV2>> SynchronizeProducts();
+    Task<List<SalesforceProductObjectModelV2>> GetSalesforceProductReport();
+    Task<SalesforceFileResponseModel> GetRelatedFilesSalesforce(IEnumerable<string> salesforceIds);
     Task<List<string>> UploadSalesforceAssetFiles(List<SalesforceFileObjectModel> salesforceFiles);
 }
 
@@ -29,19 +26,23 @@ public class ProductsBrokerService : IProductsBrokerService
     private readonly ISalesforceClient _salesforceClient;
     private readonly IFileStorageClient _fileStorageClient;
     private readonly IFileStorageService _fileStorageService;
+    private readonly ICacheRepository _cacheRepository;
+    private readonly ISalesforceProductsRepository _sfProductsRepo;
 
-    public ProductsBrokerService(IConfiguration config, ILogger<ProductsBrokerService> logger, ISalesforceClient salesforceClient, IFileStorageClient fileStorageClient, IFileStorageService fileStorageService)
+    public ProductsBrokerService(IConfiguration config, ILogger<ProductsBrokerService> logger, ISalesforceClient salesforceClient, IFileStorageClient fileStorageClient, IFileStorageService fileStorageService, ICacheRepository cacheRepository, ISalesforceProductsRepository sfProductsRepo)
     {
         _config = config;
         _logger = logger;
         _salesforceClient = salesforceClient;
         _fileStorageClient = fileStorageClient;
         _fileStorageService = fileStorageService;
+        _cacheRepository = cacheRepository;
+        _sfProductsRepo = sfProductsRepo;
     }
 
-    public async Task<List<SalesforceProductObjectModel>> GetSalesforceProductReport()
+    public async Task<List<SalesforceProductObjectModelV2>> GetSalesforceProductReport()
     {
-        var productResults = new List<SalesforceProductObjectModel>();
+        var productResults = new List<SalesforceProductObjectModelV2>();
         var productReport = await _salesforceClient.GetProductReportFromSalesforce();
         // validate that we received data from Salesforce, if not return null to throw error
         if (productReport == null) return null;
@@ -95,10 +96,9 @@ public class ProductsBrokerService : IProductsBrokerService
                 ItemDetail          = Convert.ToString(itemDetail),
                 ProductDesc         = Convert.ToString(productDesc)
             });
-
         }
 
-        var productFamilies = new List<string> { "Accessories", "Components", "Cables" };
+        var productFamilies = new List<string> { "Terminal", "Accessories", "Components", "Cables" };
         var products = reportData.Where(r => productFamilies.Contains(r.ProductFamily))?.ToList();
         if (products == null) return productResults;
         
@@ -122,10 +122,10 @@ public class ProductsBrokerService : IProductsBrokerService
                 .Where(a => a?.ProductCode == reportProduct.ProductCode)
                 .Select(a => a?.ProductDesc)?
                 .FirstOrDefault();
-            productResults.Add(new Models.Salesforce.External.SalesforceProductObjectModel
+            productResults.Add(new SalesforceProductObjectModelV2
             {
-                Id = reportProduct.RecordId,
-                ProductCode = reportProduct.ProductCode,
+                Id = reportProduct.ProductCode,
+                SalesforceId = reportProduct.RecordId,
                 Name = reportProduct.ProductName,
                 Description = reportProduct.ProductDesc,
                 WholesalePrice = wholesalePriceInt,
@@ -139,7 +139,7 @@ public class ProductsBrokerService : IProductsBrokerService
         return productResults;
     }
 
-    public async Task<IEnumerable<SalesforceProductObjectModel>> SynchronizeProducts()
+    public async Task<IEnumerable<SalesforceProductObjectModelV2>> SynchronizeProducts()
     {
         // fetch the active Products from the Product Report
         var productsReportResult = await GetSalesforceProductReport();
@@ -147,14 +147,14 @@ public class ProductsBrokerService : IProductsBrokerService
 
         var products = productsReportResult.ToList();
         // isolate the Ids from the report objects
-        var productIds = products.Select(pr => pr.Id);
-        if (productIds == null || !productIds.Any()) throw new SynchronizeProductsException($"No products contained in the Product Report from Salesforce.");
+        var salesforceProductIds = products.Select(pr => pr.SalesforceId);
+        if (salesforceProductIds == null || !salesforceProductIds.Any()) throw new SynchronizeProductsException($"No products contained in the Product Report from Salesforce.");
         
         // fetch existing assets blob storage
         var existingBlobAssets = await _fileStorageService.GetBlobs("KymetaCloudCdn", _config["AzureStorage:Accounts:KymetaCloudCdn"], _config["AzureStorage:Containers:CdnAssets"]);
 
         // fetch all the uploaded assets (Related Files) for the Products & upload them to blob storage
-        var productsRelatedFiles = await GetProductsRelatedFiles(productIds);
+        var productsRelatedFiles = await GetRelatedFilesSalesforce(salesforceProductIds);
         if (productsRelatedFiles.HasErrors)
         {
             _logger.LogCritical($"Error fetching Salesforce Products related files.", productsRelatedFiles.Results);
@@ -236,22 +236,32 @@ public class ProductsBrokerService : IProductsBrokerService
             }
         }
 
+        // fetch Products from CosmosDB
+        var productsCloud = await _sfProductsRepo.GetProductsV2();
+        if (productsCloud != null)
+        {
+            var cloudStorageProductTypes = new List<string> { "connectivity", "warranty" };
+            // reduce to Product Types not yet available in Salesforce
+            var cloudStorageProducts = productsCloud.Where(pc => !string.IsNullOrEmpty(pc.ProductType) && cloudStorageProductTypes.Contains(pc.ProductType));
+            // add products from cloud storage to the resultset when they are present
+            if (cloudStorageProducts.Any()) products.AddRange(cloudStorageProducts);
+        }
 
-
-        // TODO: add to Redis all the Product Metadata & their asset references (Blob storage (CDN))
-
-
+        // clear the cache so we can re-hydrate it
+        _cacheRepository.ClearCacheCompletely();
+        // add to Redis all the Product Metadata & their asset references (Blob storage (CDN))
+        _cacheRepository.SetProducts(products);
 
         return products;
     }
 
-    public async Task<SalesforceFileResponseModel> GetProductsRelatedFiles(IEnumerable<string> productIds)
+    public async Task<SalesforceFileResponseModel> GetRelatedFilesSalesforce(IEnumerable<string> salesforceIds)
     {
         // fetch Product files
-        var productRelatedFiles = await _salesforceClient.GetRelatedFiles(productIds);
+        var productRelatedFiles = await _salesforceClient.GetRelatedFiles(salesforceIds);
         if (productRelatedFiles == null)
         {
-            _logger.LogError($"Error fetching related files for Products.", productIds);
+            _logger.LogError($"Error fetching related files from Salesforce.", salesforceIds);
             throw new BadHttpRequestException($"Unable to fetch related files for Products.");
         }
         // map files to simplified Tuple containing ProductId and ContentDocumentId (FileId)
@@ -314,18 +324,18 @@ public class ProductsBrokerService : IProductsBrokerService
         return assetsUploaded;
     }
 
-    private void AppendAssetReferenceToProduct(ref List<SalesforceProductObjectModel> products, string assetPath)
+    private void AppendAssetReferenceToProduct(ref List<SalesforceProductObjectModelV2> products, string assetPath)
     {
         var fileNameIndexStart = assetPath.LastIndexOf('/');
         var fileName = assetPath.Substring(fileNameIndexStart);
         // separate the segments of the file name by `.`
         var nameSegments = fileName.Split('.');
         // search the segments for an Id that matches the KPC format
-        var productKpc = nameSegments.FirstOrDefault(ns => Regex.IsMatch(ns, @"[0-9a-zA-z]{5,}-\d{5,}-\d$"));
+        var productKpc = nameSegments.FirstOrDefault(ns => Regex.IsMatch(ns, @"[\d,\w]{5,}-\d{5,}-\d$"));
         // if no KPC was found, skip the asset
         if (string.IsNullOrEmpty(productKpc)) return;
 
-        var productMatch = products.FirstOrDefault(p => productKpc == p.ProductCode);
+        var productMatch = products.FirstOrDefault(p => productKpc == p.Id);
         // validate that we have a matching product in our result set, otherwise skip the asset
         if (productMatch == null) return;
 
@@ -336,7 +346,8 @@ public class ProductsBrokerService : IProductsBrokerService
         } 
         else
         {
-            productMatch.Assets.Append(assetPath);
+            // the productMatch already has Assets initialized, so just append the assetPath to the existing IEnumerable
+            productMatch.Assets = productMatch.Assets.Concat(new[] { assetPath });
         }
     }
 }
