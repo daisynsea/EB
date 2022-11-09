@@ -22,6 +22,6 @@ public class SalesforceProductObjectModelV2
     public string? ProductSubType { get; set; }
     public string? ProductFamily { get; set; }
     public int? Score { get; set; } = 0; // Connectivity Only
-    public IEnumerable<string> Assets { get; set; } // Terminal, Accessory Only
-    public IEnumerable<string> Kit { get; set; } // Accessory Only
+    //public string? Kit { get; set; } // Accessory Only
+    public IEnumerable<string>? Assets { get; set; } // Terminal, Accessory Only
 }

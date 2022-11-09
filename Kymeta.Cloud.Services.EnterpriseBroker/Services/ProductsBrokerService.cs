@@ -60,6 +60,9 @@ public class ProductsBrokerService : IProductsBrokerService
         var indexOfListPrice            = reportColumns?.FindIndex(x => x == "UNIT_PRICE");
         var indexOfItemDetail           = reportColumns?.FindIndex(x => x == "Product2.ItemDetails__c");
         var indexOfProductDesc          = reportColumns?.FindIndex(x => x == "Product2.cpqProductDescription__c");
+        var indexOfUnavailable          = reportColumns?.FindIndex(x => x == "Product2.Unavailable__c");
+        var indexOfTargetAudience       = reportColumns?.FindIndex(x => x == "Product2.TargetAudience__c");
+        var indexOfKit                  = reportColumns?.FindIndex(x => x == "Product2.Kit__c");
 
         var reportData = new List<SalesforceReportViewModel>();
         for (int i = 0; i < rowDataCells?.Count; i++)
@@ -67,16 +70,19 @@ public class ProductsBrokerService : IProductsBrokerService
             var row = rowDataCells[i];
             var productCode         = row?.dataCells[indexOfProductCode.GetValueOrDefault()]?.label;
             var recordId            = row?.dataCells[indexOfProductCode.GetValueOrDefault()]?.recordId;
-            var stage               = row?.dataCells[indexOfStage.GetValueOrDefault()]?.label;            
-            var productName         = row?.dataCells[indexOfProductName.GetValueOrDefault()]?.label;      
-            var productGen          = row?.dataCells[indexOfProductGen.GetValueOrDefault()]?.label;       
-            var productType         = row?.dataCells[indexOfProductType.GetValueOrDefault()]?.label;      
-            var productFamily       = row?.dataCells[indexOfProductFamily.GetValueOrDefault()]?.label;    
-            var terminalCategory    = row?.dataCells[indexOfTerminalCategory.GetValueOrDefault()]?.label; 
-            var priceBookName       = row?.dataCells[indexOfPriceBookName.GetValueOrDefault()]?.label;    
-            var listPrice           = row?.dataCells[indexOfListPrice.GetValueOrDefault()]?.label;        
-            var itemDetail          = row?.dataCells[indexOfItemDetail.GetValueOrDefault()]?.label;       
-            var productDesc         = row?.dataCells[indexOfProductDesc.GetValueOrDefault()]?.label;      
+            var stage               = row?.dataCells[indexOfStage.GetValueOrDefault()]?.label;
+            var productName         = row?.dataCells[indexOfProductName.GetValueOrDefault()]?.label;
+            var productGen          = row?.dataCells[indexOfProductGen.GetValueOrDefault()]?.label;
+            var productType         = row?.dataCells[indexOfProductType.GetValueOrDefault()]?.label;
+            var productFamily       = row?.dataCells[indexOfProductFamily.GetValueOrDefault()]?.label;
+            var terminalCategory    = row?.dataCells[indexOfTerminalCategory.GetValueOrDefault()]?.label;
+            var priceBookName       = row?.dataCells[indexOfPriceBookName.GetValueOrDefault()]?.label;
+            var listPrice           = row?.dataCells[indexOfListPrice.GetValueOrDefault()]?.label;
+            var itemDetail          = row?.dataCells[indexOfItemDetail.GetValueOrDefault()]?.label;
+            var productDesc         = row?.dataCells[indexOfProductDesc.GetValueOrDefault()]?.label;
+            var isUnavailable       = indexOfUnavailable > -1 ? row?.dataCells[indexOfUnavailable.GetValueOrDefault()]?.label : null;
+            var targetAudience      = indexOfTargetAudience > -1 ? row?.dataCells[indexOfTargetAudience.GetValueOrDefault()]?.label : null;
+            var productKit          = indexOfKit > -1 ? row?.dataCells[indexOfKit.GetValueOrDefault()]?.label : null;
 
             var listPriceObj = row?.dataCells[indexOfListPrice.GetValueOrDefault()]?.value;
 
@@ -94,7 +100,10 @@ public class ProductsBrokerService : IProductsBrokerService
                 PriceBookName       = Convert.ToString(priceBookName),
                 ListPrice           = Convert.ToString(listPrice),
                 ItemDetail          = Convert.ToString(itemDetail),
-                ProductDesc         = Convert.ToString(productDesc)
+                ProductDesc         = Convert.ToString(productDesc),
+                Unavailable         = Convert.ToBoolean(isUnavailable),
+                TargetAudience      = Convert.ToString(targetAudience),
+                ProductKit          = Convert.ToString(productKit),
             });
         }
 
@@ -107,21 +116,23 @@ public class ProductsBrokerService : IProductsBrokerService
         foreach (var reportProduct in distinctProducts)
         {
             if (reportProduct == null) continue;
+            // if the Product does not have a KPC, skip it
+            if (string.IsNullOrEmpty(reportProduct.ProductCode)) continue;
+
             // there will be two records for product code, with Wholesale price, MSRP price
             var wholesalePrice = products
                 .Where(a => a?.PriceBookName == "Wholesale" && a?.ProductCode == reportProduct.ProductCode)?
                 .Select(a => a?.ListPrice)?
                 .FirstOrDefault();
-            var isWholesalePriceInt = int.TryParse(wholesalePrice, out int wholesalePriceInt);
             var msrpPrice = products
                 .Where(a => a?.PriceBookName == "MSRP" && a?.ProductCode == reportProduct.ProductCode)?
                 .Select(a => a?.ListPrice)?
                 .FirstOrDefault();
-            var isMsrpPriceInt = int.TryParse(msrpPrice, out int msrpPriceInt);
-            var kitStr = products
-                .Where(a => a?.ProductCode == reportProduct.ProductCode)
-                .Select(a => a?.ProductDesc)?
-                .FirstOrDefault();
+            
+            // parse the prices into proper data type
+            int.TryParse(wholesalePrice, out int wholesalePriceInt);
+            int.TryParse(msrpPrice, out int msrpPriceInt);
+
             productResults.Add(new SalesforceProductObjectModelV2
             {
                 Id = reportProduct.ProductCode,
@@ -130,9 +141,14 @@ public class ProductsBrokerService : IProductsBrokerService
                 Description = reportProduct.ProductDesc,
                 WholesalePrice = wholesalePriceInt,
                 MsrpPrice = msrpPriceInt,
-                ProductType = reportProduct.ProductType,
-                ProductFamily = reportProduct.ProductFamily,
-                Kit = kitStr?.Split(",")
+                ProductType = reportProduct.ProductType?.ToLower(),
+                ProductSubType = reportProduct.ProductFamily?.ToLower(),
+                ProductFamily = reportProduct.ProductFamily?.ToLower(),
+                //Kit = reportProduct.ProductKit,
+                Comm = reportProduct.TargetAudience?.ToLower().Contains("commercial") ?? false,
+                Mil = reportProduct.TargetAudience?.ToLower().Contains("military") ?? false,
+                Unavailable = reportProduct.Unavailable
+                // TODO: DiscountTier2Price = reportProduct.
             });
         }
 
@@ -149,7 +165,10 @@ public class ProductsBrokerService : IProductsBrokerService
         // isolate the Ids from the report objects
         var salesforceProductIds = products.Select(pr => pr.SalesforceId);
         if (salesforceProductIds == null || !salesforceProductIds.Any()) throw new SynchronizeProductsException($"No products contained in the Product Report from Salesforce.");
-        
+
+        var productDetailResults = await _salesforceClient.GetProductsByManyIds(salesforceProductIds);
+        // TODO: extract the Description from this result and overwrite the values received from the Report... silly but it'll work to get formatted description
+
         // fetch existing assets blob storage
         var existingBlobAssets = await _fileStorageService.GetBlobs("KymetaCloudCdn", _config["AzureStorage:Accounts:KymetaCloudCdn"], _config["AzureStorage:Containers:CdnAssets"]);
 

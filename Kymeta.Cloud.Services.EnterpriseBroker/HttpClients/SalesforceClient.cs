@@ -179,8 +179,8 @@ public class SalesforceClient : ISalesforceClient
                 {
                     "Id",
                     "Name__c",
-                    "ItemDetails__c",
-                    "Terminal_Category__c"
+                    "Terminal_Category__c",
+                    "cpqProductDescription__c"
                 }
             };
 

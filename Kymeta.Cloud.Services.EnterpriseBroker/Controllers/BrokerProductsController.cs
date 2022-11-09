@@ -33,7 +33,7 @@ public class BrokerProductsController : ControllerBase
     {
         try
         {
-            var result = await _sfProductsRepo.GetProducts();
+            var result = await _sfProductsRepo.GetProductsV2();
             return new JsonResult(result);
         }
         catch (Exception ex)
