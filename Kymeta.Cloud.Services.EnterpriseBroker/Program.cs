@@ -81,6 +81,10 @@ builder.Services.AddScoped<ICacheRepository, CacheRepository>();
 builder.Services.AddScoped<IConfiguratorQuoteRequestService, ConfiguratorQuoteRequestService>();
 builder.Services.AddScoped<IProductsBrokerService, ProductsBrokerService>();
 builder.Services.AddScoped<IFileStorageService, FileStorageService>();
+// add background operation service
+builder.Services.AddHostedService<BackgroundOperationService>();
+builder.Services.AddScoped<ISalesforceProcessingService, SalesforceProcessingService>();
+// configure redis
 builder.Services.AddRedisClient(new RedisClientOptions
 {
     ConnectionString = builder.Configuration.GetConnectionString("RedisCache")

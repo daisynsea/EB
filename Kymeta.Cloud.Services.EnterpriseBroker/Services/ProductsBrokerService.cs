@@ -60,9 +60,7 @@ public class ProductsBrokerService : IProductsBrokerService
         var indexOfListPrice            = reportColumns?.FindIndex(x => x == "UNIT_PRICE");
         var indexOfItemDetail           = reportColumns?.FindIndex(x => x == "Product2.ItemDetails__c");
         var indexOfProductDesc          = reportColumns?.FindIndex(x => x == "Product2.cpqProductDescription__c");
-        var indexOfUnavailable          = reportColumns?.FindIndex(x => x == "Product2.Unavailable__c");
         var indexOfTargetAudience       = reportColumns?.FindIndex(x => x == "Product2.TargetAudience__c");
-        var indexOfKit                  = reportColumns?.FindIndex(x => x == "Product2.Kit__c");
 
         var reportData = new List<SalesforceReportViewModel>();
         for (int i = 0; i < rowDataCells?.Count; i++)
@@ -80,9 +78,7 @@ public class ProductsBrokerService : IProductsBrokerService
             var listPrice           = row?.dataCells[indexOfListPrice.GetValueOrDefault()]?.label;
             var itemDetail          = row?.dataCells[indexOfItemDetail.GetValueOrDefault()]?.label;
             var productDesc         = row?.dataCells[indexOfProductDesc.GetValueOrDefault()]?.label;
-            var isUnavailable       = indexOfUnavailable > -1 ? row?.dataCells[indexOfUnavailable.GetValueOrDefault()]?.label : null;
             var targetAudience      = indexOfTargetAudience > -1 ? row?.dataCells[indexOfTargetAudience.GetValueOrDefault()]?.label : null;
-            var productKit          = indexOfKit > -1 ? row?.dataCells[indexOfKit.GetValueOrDefault()]?.label : null;
 
             var listPriceObj = row?.dataCells[indexOfListPrice.GetValueOrDefault()]?.value;
 
@@ -101,9 +97,7 @@ public class ProductsBrokerService : IProductsBrokerService
                 ListPrice           = Convert.ToString(listPrice),
                 ItemDetail          = Convert.ToString(itemDetail),
                 ProductDesc         = Convert.ToString(productDesc),
-                Unavailable         = Convert.ToBoolean(isUnavailable),
                 TargetAudience      = Convert.ToString(targetAudience),
-                ProductKit          = Convert.ToString(productKit),
             });
         }
 
@@ -127,11 +121,12 @@ public class ProductsBrokerService : IProductsBrokerService
             var msrpPrice = products
                 .Where(a => a?.PriceBookName == "MSRP" && a?.ProductCode == reportProduct.ProductCode)?
                 .Select(a => a?.ListPrice)?
-                .FirstOrDefault();
-            
+                .FirstOrDefault();            
             // parse the prices into proper data type
-            int.TryParse(wholesalePrice, out int wholesalePriceInt);
-            int.TryParse(msrpPrice, out int msrpPriceInt);
+            float.TryParse(wholesalePrice, out float wholesalePriceFloat);
+            float.TryParse(msrpPrice, out float msrpPriceFloat);
+            // a Product is only available when the `Stage` is equal to Sellable
+            var isUnavailable = reportProduct.Stage?.ToLower() != "sellable";
 
             productResults.Add(new SalesforceProductObjectModelV2
             {
@@ -139,16 +134,19 @@ public class ProductsBrokerService : IProductsBrokerService
                 SalesforceId = reportProduct.RecordId,
                 Name = reportProduct.ProductName,
                 Description = reportProduct.ProductDesc,
-                WholesalePrice = wholesalePriceInt,
-                MsrpPrice = msrpPriceInt,
+                WholesalePrice = wholesalePriceFloat,
+                MsrpPrice = msrpPriceFloat,
                 ProductType = reportProduct.ProductType?.ToLower(),
                 ProductSubType = reportProduct.ProductFamily?.ToLower(),
                 ProductFamily = reportProduct.ProductFamily?.ToLower(),
-                //Kit = reportProduct.ProductKit,
                 Comm = reportProduct.TargetAudience?.ToLower().Contains("commercial") ?? false,
                 Mil = reportProduct.TargetAudience?.ToLower().Contains("military") ?? false,
-                Unavailable = reportProduct.Unavailable
-                // TODO: DiscountTier2Price = reportProduct.
+                Unavailable = isUnavailable,
+                // TODO: replace these with the updated report values when available ("reportData.DiscountTier2Percentage" etc...)
+                DiscountTier2Price = (wholesalePriceFloat - ((5 / 100f) * wholesalePriceFloat)),
+                DiscountTier3Price = (wholesalePriceFloat - ((10 / 100f) * wholesalePriceFloat)),
+                DiscountTier4Price = (wholesalePriceFloat - ((25 / 100f) * wholesalePriceFloat)),
+                DiscountTier5Price = (wholesalePriceFloat - ((50 / 100f) * wholesalePriceFloat)),
             });
         }
 
@@ -166,8 +164,17 @@ public class ProductsBrokerService : IProductsBrokerService
         var salesforceProductIds = products.Select(pr => pr.SalesforceId);
         if (salesforceProductIds == null || !salesforceProductIds.Any()) throw new SynchronizeProductsException($"No products contained in the Product Report from Salesforce.");
 
+        // fetch product detail for all Products from the Report
         var productDetailResults = await _salesforceClient.GetProductsByManyIds(salesforceProductIds);
-        // TODO: extract the Description from this result and overwrite the values received from the Report... silly but it'll work to get formatted description
+        // extract the Description from this result and overwrite the values received from the Report so we have the formatted Description as HTML
+        foreach (var product in products)
+        {
+            var detailMatch = productDetailResults?.FirstOrDefault(pd => pd.Id == product.SalesforceId);
+            if (detailMatch != null)
+            {
+                product.Description = detailMatch.Description;
+            }
+        }
 
         // fetch existing assets blob storage
         var existingBlobAssets = await _fileStorageService.GetBlobs("KymetaCloudCdn", _config["AzureStorage:Accounts:KymetaCloudCdn"], _config["AzureStorage:Containers:CdnAssets"]);

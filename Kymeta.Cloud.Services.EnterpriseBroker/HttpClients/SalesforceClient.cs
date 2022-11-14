@@ -11,7 +11,7 @@ public interface ISalesforceClient
     Task<SalesforceAccountObjectModel> GetAccountFromSalesforce(string accountId);
     Task<SalesforceUserObjectModel> GetUserFromSalesforce(string userId);
     Task<SalesforceProductReportResultModel> GetProductReportFromSalesforce();
-    Task<IEnumerable<SalesforceProductObjectModel>> GetProductsByManyIds(IEnumerable<string> productIds);
+    Task<IEnumerable<SalesforceProductObjectModelV2>> GetProductsByManyIds(IEnumerable<string> productIds);
     Task<SalesforceQueryObjectModel> GetRelatedFiles(IEnumerable<string> salesforceIds);
     Task<SalesforceFileResponseModel?> GetFileMetadataByManyIds(IEnumerable<string> fileIds);
     Task<Stream> DownloadFileContent(string downloadUrl);
@@ -143,7 +143,7 @@ public class SalesforceClient : ISalesforceClient
             var url = tokenAndUrl?.Item2;
             var productsReportId = _config["Salesforce:ProductsReportId"];
 
-            _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+            if (!_client.DefaultRequestHeaders.Any(drh => drh.Key == "Authorization")) _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
             //_client.DefaultRequestHeaders.Add("Accept", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"); // receive data as Excel file stream
             var response = await _client.GetAsync($"{url}/services/data/v53.0/analytics/reports/{productsReportId}"); //prod : 00O3j000007n2CREAY, cloudDev : 00O0r000000SnZtEAK
             var stringResponse = await response.Content.ReadAsStringAsync();
@@ -160,12 +160,12 @@ public class SalesforceClient : ISalesforceClient
             return null;
         }
     }
-    public async Task<IEnumerable<SalesforceProductObjectModel>> GetProductsByManyIds(IEnumerable<string> productIds)
+    public async Task<IEnumerable<SalesforceProductObjectModelV2>> GetProductsByManyIds(IEnumerable<string> productIds)
     {
         try
         {
             // if no productIds were provided, return empty list
-            if (productIds == null || !productIds.Any()) return new List<SalesforceProductObjectModel>();
+            if (productIds == null || !productIds.Any()) return new List<SalesforceProductObjectModelV2>();
 
             var tokenAndUrl = await GetTokenAndUrl();
             var token = tokenAndUrl?.Item1;
@@ -179,13 +179,12 @@ public class SalesforceClient : ISalesforceClient
                 {
                     "Id",
                     "Name__c",
-                    "Terminal_Category__c",
                     "cpqProductDescription__c"
                 }
             };
 
             // append auth token
-            _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+            if (!_client.DefaultRequestHeaders.Any(drh => drh.Key == "Authorization")) _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
             // send the request
             var response = await _client.PostAsJsonAsync($"{url}/services/data/v53.0/composite/sobjects/Product2", payload);
             var stringResponse = await response.Content.ReadAsStringAsync();
@@ -196,7 +195,7 @@ public class SalesforceClient : ISalesforceClient
                 return null;
             }
 
-            var products = JsonConvert.DeserializeObject<List<SalesforceProductObjectModel>>(stringResponse);
+            var products = JsonConvert.DeserializeObject<List<SalesforceProductObjectModelV2>>(stringResponse);
             return products;
 
         }
@@ -218,6 +217,7 @@ public class SalesforceClient : ISalesforceClient
             var url = tokenAndUrl?.Item2;
 
             // TODO: need to accommodate greater than 100 items in URL query
+            // TODO: https://jira.kymetacorp.com/browse/CLDSRV-14325
             if (salesforceIds.Count() > 100) throw new ArgumentOutOfRangeException(nameof(salesforceIds));
 
             var formattedIds = salesforceIds.Select(id => $"'{id}'");
