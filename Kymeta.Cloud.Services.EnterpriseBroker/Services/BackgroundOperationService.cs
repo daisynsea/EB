@@ -15,9 +15,20 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation($"Background Operation Service is starting.");
-            // init the sync from Salesforce to Kymeta Cloud (OSS)
-            await SynchronizeProducts(stoppingToken);
+            try
+            {
+                _logger.LogInformation($"Background Operation Service is starting.");
+                // init the sync from Salesforce to Kymeta Cloud (OSS)
+                await SynchronizeProducts(stoppingToken);
+            }
+            catch (Exception ex) when (stoppingToken.IsCancellationRequested)
+            {
+                _logger.LogWarning(ex, "Background Operation execution cancelled.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogCritical(ex, "Execution stopping due to an unhandeled exception.");
+            }
         }
 
         public override async Task StopAsync(CancellationToken stoppingToken)
