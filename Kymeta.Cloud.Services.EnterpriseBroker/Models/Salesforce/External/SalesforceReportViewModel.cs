@@ -15,7 +15,7 @@
         public string? ItemDetail       { get; set; }
         public string? ProductDesc      { get; set; }
         public bool? Unavailable { get; set; }
-        public string? TargetAudience { get; set; }
+        public string? TargetMarkets { get; set; }
         public string? ProductKit { get; set; }
     }
 

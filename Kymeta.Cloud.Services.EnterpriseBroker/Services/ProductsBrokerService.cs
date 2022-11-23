@@ -60,7 +60,7 @@ public class ProductsBrokerService : IProductsBrokerService
         var indexOfListPrice            = reportColumns?.FindIndex(x => x == "UNIT_PRICE");
         var indexOfItemDetail           = reportColumns?.FindIndex(x => x == "Product2.ItemDetails__c");
         var indexOfProductDesc          = reportColumns?.FindIndex(x => x == "Product2.cpqProductDescription__c");
-        var indexOfTargetAudience       = reportColumns?.FindIndex(x => x == "Product2.TargetAudience__c");
+        var indexOfTargetMarkets        = reportColumns?.FindIndex(x => x == "Product2.TargetMarkets__c");
 
         var reportData = new List<SalesforceReportViewModel>();
         for (int i = 0; i < rowDataCells?.Count; i++)
@@ -78,7 +78,7 @@ public class ProductsBrokerService : IProductsBrokerService
             var listPrice           = row?.dataCells[indexOfListPrice.GetValueOrDefault()]?.label;
             var itemDetail          = row?.dataCells[indexOfItemDetail.GetValueOrDefault()]?.label;
             var productDesc         = row?.dataCells[indexOfProductDesc.GetValueOrDefault()]?.label;
-            var targetAudience      = indexOfTargetAudience > -1 ? row?.dataCells[indexOfTargetAudience.GetValueOrDefault()]?.label : null;
+            var targetMarkets       = indexOfTargetMarkets > -1 ? row?.dataCells[indexOfTargetMarkets.GetValueOrDefault()]?.label : null;
 
             var listPriceObj = row?.dataCells[indexOfListPrice.GetValueOrDefault()]?.value;
 
@@ -97,7 +97,7 @@ public class ProductsBrokerService : IProductsBrokerService
                 ListPrice           = Convert.ToString(listPrice),
                 ItemDetail          = Convert.ToString(itemDetail),
                 ProductDesc         = Convert.ToString(productDesc),
-                TargetAudience      = Convert.ToString(targetAudience),
+                TargetMarkets        = Convert.ToString(targetMarkets),
             });
         }
 
@@ -139,8 +139,8 @@ public class ProductsBrokerService : IProductsBrokerService
                 ProductType = reportProduct.ProductType?.ToLower(),
                 ProductSubType = reportProduct.ProductFamily?.ToLower(),
                 ProductFamily = reportProduct.ProductFamily?.ToLower(),
-                Comm = reportProduct.TargetAudience?.ToLower().Contains("commercial") ?? false,
-                Mil = reportProduct.TargetAudience?.ToLower().Contains("military") ?? false,
+                Comm = reportProduct.TargetMarkets?.ToLower().Contains("commercial") ?? false,
+                Mil = reportProduct.TargetMarkets?.ToLower().Contains("military") ?? false,
                 Unavailable = isUnavailable,
                 // TODO: replace these with the updated report values when available ("reportData.DiscountTier2Percentage" etc...)
                 DiscountTier2Price = (wholesalePriceFloat - ((5 / 100f) * wholesalePriceFloat)),
