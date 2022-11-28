@@ -11,6 +11,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Repositories;
 public interface ISalesforceProductsRepository
 {
     Task<IEnumerable<SalesforceProductObjectModel>> GetProducts();
+    Task<IEnumerable<SalesforceProductObjectModelV2>> GetProductsV2();
 }
 
 public class SalesforceProductsRepository : ISalesforceProductsRepository
@@ -40,6 +41,27 @@ public class SalesforceProductsRepository : ISalesforceProductsRepository
         {
             FeedResponse<SalesforceProductObjectModel> currentResultSet = await queryResultSetIterator.ReadNextAsync();
             foreach (SalesforceProductObjectModel record in currentResultSet)
+            {
+                records.Add(record);
+            }
+        }
+
+        return records;
+    }
+
+    public async Task<IEnumerable<SalesforceProductObjectModelV2>> GetProductsV2()
+    {
+        var sqlQueryText = "SELECT * FROM c";
+
+        QueryDefinition queryDefinition = new QueryDefinition(sqlQueryText);
+        FeedIterator<SalesforceProductObjectModelV2> queryResultSetIterator = this.Container.GetItemQueryIterator<SalesforceProductObjectModelV2>(queryDefinition);
+
+        List<SalesforceProductObjectModelV2> records = new List<SalesforceProductObjectModelV2>();
+
+        while (queryResultSetIterator.HasMoreResults)
+        {
+            FeedResponse<SalesforceProductObjectModelV2> currentResultSet = await queryResultSetIterator.ReadNextAsync();
+            foreach (SalesforceProductObjectModelV2 record in currentResultSet)
             {
                 records.Add(record);
             }
