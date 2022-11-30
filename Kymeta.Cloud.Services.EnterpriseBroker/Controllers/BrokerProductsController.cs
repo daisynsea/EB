@@ -29,11 +29,11 @@ public class BrokerProductsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<SalesforceProductObjectModel>>> GetProducts()
+    public async Task<ActionResult<List<SalesforceProductObjectModelV2>>> GetProducts()
     {
         try
         {
-            var result = await _sfProductsRepo.GetProductsV2();
+            var result = await _sfProductsRepo.GetProducts();
             return new JsonResult(result);
         }
         catch (Exception ex)

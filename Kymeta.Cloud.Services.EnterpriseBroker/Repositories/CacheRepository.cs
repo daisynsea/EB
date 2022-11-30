@@ -16,7 +16,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Repositories
     public class CacheRepository : ICacheRepository
     {
         private IRedisClient _redisClient;
-        private const string _SALESFORCE_PRODUCTS_KEY = "SalesforceProducts";
+        private const string _SALESFORCE_PRODUCTS_KEY = "EB:SalesforceProducts";
 
         public CacheRepository(IRedisClient redisClient)
         {

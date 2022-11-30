@@ -60,7 +60,7 @@ public class ProductsBrokerService : IProductsBrokerService
         var indexOfListPrice            = reportColumns?.FindIndex(x => x == "UNIT_PRICE");
         var indexOfItemDetail           = reportColumns?.FindIndex(x => x == "Product2.ItemDetails__c");
         var indexOfProductDesc          = reportColumns?.FindIndex(x => x == "Product2.cpqProductDescription__c");
-        var indexOfTargetMarkets        = reportColumns?.FindIndex(x => x == "Product2.TargetMarkets__c");
+        var indexOfTargetMarkets        = reportColumns?.FindIndex(x => x == "Product2.Target_Markets__c");
 
         var reportData = new List<SalesforceReportViewModel>();
         for (int i = 0; i < rowDataCells?.Count; i++)
@@ -162,7 +162,7 @@ public class ProductsBrokerService : IProductsBrokerService
         var products = productsReportResult.ToList();
         // isolate the Ids from the report objects
         var salesforceProductIds = products.Select(pr => pr.SalesforceId);
-        if (salesforceProductIds == null || !salesforceProductIds.Any()) throw new SynchronizeProductsException($"No products contained in the Product Report from Salesforce.");
+        if (salesforceProductIds == null || !salesforceProductIds.Any()) throw new SynchronizeProductsException($"No Products were returned by the Product Report from Salesforce.");
 
         // fetch product detail for all Products from the Report
         var productDetailResults = await _salesforceClient.GetProductsByManyIds(salesforceProductIds);
@@ -208,7 +208,7 @@ public class ProductsBrokerService : IProductsBrokerService
             if (existingBlobMatch == null || existingBlobMatch.ModifiedOn < file.Result.ModifiedDate)
             {
                 filesToUpload.Add(file.Result);
-                // proceed to next file
+                // proceed to next file, we'll append the asset reference once the file has been successfully uploaded
                 continue;
             }
 
@@ -263,7 +263,7 @@ public class ProductsBrokerService : IProductsBrokerService
         }
 
         // fetch Products from CosmosDB
-        var productsCloud = await _sfProductsRepo.GetProductsV2();
+        var productsCloud = await _sfProductsRepo.GetProducts();
         if (productsCloud != null)
         {
             var cloudStorageProductTypes = new List<string> { "connectivity", "warranty" };
