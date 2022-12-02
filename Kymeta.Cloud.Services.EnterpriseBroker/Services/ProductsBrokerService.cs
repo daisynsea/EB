@@ -125,9 +125,9 @@ public class ProductsBrokerService : IProductsBrokerService
             // parse the prices into proper data type
             float.TryParse(wholesalePrice, out float wholesalePriceFloat);
             float.TryParse(msrpPrice, out float msrpPriceFloat);
-            // a Product is only available when the `Stage` is equal to Sellable or Quoteable
-            var availableStages = new string[] { "sellable", "quotable" };
-            var isUnavailable = !availableStages.Contains(reportProduct.Stage?.ToLower());
+            // a Product is only available when the `Stage` is equal to Sellable
+            var availableStages = new string[] { "sellable" };
+            var isAvailable = availableStages.Contains(reportProduct.Stage?.ToLower());
 
             productResults.Add(new SalesforceProductObjectModelV2
             {
@@ -142,7 +142,7 @@ public class ProductsBrokerService : IProductsBrokerService
                 ProductFamily = reportProduct.ProductFamily?.ToLower(),
                 Comm = reportProduct.TargetMarkets?.ToLower().Contains("commercial") ?? false,
                 Mil = reportProduct.TargetMarkets?.ToLower().Contains("military") ?? false,
-                Unavailable = isUnavailable,
+                Unavailable = !isAvailable,
                 // TODO: replace these with the updated report values when available ("reportData.DiscountTier2Percentage" etc...)
                 DiscountTier2Price = (wholesalePriceFloat - ((5 / 100f) * wholesalePriceFloat)),
                 DiscountTier3Price = (wholesalePriceFloat - ((10 / 100f) * wholesalePriceFloat)),
@@ -182,9 +182,9 @@ public class ProductsBrokerService : IProductsBrokerService
 
         // fetch all the uploaded assets (Related Files) for the Products & upload them to blob storage
         var productsRelatedFiles = await GetRelatedFilesSalesforce(salesforceProductIds);
-        if (productsRelatedFiles.HasErrors)
+        if (productsRelatedFiles == null || productsRelatedFiles.HasErrors)
         {
-            _logger.LogCritical($"Error fetching Salesforce Products related files.", productsRelatedFiles.Results);
+            _logger.LogCritical($"Error fetching Salesforce Products related files.", productsRelatedFiles?.Results);
             throw new SynchronizeProductsException($"Unable to fetch Salesforce Products related files.");
         }
 
