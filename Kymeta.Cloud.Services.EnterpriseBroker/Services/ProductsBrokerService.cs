@@ -67,7 +67,7 @@ public class ProductsBrokerService : IProductsBrokerService
         {
             var row = rowDataCells[i];
             var productCode         = row?.dataCells[indexOfProductCode.GetValueOrDefault()]?.label;
-            var recordId            = row?.dataCells[indexOfProductCode.GetValueOrDefault()]?.recordId;
+            var recordId            = row?.dataCells[indexOfProductCode.GetValueOrDefault()]?.value;
             var stage               = row?.dataCells[indexOfStage.GetValueOrDefault()]?.label;
             var productName         = row?.dataCells[indexOfProductName.GetValueOrDefault()]?.label;
             var productGen          = row?.dataCells[indexOfProductGen.GetValueOrDefault()]?.label;
@@ -97,7 +97,7 @@ public class ProductsBrokerService : IProductsBrokerService
                 ListPrice           = Convert.ToString(listPrice),
                 ItemDetail          = Convert.ToString(itemDetail),
                 ProductDesc         = Convert.ToString(productDesc),
-                TargetMarkets        = Convert.ToString(targetMarkets),
+                TargetMarkets       = Convert.ToString(targetMarkets),
             });
         }
 
@@ -127,7 +127,9 @@ public class ProductsBrokerService : IProductsBrokerService
             float.TryParse(msrpPrice, out float msrpPriceFloat);
             // a Product is only available when the `Stage` is equal to Sellable
             var availableStages = new string[] { "sellable" };
-            var isAvailable = availableStages.Contains(reportProduct.Stage?.ToLower());
+            var isAvailable = reportProduct.Stage == null 
+                ? false 
+                : availableStages.Contains(reportProduct.Stage?.ToLower());
 
             productResults.Add(new SalesforceProductObjectModelV2
             {
@@ -170,7 +172,7 @@ public class ProductsBrokerService : IProductsBrokerService
         // extract the Description from this result and overwrite the values received from the Report so we have the formatted Description as HTML
         foreach (var product in products)
         {
-            var detailMatch = productDetailResults?.FirstOrDefault(pd => pd.Id == product.SalesforceId);
+            var detailMatch = productDetailResults?.FirstOrDefault(pd => pd?.Id == product.SalesforceId);
             if (detailMatch != null)
             {
                 product.Description = detailMatch.Description;
