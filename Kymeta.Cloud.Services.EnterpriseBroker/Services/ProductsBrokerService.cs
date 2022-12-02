@@ -60,14 +60,14 @@ public class ProductsBrokerService : IProductsBrokerService
         var indexOfListPrice            = reportColumns?.FindIndex(x => x == "UNIT_PRICE");
         var indexOfItemDetail           = reportColumns?.FindIndex(x => x == "Product2.ItemDetails__c");
         var indexOfProductDesc          = reportColumns?.FindIndex(x => x == "Product2.cpqProductDescription__c");
-        var indexOfTargetMarkets        = reportColumns?.FindIndex(x => x == "Product2.TargetMarkets__c");
+        var indexOfTargetMarkets        = reportColumns?.FindIndex(x => x == "Product2.Target_Markets__c");
 
         var reportData = new List<SalesforceReportViewModel>();
         for (int i = 0; i < rowDataCells?.Count; i++)
         {
             var row = rowDataCells[i];
             var productCode         = row?.dataCells[indexOfProductCode.GetValueOrDefault()]?.label;
-            var recordId            = row?.dataCells[indexOfProductCode.GetValueOrDefault()]?.recordId;
+            var recordId            = row?.dataCells[indexOfProductCode.GetValueOrDefault()]?.value;
             var stage               = row?.dataCells[indexOfStage.GetValueOrDefault()]?.label;
             var productName         = row?.dataCells[indexOfProductName.GetValueOrDefault()]?.label;
             var productGen          = row?.dataCells[indexOfProductGen.GetValueOrDefault()]?.label;
@@ -97,7 +97,7 @@ public class ProductsBrokerService : IProductsBrokerService
                 ListPrice           = Convert.ToString(listPrice),
                 ItemDetail          = Convert.ToString(itemDetail),
                 ProductDesc         = Convert.ToString(productDesc),
-                TargetMarkets        = Convert.ToString(targetMarkets),
+                TargetMarkets       = Convert.ToString(targetMarkets),
             });
         }
 
@@ -126,7 +126,10 @@ public class ProductsBrokerService : IProductsBrokerService
             float.TryParse(wholesalePrice, out float wholesalePriceFloat);
             float.TryParse(msrpPrice, out float msrpPriceFloat);
             // a Product is only available when the `Stage` is equal to Sellable
-            var isUnavailable = reportProduct.Stage?.ToLower() != "sellable";
+            var availableStages = new string[] { "sellable" };
+            var isAvailable = reportProduct.Stage == null 
+                ? false 
+                : availableStages.Contains(reportProduct.Stage?.ToLower());
 
             productResults.Add(new SalesforceProductObjectModelV2
             {
@@ -141,7 +144,7 @@ public class ProductsBrokerService : IProductsBrokerService
                 ProductFamily = reportProduct.ProductFamily?.ToLower(),
                 Comm = reportProduct.TargetMarkets?.ToLower().Contains("commercial") ?? false,
                 Mil = reportProduct.TargetMarkets?.ToLower().Contains("military") ?? false,
-                Unavailable = isUnavailable,
+                Unavailable = !isAvailable,
                 // TODO: replace these with the updated report values when available ("reportData.DiscountTier2Percentage" etc...)
                 DiscountTier2Price = (wholesalePriceFloat - ((5 / 100f) * wholesalePriceFloat)),
                 DiscountTier3Price = (wholesalePriceFloat - ((10 / 100f) * wholesalePriceFloat)),
@@ -162,14 +165,14 @@ public class ProductsBrokerService : IProductsBrokerService
         var products = productsReportResult.ToList();
         // isolate the Ids from the report objects
         var salesforceProductIds = products.Select(pr => pr.SalesforceId);
-        if (salesforceProductIds == null || !salesforceProductIds.Any()) throw new SynchronizeProductsException($"No products contained in the Product Report from Salesforce.");
+        if (salesforceProductIds == null || !salesforceProductIds.Any()) throw new SynchronizeProductsException($"No Products were returned by the Product Report from Salesforce.");
 
         // fetch product detail for all Products from the Report
         var productDetailResults = await _salesforceClient.GetProductsByManyIds(salesforceProductIds);
         // extract the Description from this result and overwrite the values received from the Report so we have the formatted Description as HTML
         foreach (var product in products)
         {
-            var detailMatch = productDetailResults?.FirstOrDefault(pd => pd.Id == product.SalesforceId);
+            var detailMatch = productDetailResults?.FirstOrDefault(pd => pd?.Id == product.SalesforceId);
             if (detailMatch != null)
             {
                 product.Description = detailMatch.Description;
@@ -181,9 +184,9 @@ public class ProductsBrokerService : IProductsBrokerService
 
         // fetch all the uploaded assets (Related Files) for the Products & upload them to blob storage
         var productsRelatedFiles = await GetRelatedFilesSalesforce(salesforceProductIds);
-        if (productsRelatedFiles.HasErrors)
+        if (productsRelatedFiles == null || productsRelatedFiles.HasErrors)
         {
-            _logger.LogCritical($"Error fetching Salesforce Products related files.", productsRelatedFiles.Results);
+            _logger.LogCritical($"Error fetching Salesforce Products related files.", productsRelatedFiles?.Results);
             throw new SynchronizeProductsException($"Unable to fetch Salesforce Products related files.");
         }
 
@@ -208,7 +211,7 @@ public class ProductsBrokerService : IProductsBrokerService
             if (existingBlobMatch == null || existingBlobMatch.ModifiedOn < file.Result.ModifiedDate)
             {
                 filesToUpload.Add(file.Result);
-                // proceed to next file
+                // proceed to next file, we'll append the asset reference once the file has been successfully uploaded
                 continue;
             }
 
@@ -263,7 +266,7 @@ public class ProductsBrokerService : IProductsBrokerService
         }
 
         // fetch Products from CosmosDB
-        var productsCloud = await _sfProductsRepo.GetProductsV2();
+        var productsCloud = await _sfProductsRepo.GetProducts();
         if (productsCloud != null)
         {
             var cloudStorageProductTypes = new List<string> { "connectivity", "warranty" };

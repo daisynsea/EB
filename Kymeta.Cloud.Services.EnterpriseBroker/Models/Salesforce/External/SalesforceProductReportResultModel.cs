@@ -89,6 +89,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce.External
             public Product2Producttype__C Product2ProductType__c { get; set; }
             public FAMILY FAMILY { get; set; }
             public Product2Terminal_Category__C Product2Terminal_Category__c { get; set; }
+            public Product2Target_Markets__C Product2Target_Markets__c { get; set; }
             public NAME NAME { get; set; }
             public UNIT_PRICE UNIT_PRICE { get; set; }
             public Product2Itemdetails__C Product2ItemDetails__c { get; set; }
@@ -199,6 +200,19 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce.External
             public Filtervalue2[] filterValues { get; set; }
             public bool filterable { get; set; }
             public string fullyQualifiedName { get; set; }
+            public object[] inactiveFilterValues { get; set; }
+            public bool isLookup { get; set; }
+            public string label { get; set; }
+            public bool uniqueCountable { get; set; }
+        }
+
+        public class Product2Target_Markets__C
+        {
+            public string dataType { get; set; }
+            public string entityColumnName { get; set; }
+            public Fieldinfo fieldInfo { get; set; }
+            public Filtervalue[] filterValues { get; set; }
+            public bool filterable { get; set; }
             public object[] inactiveFilterValues { get; set; }
             public bool isLookup { get; set; }
             public string label { get; set; }
