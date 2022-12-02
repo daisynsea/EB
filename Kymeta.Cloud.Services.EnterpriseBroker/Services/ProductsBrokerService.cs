@@ -125,8 +125,9 @@ public class ProductsBrokerService : IProductsBrokerService
             // parse the prices into proper data type
             float.TryParse(wholesalePrice, out float wholesalePriceFloat);
             float.TryParse(msrpPrice, out float msrpPriceFloat);
-            // a Product is only available when the `Stage` is equal to Sellable
-            var isUnavailable = reportProduct.Stage?.ToLower() != "sellable";
+            // a Product is only available when the `Stage` is equal to Sellable or Quoteable
+            var availableStages = new string[] { "sellable", "quotable" };
+            var isUnavailable = !availableStages.Contains(reportProduct.Stage?.ToLower());
 
             productResults.Add(new SalesforceProductObjectModelV2
             {
