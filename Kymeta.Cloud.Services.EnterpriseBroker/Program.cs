@@ -81,6 +81,7 @@ builder.Services.AddScoped<ICacheRepository, CacheRepository>();
 builder.Services.AddScoped<IConfiguratorQuoteRequestService, ConfiguratorQuoteRequestService>();
 builder.Services.AddScoped<IProductsBrokerService, ProductsBrokerService>();
 builder.Services.AddScoped<IFileStorageService, FileStorageService>();
+builder.Services.AddScoped<ITerminalSerialCacheRepository, TerminalSerialCacheRepository>();
 // add background operation services
 builder.Services.Configure<HostOptions>(hostOptions =>
 {
