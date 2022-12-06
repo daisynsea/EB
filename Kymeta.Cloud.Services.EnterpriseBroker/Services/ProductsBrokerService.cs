@@ -43,7 +43,10 @@ public class ProductsBrokerService : IProductsBrokerService
     public async Task<List<SalesforceProductObjectModelV2>> GetSalesforceProductReport()
     {
         var productResults = new List<SalesforceProductObjectModelV2>();
-        var productReport = await _salesforceClient.GetProductReportFromSalesforce();
+        var productsReportId = _config["Salesforce:ProductsReportId"];
+        // validate a config value is present
+        if (string.IsNullOrEmpty(productsReportId)) return null;
+        var productReport = await _salesforceClient.GetReport<SalesforceProductReportResultModel>(productsReportId);
         // validate that we received data from Salesforce, if not return null to throw error
         if (productReport == null) return null;
         var rowDataCells = productReport.factMap?.TT?.rows?.ToList();
@@ -145,22 +148,102 @@ public class ProductsBrokerService : IProductsBrokerService
                 Comm = reportProduct.TargetMarkets?.ToLower().Contains("commercial") ?? false,
                 Mil = reportProduct.TargetMarkets?.ToLower().Contains("military") ?? false,
                 Unavailable = !isAvailable,
-                // TODO: replace these with the updated report values when available ("reportData.DiscountTier2Percentage" etc...)
-                DiscountTier2Price = (wholesalePriceFloat - ((5 / 100f) * wholesalePriceFloat)),
-                DiscountTier3Price = (wholesalePriceFloat - ((10 / 100f) * wholesalePriceFloat)),
-                DiscountTier4Price = (wholesalePriceFloat - ((25 / 100f) * wholesalePriceFloat)),
-                DiscountTier5Price = (wholesalePriceFloat - ((50 / 100f) * wholesalePriceFloat)),
             });
         }
 
         return productResults;
     }
 
-    public async Task<IEnumerable<SalesforceProductObjectModelV2>> SynchronizeProducts()
+    public async Task<List<SalesforceProductDiscountObjectModel>> GetProductDiscountTierReport()
+    {
+        var productResults = new List<SalesforceProductDiscountObjectModel>();
+        var productsDiscountTierReport = _config["Salesforce:ProductsDiscountReportId"];
+        // validate a config value is present
+        if (string.IsNullOrEmpty(productsDiscountTierReport)) return null;
+        var productDiscountReport = await _salesforceClient.GetReport<SalesforceProductDiscountReportResultModel>(productsDiscountTierReport);
+        // validate that we received data from Salesforce, if not return null to throw error
+        if (productDiscountReport == null) return null;
+        
+        // find column index to get position of values in rowDataCells
+        var reportColumns = productDiscountReport.reportMetadata?.detailColumns?.ToList();
+        var indexOfProductCode = reportColumns?.FindIndex(x => x == "Product2.ProductCode");
+        var indexOfProductId = reportColumns?.FindIndex(x => x == "Product2.Id");
+        var indexOfTier1Discount = reportColumns?.FindIndex(x => x == "Custom_Volume_Discounting__c.T1_Discount__c");
+        var indexOfTier2Discount = reportColumns?.FindIndex(x => x == "Custom_Volume_Discounting__c.T2_Discount__c");
+        var indexOfTier3Discount = reportColumns?.FindIndex(x => x == "Custom_Volume_Discounting__c.T3_Discount__c");
+        var indexOfTier4Discount = reportColumns?.FindIndex(x => x == "Custom_Volume_Discounting__c.T4_Discount__c");
+        var indexOfTier5Discount = reportColumns?.FindIndex(x => x == "Custom_Volume_Discounting__c.T5_Discount__c");
+
+        // if we have no rows, return empty list
+        var rowDataCells = productDiscountReport.factMap?.ReportResult?.rows?.ToList();
+        if (rowDataCells == null || !rowDataCells.Any()) return productResults;
+
+        // iterate through rows to append results 
+        var reportData = new List<SalesforceReportProductDiscountViewModel>();
+        for (int i = 0; i < rowDataCells.Count; i++)
+        {
+            var row = rowDataCells[i];
+            var productCode = row?.dataCells[indexOfProductCode.GetValueOrDefault()]?.value;
+            var productId = row?.dataCells[indexOfProductId.GetValueOrDefault()]?.value;
+            var tier1Discount = row?.dataCells[indexOfTier1Discount.GetValueOrDefault()]?.value;
+            var tier2Discount = row?.dataCells[indexOfTier2Discount.GetValueOrDefault()]?.value;
+            var tier3Discount = row?.dataCells[indexOfTier3Discount.GetValueOrDefault()]?.value;
+            var tier4Discount = row?.dataCells[indexOfTier4Discount.GetValueOrDefault()]?.value;
+            var tier5Discount = row?.dataCells[indexOfTier5Discount.GetValueOrDefault()]?.value;
+
+            reportData.Add(new SalesforceReportProductDiscountViewModel
+            {
+                ProductId = Convert.ToString(productId),
+                ProductCode = Convert.ToString(productCode),
+                Tier1DiscountPercent = Convert.ToString(tier1Discount),
+                Tier2DiscountPercent = Convert.ToString(tier2Discount),
+                Tier3DiscountPercent = Convert.ToString(tier3Discount),
+                Tier4DiscountPercent = Convert.ToString(tier4Discount),
+                Tier5DiscountPercent = Convert.ToString(tier5Discount),
+            });
+        }
+
+        var products = reportData?.ToList();
+        if (products == null) return productResults;
+
+        // isolate the products into distinct elements in the list
+        var distinctProducts = products.DistinctBy(a => a.ProductCode).ToList();
+        foreach (var reportProduct in distinctProducts)
+        {
+            if (reportProduct == null) continue;
+            // if the Product does not have a KPC, skip it
+            if (string.IsNullOrEmpty(reportProduct.ProductCode)) continue;
+
+            // parse the prices into proper data type
+            double.TryParse(reportProduct.Tier1DiscountPercent, out double tier1Percent);
+            double.TryParse(reportProduct.Tier2DiscountPercent, out double tier2Percent);
+            double.TryParse(reportProduct.Tier3DiscountPercent, out double tier3Percent);
+            double.TryParse(reportProduct.Tier4DiscountPercent, out double tier4Percent);
+            double.TryParse(reportProduct.Tier5DiscountPercent, out double tier5Percent);
+
+            productResults.Add(new SalesforceProductDiscountObjectModel
+            {
+                Id = reportProduct.ProductCode,
+                SalesforceId = reportProduct.ProductId,
+                Tier1Percent = tier1Percent,
+                Tier2Percent = tier2Percent,
+                Tier3Percent = tier3Percent,
+                Tier4Percent = tier4Percent,
+                Tier5Percent = tier5Percent,
+            });
+        }
+
+        return productResults;
+    }
+
+    public async Task<Tuple<List<SalesforceProductObjectModelV2>, IEnumerable<string>>> FetchSalesforceReportProducts()
     {
         // fetch the active Products from the Product Report
         var productsReportResult = await GetSalesforceProductReport();
-        if (productsReportResult == null) throw new SynchronizeProductsException($"An error occurred while attempting to fetch the Products report.");
+        if (productsReportResult == null) throw new SynchronizeProductsException($"An error occurred while attempting to fetch the 'Config Tool Products Report'.");
+
+        var productDiscountsResults = await GetProductDiscountTierReport();
+        if (productDiscountsResults == null) throw new SynchronizeProductsException($"An error occurred while attempting to fetch the 'Products w/Volume Discounts' report.");
 
         var products = productsReportResult.ToList();
         // isolate the Ids from the report objects
@@ -169,16 +252,46 @@ public class ProductsBrokerService : IProductsBrokerService
 
         // fetch product detail for all Products from the Report
         var productDetailResults = await _salesforceClient.GetProductsByManyIds(salesforceProductIds);
+        if (productDetailResults == null) throw new SynchronizeProductsException($"An error occurred while attempting to fetch the 'Description' field values for Products.");
         // extract the Description from this result and overwrite the values received from the Report so we have the formatted Description as HTML
         foreach (var product in products)
         {
-            var detailMatch = productDetailResults?.FirstOrDefault(pd => pd?.Id == product.SalesforceId);
+            // search for matching product
+            var detailMatch = productDetailResults.FirstOrDefault(pd => pd?.Id == product.SalesforceId);
             if (detailMatch != null)
             {
+                // overwrite the Report fed value with the direct field detail which includes HTML
                 product.Description = detailMatch.Description;
+            }
+
+            // find matching productDiscount record and update the prices
+            var discountMatch = productDiscountsResults.FirstOrDefault(pdr => pdr?.SalesforceId == product.SalesforceId);
+            if (discountMatch != null)
+            {
+                var wholesalePrice = product.WholesalePrice;
+
+                // isolate the discount percentages or default to zero percent when no value is present
+                var tier1Percent = discountMatch.Tier1Percent.HasValue ? discountMatch.Tier1Percent.Value : 0;
+                var tier2Percent = discountMatch.Tier2Percent.HasValue ? discountMatch.Tier2Percent.Value : 0;
+                var tier3Percent = discountMatch.Tier3Percent.HasValue ? discountMatch.Tier3Percent.Value : 0;
+                var tier4Percent = discountMatch.Tier4Percent.HasValue ? discountMatch.Tier4Percent.Value : 0;
+                var tier5Percent = discountMatch.Tier5Percent.HasValue ? discountMatch.Tier5Percent.Value : 0;
+
+                // calculate prices based on product discount tier percentage values
+                // ensure no zero percent calculations are made
+                product.WholesalePrice = tier1Percent != 0 ? (wholesalePrice - (((float)tier1Percent / 100f) * wholesalePrice)) : wholesalePrice;
+                product.DiscountTier2Price = tier2Percent != 0 ? (wholesalePrice - (((float)tier2Percent / 100f) * wholesalePrice)) : wholesalePrice;
+                product.DiscountTier3Price = tier3Percent != 0 ? (wholesalePrice - (((float)tier3Percent / 100f) * wholesalePrice)) : wholesalePrice;
+                product.DiscountTier4Price = tier4Percent != 0 ? (wholesalePrice - (((float)tier4Percent / 100f) * wholesalePrice)) : wholesalePrice;
+                product.DiscountTier5Price = tier5Percent != 0 ? (wholesalePrice - (((float)tier5Percent / 100f) * wholesalePrice)) : wholesalePrice;
             }
         }
 
+        return new Tuple<List<SalesforceProductObjectModelV2>, IEnumerable<string>>(products, salesforceProductIds);
+    }
+
+    public async Task<List<SalesforceProductObjectModelV2>> SynchronizeSalesforceAssets(List<SalesforceProductObjectModelV2> products, IEnumerable<string> salesforceProductIds)
+    {
         // fetch existing assets blob storage
         var existingBlobAssets = await _fileStorageService.GetBlobs("KymetaCloudCdn", _config["AzureStorage:Accounts:KymetaCloudCdn"], _config["AzureStorage:Containers:CdnAssets"]);
 
@@ -264,6 +377,21 @@ public class ProductsBrokerService : IProductsBrokerService
                 _logger.LogCritical($"Encountered an error while attempting to delete a file from blob storage.");
             }
         }
+
+        return products;
+    }
+
+    public async Task<IEnumerable<SalesforceProductObjectModelV2>> SynchronizeProducts()
+    {
+        // fetch Products from two reports in Salesforce and join their data sets
+        // together to present proper discount tier pricing information
+        var salesforceReportResults = await FetchSalesforceReportProducts();
+        // isolate the Products & their Salesforce Id values into variables
+        var products = salesforceReportResults.Item1;
+        var salesforceProductIds = salesforceReportResults.Item2;
+
+        // process image asset files
+        products = await SynchronizeSalesforceAssets(products, salesforceProductIds);
 
         // fetch Products from CosmosDB
         var productsCloud = await _sfProductsRepo.GetProducts();
