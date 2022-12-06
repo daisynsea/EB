@@ -44,6 +44,8 @@ public class ProductsBrokerService : IProductsBrokerService
     {
         var productResults = new List<SalesforceProductObjectModelV2>();
         var productsReportId = _config["Salesforce:ProductsReportId"];
+        // validate a config value is present
+        if (string.IsNullOrEmpty(productsReportId)) return null;
         var productReport = await _salesforceClient.GetReport<SalesforceProductReportResultModel>(productsReportId);
         // validate that we received data from Salesforce, if not return null to throw error
         if (productReport == null) return null;
@@ -156,6 +158,8 @@ public class ProductsBrokerService : IProductsBrokerService
     {
         var productResults = new List<SalesforceProductDiscountObjectModel>();
         var productsDiscountTierReport = _config["Salesforce:ProductsDiscountReportId"];
+        // validate a config value is present
+        if (string.IsNullOrEmpty(productsDiscountTierReport)) return null;
         var productDiscountReport = await _salesforceClient.GetReport<SalesforceProductDiscountReportResultModel>(productsDiscountTierReport);
         // validate that we received data from Salesforce, if not return null to throw error
         if (productDiscountReport == null) return null;
