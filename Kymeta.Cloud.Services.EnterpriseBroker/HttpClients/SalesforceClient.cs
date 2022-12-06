@@ -10,7 +10,7 @@ public interface ISalesforceClient
     Task<SalesforceContactObjectModel> GetContactFromSalesforce(string contactId);
     Task<SalesforceAccountObjectModel> GetAccountFromSalesforce(string accountId);
     Task<SalesforceUserObjectModel> GetUserFromSalesforce(string userId);
-    Task<SalesforceProductReportResultModel> GetProductReportFromSalesforce();
+    Task<T?> GetReport<T>(string reportId);
     Task<IEnumerable<SalesforceProductObjectModelV2>> GetProductsByManyIds(IEnumerable<string> productIds);
     Task<SalesforceQueryObjectModel> GetRelatedFiles(IEnumerable<string> salesforceIds);
     Task<SalesforceFileResponseModel?> GetFileMetadataByManyIds(IEnumerable<string> fileIds);
@@ -134,32 +134,33 @@ public class SalesforceClient : ISalesforceClient
             return null;
         }
     }
-    public async Task<SalesforceProductReportResultModel> GetProductReportFromSalesforce()
+    public async Task<T?> GetReport<T>(string reportId)
     {
         try
         {
+            if (string.IsNullOrEmpty(reportId)) return default(T);
             var tokenAndUrl = await GetTokenAndUrl();
             var token = tokenAndUrl?.Item1;
             var url = tokenAndUrl?.Item2;
-            var productsReportId = _config["Salesforce:ProductsReportId"];
 
             if (!_client.DefaultRequestHeaders.Any(drh => drh.Key == "Authorization")) _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
             //_client.DefaultRequestHeaders.Add("Accept", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"); // receive data as Excel file stream
-            var response = await _client.GetAsync($"{url}/services/data/v53.0/analytics/reports/{productsReportId}"); //prod : 00O3j000007n2CREAY, cloudDev : 00O0r000000SnZtEAK
+            var response = await _client.GetAsync($"{url}/services/data/v53.0/analytics/reports/{reportId}");
             var stringResponse = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode) return null;
+            if (!response.IsSuccessStatusCode) return default(T);
 
-            var productObject = JsonConvert.DeserializeObject<SalesforceProductReportResultModel>(stringResponse);
+            var productObject = JsonConvert.DeserializeObject<T>(stringResponse);
 
             return productObject;
 
         }
         catch (Exception ex)
         {
-            _logger.LogError($"[EB] Exception thrown when fetching Products Report from Salesforce: {ex.Message}");
-            return null;
+            _logger.LogError($"[EB] Exception thrown when fetching Report '{reportId}' from Salesforce: {ex.Message}");
+            return default(T);
         }
     }
+
     public async Task<IEnumerable<SalesforceProductObjectModelV2>> GetProductsByManyIds(IEnumerable<string> productIds)
     {
         try

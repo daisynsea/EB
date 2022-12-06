@@ -25,3 +25,14 @@ public class SalesforceProductObjectModelV2
     public int? Score { get; set; } = 0; // Connectivity Only
     public IEnumerable<string>? Assets { get; set; } // Terminal, Accessory Only
 }
+
+public class SalesforceProductDiscountObjectModel
+{
+    public string Id { get; set; }
+    public string? SalesforceId { get; set; }
+    public double? Tier1Percent { get; set; }
+    public double? Tier2Percent { get; set; }
+    public double? Tier3Percent { get; set; }
+    public double? Tier4Percent { get; set; }
+    public double? Tier5Percent { get; set; }
+}
