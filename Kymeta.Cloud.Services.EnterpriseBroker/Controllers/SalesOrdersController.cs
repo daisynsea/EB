@@ -22,13 +22,13 @@ public class SalesOrdersController : ControllerBase
     }
 
     [HttpPost, AllowAnonymous]
-    public async Task<ActionResult<IEnumerable<SalesOrderResponse>>> CreateOrderQuote([FromBody] IEnumerable<string> salesOrders)
+    public async Task<ActionResult<string>> CreateOrderQuote([FromBody] IEnumerable<string> salesOrders)
     {
         try
         {
             var result = await _tscr.GetSalesOrdersByOrderNumbers(salesOrders);
             if (result == null) return new BadRequestObjectResult($"Sales order query returned no results due to an error.");
-            return result.ToList();
+            return result;
         }
         catch (Exception ex)
         {
