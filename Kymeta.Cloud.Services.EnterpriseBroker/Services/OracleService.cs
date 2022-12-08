@@ -971,8 +971,8 @@ public class OracleService : IOracleService
     {
         var location = new OracleLocationModel
         {
-            Address1 = address.Address1,
-            Address2 = address.Address2,
+            Address1 = HttpUtility.HtmlEncode(address.Address1),
+            Address2 = HttpUtility.HtmlEncode(address.Address2),
             City = address.City,
             OrigSystemReference = address.ObjectId,
             State = address.StateProvince,
@@ -1000,13 +1000,13 @@ public class OracleService : IOracleService
 
     private OraclePersonObject RemapSalesforceContactToOraclePerson(SalesforceContactModel model, OraclePersonObject? existingPerson = null)
     {
-        // map the model
+        // map the model, encode strings to account for special characters
         var person = new OraclePersonObject
         {
             OrigSystemReference = model.ObjectId,
-            FirstName = model.FirstName,
-            LastName = model.LastName,
-            Title = HttpUtility.HtmlEncode(model.Title) // encode to account for special characters
+            FirstName = HttpUtility.HtmlEncode(model.FirstName),
+            LastName = HttpUtility.HtmlEncode(model.LastName),
+            Title = HttpUtility.HtmlEncode(model.Title)
         };
 
         // map email address into simplified oracle model
