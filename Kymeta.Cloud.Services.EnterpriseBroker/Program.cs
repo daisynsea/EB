@@ -67,6 +67,8 @@ builder.Services.AddHttpClient<IAccountsClient, AccountsClient>();
 builder.Services.AddHttpClient<IOracleClient, OracleClient>();
 builder.Services.AddHttpClient<IUsersClient, UsersClient>();
 builder.Services.AddHttpClient<IActivityLoggerClient, ActivityLoggerClient>();
+builder.Services.AddHttpClient<IFileStorageClient, FileStorageClient>();
+builder.Services.AddHttpClient<IManufacturingProxyClient, ManufacturingProxyClient>();
 builder.Services.AddCosmosDb(builder.Configuration.GetConnectionString("AzureCosmosDB"));
 builder.Services.AddScoped<IActionsRepository, ActionsRepository>();
 builder.Services.AddScoped<IOssService, OssService>();
@@ -76,7 +78,20 @@ builder.Services.AddScoped<IContactBrokerService, ContactBrokerService>();
 builder.Services.AddScoped<IOracleService, OracleService>();
 builder.Services.AddScoped<ISalesforceProductsRepository, SalesforceProductsRepository>();
 builder.Services.AddScoped<IQuotesRepository, QuotesRepository>();
+builder.Services.AddScoped<ICacheRepository, CacheRepository>();
 builder.Services.AddScoped<IConfiguratorQuoteRequestService, ConfiguratorQuoteRequestService>();
+builder.Services.AddScoped<IProductsBrokerService, ProductsBrokerService>();
+builder.Services.AddScoped<IFileStorageService, FileStorageService>();
+builder.Services.AddScoped<ITerminalSerialCacheRepository, TerminalSerialCacheRepository>();
+// add background operation services
+builder.Services.Configure<HostOptions>(hostOptions =>
+{
+    // prevent host crash if background operation encounters an Exception
+    hostOptions.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore;
+});
+builder.Services.AddHostedService<BackgroundOperationService>();
+builder.Services.AddScoped<ISalesforceProcessingService, SalesforceProcessingService>();
+// configure redis
 builder.Services.AddRedisClient(new RedisClientOptions
 {
     ConnectionString = builder.Configuration.GetConnectionString("RedisCache")
