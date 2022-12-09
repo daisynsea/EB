@@ -258,7 +258,7 @@ public class SalesforceClient : ISalesforceClient
             // TODO: need to accommodate greater than 100 items in URL query
             // TODO: https://developer.salesforce.com/docs/atlas.en-us.chatterapi.meta/chatterapi/connect_resources_files_information_batch.htm
             // TODO: https://jira.kymetacorp.com/browse/CLDSRV-14325
-            if (fileIds.Count() > 100) throw new ArgumentOutOfRangeException(nameof(fileIds));
+            //if (fileIds.Count() > 100) throw new ArgumentOutOfRangeException(nameof(fileIds));
 
             var payload = string.Join(",", fileIds);
 
