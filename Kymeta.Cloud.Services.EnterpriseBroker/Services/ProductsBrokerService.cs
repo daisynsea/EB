@@ -492,7 +492,7 @@ public class ProductsBrokerService : IProductsBrokerService
         // if no KPC was found, skip the asset
         if (string.IsNullOrEmpty(productKpc)) return;
 
-        var productMatch = products.FirstOrDefault(p => productKpc == p.Id);
+        var productMatch = products.FirstOrDefault(p => productKpc.ToLower() == p.Id?.ToLower());
         // validate that we have a matching product in our result set, otherwise skip the asset
         if (productMatch == null) return;
 
