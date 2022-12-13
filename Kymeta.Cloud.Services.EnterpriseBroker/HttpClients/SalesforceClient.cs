@@ -217,25 +217,53 @@ public class SalesforceClient : ISalesforceClient
             var token = tokenAndUrl?.Item1;
             var url = tokenAndUrl?.Item2;
 
-            // TODO: need to accommodate greater than 100 items in URL query
-            // TODO: https://jira.kymetacorp.com/browse/CLDSRV-14325
-            if (salesforceIds.Count() > 100) throw new ArgumentOutOfRangeException(nameof(salesforceIds));
+            // Salesforce can only accommodate batches of 100 ids in each query
+            // https://developer.salesforce.com/docs/atlas.en-us.chatterapi.meta/chatterapi/connect_resources_files_information_batch.htm
+            // slice salesforceIds into counts of 85
+            IEnumerable<string[]> batches = salesforceIds.Chunk(85);
 
-            var formattedIds = salesforceIds.Select(id => $"'{id}'");
-            var payload = string.Join(",", formattedIds);
-
-            // append auth token
-            if (!_client.DefaultRequestHeaders.Any(drh => drh.Key == "Authorization")) _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
-            // send the request
-            var response = await _client.GetAsync($"{url}/services/data/v43.0/query?q=select id, LinkedEntityId,ContentDocumentId from ContentDocumentLink where LinkedEntityId IN ({payload})");
-            var stringResponse = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
+            // build list of requests to fetch related files
+            var batchTasks = new List<Task<HttpResponseMessage>>();
+            foreach (var batch in batches)
             {
-                // the request failed
-                _logger.LogError($"The attempt to fetch Related Files from Salesforce failed: {stringResponse}", salesforceIds);
+                var formattedIds = batch.Select(id => $"'{id}'");
+                var batchPayload = string.Join(",", formattedIds);
+                batchTasks.Add(_client.GetAsync($"{url}/services/data/v43.0/query?q=select id, LinkedEntityId,ContentDocumentId from ContentDocumentLink where LinkedEntityId IN ({batchPayload})"));
+            }
+
+            // process all batches
+            await Task.WhenAll(batchTasks);
+
+            // get the results
+            var batchResponses = batchTasks.Select(t => t.Result).ToList();
+
+            // check for errors for all responses
+            var hasErrors = batchResponses.Any(br => !br.IsSuccessStatusCode);
+            if (hasErrors)
+            {
+                _logger.LogError($"The attempt to fetch Files from Salesforce failed.", batchResponses.Where(br => !br.IsSuccessStatusCode));
                 return null;
             }
-            var result = JsonConvert.DeserializeObject<SalesforceQueryObjectModel>(stringResponse);
+
+            // isolate the response data for each request
+            var result = new SalesforceQueryObjectModel();
+            foreach (var res in batchResponses)
+            {
+                // extract the data from the response
+                var data = await res.Content.ReadAsStringAsync();
+                var queryResult = JsonConvert.DeserializeObject<SalesforceQueryObjectModel>(data);
+
+                // add all of the file records to the return object
+                if (result.Records == null)
+                {
+                    result.Records = queryResult.Records;
+                }
+                else
+                {
+                    result.Records.AddRange(queryResult.Records);
+                }
+            }
+
             return result;
         }
         catch (Exception ex)
@@ -257,7 +285,6 @@ public class SalesforceClient : ISalesforceClient
 
             // Salesforce can only accommodate batches of 100 file Ids
             // https://developer.salesforce.com/docs/atlas.en-us.chatterapi.meta/chatterapi/connect_resources_files_information_batch.htm
-
             // slice fileIds into counts of 99
             IEnumerable<string[]> batches = fileIds.Chunk(99);
 
@@ -269,7 +296,7 @@ public class SalesforceClient : ISalesforceClient
                 batchFileTasks.Add(_client.GetAsync($"{url}/services/data/v43.0/connect/files/batch/{batchPayload}"));
             }
 
-            // process all file fetch tasks
+            // process all batches
             await Task.WhenAll(batchFileTasks);
 
             // get the results
