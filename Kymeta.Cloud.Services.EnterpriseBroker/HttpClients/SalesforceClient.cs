@@ -255,27 +255,56 @@ public class SalesforceClient : ISalesforceClient
             var token = tokenAndUrl?.Item1;
             var url = tokenAndUrl?.Item2;
 
-            // TODO: need to accommodate greater than 100 items in URL query
-            // TODO: https://developer.salesforce.com/docs/atlas.en-us.chatterapi.meta/chatterapi/connect_resources_files_information_batch.htm
-            // TODO: https://jira.kymetacorp.com/browse/CLDSRV-14325
-            //if (fileIds.Count() > 100) throw new ArgumentOutOfRangeException(nameof(fileIds));
+            // Salesforce can only accommodate batches of 100 file Ids
+            // https://developer.salesforce.com/docs/atlas.en-us.chatterapi.meta/chatterapi/connect_resources_files_information_batch.htm
 
-            var payload = string.Join(",", fileIds);
+            // slice fileIds into counts of 99
+            IEnumerable<string[]> batches = fileIds.Chunk(99);
 
-            // append auth token
-            if (!_client.DefaultRequestHeaders.Any(drh => drh.Key == "Authorization")) _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
-            // send the request
-            var response = await _client.GetAsync($"{url}/services/data/v43.0/connect/files/batch/{payload}");
-            var stringResponse = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
+            // build list of requests to fetch metadata for all files
+            var batchFileTasks = new List<Task<HttpResponseMessage>>();
+            foreach (var batch in batches)
             {
-                // the request failed
-                _logger.LogError($"The attempt to fetch Files from Salesforce failed: {stringResponse}", fileIds);
+                var batchPayload = string.Join(",", batch);
+                batchFileTasks.Add(_client.GetAsync($"{url}/services/data/v43.0/connect/files/batch/{batchPayload}"));
+            }
+
+            // process all file fetch tasks
+            await Task.WhenAll(batchFileTasks);
+
+            // get the results
+            var batchResponses = batchFileTasks.Select(t => t.Result).ToList();
+
+            // check for errors for all responses
+            var hasErrors = batchResponses.Any(br => !br.IsSuccessStatusCode);
+            if (hasErrors)
+            {
+                _logger.LogError($"The attempt to fetch Files from Salesforce failed.", batchResponses.Where(br => !br.IsSuccessStatusCode));
                 return null;
             }
 
-            var files = JsonConvert.DeserializeObject<SalesforceFileResponseModel>(stringResponse);
-            return files;
+            // isolate the response data for each request
+            var fileResponse = new SalesforceFileResponseModel();
+            foreach (var res in batchResponses)
+            {
+                // extract the data from the response
+                var data = await res.Content.ReadAsStringAsync();
+                var fileResults = JsonConvert.DeserializeObject<SalesforceFileResponseModel>(data);
+                // if this resul had an error, make sure our response object indicates this as well
+                if (fileResults.HasErrors) fileResponse.HasErrors = true;
+
+                // add all of the file results to the return object
+                if (fileResponse.Results == null)
+                {
+                    fileResponse.Results = fileResults.Results;
+                }
+                else
+                {
+                    fileResponse.Results.AddRange(fileResults.Results);
+                }
+            }
+
+            return fileResponse;
 
         }
         catch (Exception ex)

@@ -1,8 +1,10 @@
-﻿namespace Kymeta.Cloud.Services.EnterpriseBroker.Repositories;
+﻿using Newtonsoft.Json;
+
+namespace Kymeta.Cloud.Services.EnterpriseBroker.Repositories;
 
 public interface ITerminalSerialCacheRepository
 {
-    Task<string> GetSalesOrdersByOrderNumbers(IEnumerable<string> orderNumbers);
+    Task<IEnumerable<SalesOrderResponse>> GetSalesOrdersByOrderNumbers(IEnumerable<string> orderNumbers);
 }
 
 public class TerminalSerialCacheRepository : ITerminalSerialCacheRepository
@@ -14,8 +16,9 @@ public class TerminalSerialCacheRepository : ITerminalSerialCacheRepository
         _mfgProxyClient = manufacturingProxyClient;
     }
 
-    public async Task<string> GetSalesOrdersByOrderNumbers(IEnumerable<string> orderNumbers)
+    public async Task<IEnumerable<SalesOrderResponse>> GetSalesOrdersByOrderNumbers(IEnumerable<string> orderNumbers)
     {
-        return await _mfgProxyClient.GetSalesOrdersByNumbers(orderNumbers);        
+        var stringResponse = await _mfgProxyClient.GetSalesOrdersByNumbers(orderNumbers);
+        return JsonConvert.DeserializeObject<IEnumerable<SalesOrderResponse>>(stringResponse);
     }
 }
