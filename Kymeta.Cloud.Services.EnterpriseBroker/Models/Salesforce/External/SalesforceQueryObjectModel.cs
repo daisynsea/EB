@@ -2,8 +2,6 @@
 {
     public class SalesforceQueryObjectModel
     {
-        public int TotalSize { get; set; }
-        public bool Done { get; set; }
         public List<SalesforceQueryRelatedFilesModel> Records { get; set; }
     }
 
