@@ -1,4 +1,4 @@
-﻿namespace Kymeta.Cloud.Services.EnterpriseBroker.Services
+﻿namespace Kymeta.Cloud.Services.EnterpriseBroker.Services.BackgroundOperations
 {
     internal interface ISalesforceProcessingService
     {
@@ -30,9 +30,14 @@
                 // init the synchronization
                 await _productsBrokerService.SynchronizeProducts();
                 // fetch synchronize interval from config
-                var synchronizeProductsInterval = _config["SynchronizeProductsIntervalHours"];
+                var synchronizeProductsInterval = _config["Intervals:SyncProducts"];
                 // error if no config value is present
-                if (string.IsNullOrEmpty(synchronizeProductsInterval)) throw new Exception("Missing 'SynchronizeProductsInterval' configuration value.");
+                if (string.IsNullOrEmpty(synchronizeProductsInterval)) throw new Exception("Missing 'Intervals:SyncProducts' configuration value.");
+
+
+                // TODO: change this to use a CRON schedule, allows more flexibility
+
+
                 // parse the config value into int data type
                 var isConfigParsed = int.TryParse(synchronizeProductsInterval, out int hoursFromConfig);
                 // take hours value from config for timespan, default interval to 1 hour if not able to parse config value

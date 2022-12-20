@@ -1,5 +1,6 @@
 ﻿using Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.SOAP;
 using Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.SOAP.ResponseModels;
+using System.Text;
 using System.Web;
 using System.Xml.Serialization;
 
@@ -860,6 +861,38 @@ public class OracleService : IOracleService
 
         // return the simplified Person object
         return new Tuple<OraclePersonObject, string>(oraclePerson, string.Empty);
+    }
+    #endregion
+
+    #region Reports
+    public async Task<Tuple<bool, OracleOrganization, string>> GetSalesOrders(string reportPath, IEnumerable<string> terminalSerials)
+    {
+        // populate the template
+        var fetchReportEnvelope = OracleSoapTemplates.FetchReport(reportPath);
+
+        // Fetch the Report via SOAP service
+        var fetchReportResponse = await _oracleClient.SendSoapRequest(fetchReportEnvelope, $"{_config["Oracle:Endpoint"]}/{_config["Oracle:Services:Reports"]}");
+        if (!string.IsNullOrEmpty(fetchReportResponse.Item2))
+        {
+            return new Tuple<bool, OracleOrganization, string>(false, null, $"There was an error fetching the report from Oracle: {fetchReportResponse.Item2}.");
+        }
+
+        // deserialize the xml response envelope
+        XmlSerializer serializer = new(typeof(FindOrganizationEnvelope));
+        var oracleCustomerAccount = (FindOrganizationEnvelope)serializer.Deserialize(fetchReportResponse.Item1.CreateReader());
+
+        var reportBytes = oracleCustomerAccount.Body?.reportBytes;
+        if (reportBytes == null)
+        {
+            return new Tuple<bool, OracleOrganization, string>(true, null, $"Report data not found.");
+        }
+
+        // TODO: decode base64 into CSV to extract data
+        byte[] data = Convert.FromBase64String(encodedString);
+        string decodedString = Encoding.UTF8.GetString(data);
+
+        // return the Organization that was found
+        return new Tuple<bool, OracleOrganization, string>(true, null, null);
     }
     #endregion
 
