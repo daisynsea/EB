@@ -40,7 +40,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             XDocument xDoc = XDocument.Load("TestFiles\\create-organization-soap-response.xml");
 
             _fixture.OracleClient
-                .Setup(oc => oc.SendSoapRequest(It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(oc => oc.SendSoapRequest(It.IsAny<string>(), It.IsAny<string>(), null))
                 .ReturnsAsync(new Tuple<XDocument, string, string>(xDoc, null, null));
             _fixture.OracleService.Setup(os => os.CreateOrganization(It.IsAny<SalesforceAccountModel>(), It.IsAny<List<OraclePartySite>>(), transaction))
                 .ReturnsAsync(new Tuple<OracleOrganization, string>(organization, string.Empty));

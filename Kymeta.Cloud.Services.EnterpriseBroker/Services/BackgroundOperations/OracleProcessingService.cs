@@ -12,13 +12,13 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Services.BackgroundOperations
         private readonly IConfiguration _config;
         private int executionCount = 0;
         private readonly ILogger _logger;
-        private readonly IProductsBrokerService _productsBrokerService;
+        private readonly IOracleService _oracleService;
 
-        public OracleProcessingService(IConfiguration config, ILogger<OracleProcessingService> logger, IProductsBrokerService productsBrokerService)
+        public OracleProcessingService(IConfiguration config, ILogger<OracleProcessingService> logger, IOracleService oracleService)
         {
             _config = config;
             _logger = logger;
-            _productsBrokerService = productsBrokerService;
+            _oracleService = oracleService;
         }
 
         public async Task SynchronizeSalesOrders(CancellationToken stoppingToken)
@@ -30,7 +30,8 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Services.BackgroundOperations
                 executionCount++;
                 _logger.LogInformation($"[{DateTimeOffset.Now}] Synchronize Sales Orders is working. Count: {executionCount}");
                 // init the synchronization
-                await _productsBrokerService.SynchronizeProducts();
+                var isSuccess = await _oracleService.SynchronizeSalesOrders();
+                if (!isSuccess) _logger.LogCritical($"Failed to synchronize Sales Orders with Oracle.");
                 // fetch synchronize interval from config
                 var synchronizeProductsInterval = _config["Intervals:SalesOrders"];
                 // error if no config value is present
