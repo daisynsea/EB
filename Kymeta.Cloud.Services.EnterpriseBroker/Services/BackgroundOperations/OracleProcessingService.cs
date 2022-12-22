@@ -33,11 +33,11 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Services.BackgroundOperations
                 var syncResult = await _oracleService.SynchronizeSalesOrders();
                 if (!syncResult.Item1) _logger.LogCritical($"Failed to synchronize Sales Orders with Oracle: {syncResult.Item2}");
                 // fetch synchronize interval from config
-                var synchronizeProductsInterval = _config["Intervals:SalesOrders"];
+                var synchronizeSalesOrdersInterval = _config["Intervals:SalesOrders"];
                 // error if no config value is present
-                if (string.IsNullOrEmpty(synchronizeProductsInterval)) throw new Exception("Missing 'Intervals:SalesOrders' configuration value.");
+                if (string.IsNullOrEmpty(synchronizeSalesOrdersInterval)) throw new Exception("Missing 'Intervals:SalesOrders' configuration value.");
                 // schedule the operation to run on the schedule the cron expression dictates (from Grapevine config)
-                await WaitForNextSchedule(synchronizeProductsInterval, stoppingToken);
+                await WaitForNextSchedule(synchronizeSalesOrdersInterval, stoppingToken);
             }
         }
 
