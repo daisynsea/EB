@@ -88,24 +88,30 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
         [Trait("Category", "OracleServiceTests")]
         public async void SyncSalesOrders_WithSerialCacheRecord_UpdatesSerialCache()
         {
+            // arrange
             var salesOrderResponse = Helpers.BuildSalesOrderResponse();
             var oracleReportResponse = Helpers.BuildOracleReportResponse();
             var updatedTerminalResult = Helpers.BuildUpdatedSalesOrderTerminalResponse();
+            // simulate XML response object with sample XML
+            XDocument xDoc = XDocument.Load("TestFiles\\oracle-sales-order-report-response.xml");
 
             _fixture.TerminalSerialCacheRepository
-                .Setup(x => x.GetSalesOrdersByOrderNumbers(It.IsAny<IEnumerable<string>>()))
+                .Setup(tcsr => tcsr.GetSalesOrdersByOrderNumbers(It.IsAny<IEnumerable<string>>()))
                 .ReturnsAsync(new List<SalesOrderResponse>(salesOrderResponse));
             _fixture.OracleService
-                .Setup(x => x.GetSalesOrders(It.IsAny<string>(), null))
+                .Setup(os => os.GetSalesOrders(It.IsAny<string>(), null))
                 .ReturnsAsync(new Tuple<bool, IEnumerable<SalesOrderReportItemModel>?, string>(oracleReportResponse.Item1, oracleReportResponse.Item2, oracleReportResponse.Item3));
             _fixture.ManufacturingProxyClient
-                .Setup(x => x.UpdateSalesOrders(It.IsAny<IEnumerable<SalesOrderTerminal>>()))
+                .Setup(mpc => mpc.UpdateSalesOrders(It.IsAny<IEnumerable<SalesOrderTerminal>>()))
                 .ReturnsAsync(new List<SalesOrderTerminal>(updatedTerminalResult));
+            _fixture.OracleClient
+                .Setup(oc => oc.SendSoapRequest(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new Tuple<XDocument, string, string>(xDoc, null, null));
 
-            // TODO: run/debug the test and see how the method below handles the mocks
-
+            // execute
             var response = await _oracleService.Object.SynchronizeSalesOrders();
 
+            // assert
             Assert.NotNull(response);
             Assert.True(response.Item1);
             Assert.Null(response.Item2);
