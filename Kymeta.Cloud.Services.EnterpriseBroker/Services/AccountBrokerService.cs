@@ -2,6 +2,7 @@
 using Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce.External;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Web;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.Services;
 
@@ -298,7 +299,7 @@ public class AccountBrokerService : IAccountBrokerService
                                     partySitesToCreate.Add(new OraclePartySite
                                     {
                                         LocationId = existingLocation.LocationId,
-                                        PartySiteName = address.SiteName,
+                                        PartySiteName = HttpUtility.HtmlEncode(address.SiteName),
                                         OrigSystemReference = existingLocation.OrigSystemReference,
                                         SiteUses = siteUseTypes
                                     });
@@ -349,7 +350,7 @@ public class AccountBrokerService : IAccountBrokerService
                                     partySitesToCreate.Add(new OraclePartySite
                                     {
                                         LocationId = result.Item1.LocationId,
-                                        PartySiteName = address.SiteName,
+                                        PartySiteName = HttpUtility.HtmlEncode(address.SiteName),
                                         OrigSystemReference = result.Item1.OrigSystemReference,
                                         SiteUses = siteUseTypes
                                     });
