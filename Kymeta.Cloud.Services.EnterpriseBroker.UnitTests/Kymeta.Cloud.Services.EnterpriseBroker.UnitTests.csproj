@@ -33,6 +33,9 @@
     <None Update="TestFiles\create-organization-soap-response.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="TestFiles\oracle-sales-order-report-response.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
