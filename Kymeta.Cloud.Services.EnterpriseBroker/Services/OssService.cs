@@ -122,42 +122,6 @@ public class OssService : IOssService
             await LogAction(transaction, SalesforceTransactionAction.CreateAccountInOss, ActionObjectType.Account, StatusType.Successful, addedAccount.Item1.Id.ToString());
             await _activityLoggerClient.AddActivity(ActivityEntityTypes.Accounts, existingUser.Id, existingUser.FullName, addedAccount.Item1.Id, $"{addedAccount.Item1.Name}", "addaccount", null, null, JsonConvert.SerializeObject(addedAccount));
 
-            // create an Account Admin role for the account
-            var addedRole = await _usersClient.AddRole(new Role { AccountId = addedAccount.Item1.Id.Value, Name = $"{addedAccount.Item1.Name} Account Admin", Description = "Owner of the account. Has all permissions" });
-            if (addedRole == null)
-            {
-                error = $"There was an error adding the Account role.";
-                await LogAction(transaction, SalesforceTransactionAction.CreateAccountInOss, ActionObjectType.Account, StatusType.Error, null, error);
-                return new Tuple<Account, string>(null, error);
-            }
-
-            await _activityLoggerClient.AddActivity(ActivityEntityTypes.Users, existingUser.Id, existingUser.FullName, addedRole.Id, addedRole.Name, "addrole", null, null, JsonConvert.SerializeObject(addedRole));
-
-            // add all permissions to this role
-            var permissions = await _usersClient.GetPermissions(null);
-            // if the system user was used, assign default permissions
-            if ((existingUser.Permissions == null || !existingUser.Permissions.Any()) && existingUser.Email == "kcssystemuser@kymeta.io")
-            {
-                // reduce the list to only default Permissions
-                existingUser.Permissions = permissions
-                    .Where(p => !p.ExcludeFromDefaultRoles)
-                    .Select(p => p.Shortcode);
-            }
-            // everything user has access to, except system admin
-            var permissionsToAdd = permissions?
-                .Where(p => existingUser.Permissions != null && existingUser.Permissions.Contains(p.Shortcode))
-                ?.Where(p => p.Shortcode != "SYSTEM_ADMIN")
-                ?.Select(p => p.Id)
-                ?.ToList();
-            // add the permissions
-            var updatedRole = await _usersClient.EditRolePermissions(addedRole.Id, permissionsToAdd);
-            if (updatedRole == null)
-            {
-                error = $"There was an error establishing the Account permissions.";
-                await LogAction(transaction, SalesforceTransactionAction.CreateAccountInOss, ActionObjectType.Account, StatusType.Error, null, error);
-                return new Tuple<Account, string>(null, error);
-            }
-
             return new Tuple<Account, string>(addedAccount.Item1, string.Empty);
         } catch (Exception ex)
         {
