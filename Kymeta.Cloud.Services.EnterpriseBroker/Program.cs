@@ -5,6 +5,7 @@ using Kymeta.Cloud.Commons.Databases.Redis;
 using Kymeta.Cloud.Logging;
 using Kymeta.Cloud.Logging.Activity;
 using Kymeta.Cloud.Services.EnterpriseBroker;
+using Kymeta.Cloud.Services.EnterpriseBroker.Services.BackgroundOperations;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.HttpOverrides;
 using System.Diagnostics;
@@ -83,14 +84,18 @@ builder.Services.AddScoped<IConfiguratorQuoteRequestService, ConfiguratorQuoteRe
 builder.Services.AddScoped<IProductsBrokerService, ProductsBrokerService>();
 builder.Services.AddScoped<IFileStorageService, FileStorageService>();
 builder.Services.AddScoped<ITerminalSerialCacheRepository, TerminalSerialCacheRepository>();
+
 // add background operation services
 builder.Services.Configure<HostOptions>(hostOptions =>
 {
     // prevent host crash if background operation encounters an Exception
     hostOptions.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore;
 });
-builder.Services.AddHostedService<BackgroundOperationService>();
+builder.Services.AddHostedService<SalesforceBackgroundOperationService>();
 builder.Services.AddScoped<ISalesforceProcessingService, SalesforceProcessingService>();
+builder.Services.AddHostedService<OracleBackgroundOperationService>();
+builder.Services.AddScoped<IOracleProcessingService, OracleProcessingService>();
+
 // configure redis
 builder.Services.AddRedisClient(new RedisClientOptions
 {

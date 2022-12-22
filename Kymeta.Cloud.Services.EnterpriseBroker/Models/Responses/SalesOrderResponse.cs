@@ -8,6 +8,8 @@ public class SalesOrderResponse
 
 public class SalesOrderTerminal
 {
+    public Guid? Id { get; set; }
+    public string? OracleSalesOrder { get; set; }
     public string? OracleTerminalSerial { get; set; }
     public string? ProductCode { get; set; }
     public string? TerminalKpn { get; set; }

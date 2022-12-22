@@ -1,8 +1,12 @@
-﻿namespace Kymeta.Cloud.Services.EnterpriseBroker.HttpClients;
+﻿using Newtonsoft.Json;
+
+namespace Kymeta.Cloud.Services.EnterpriseBroker.HttpClients;
 
 public interface IManufacturingProxyClient
 {
     Task<string> GetSalesOrdersByNumbers(IEnumerable<string> orderNumbers);
+    Task<bool> UpsertSalesOrders(IEnumerable<SalesOrderTerminal> salesOrders);
+    Task<IEnumerable<SalesOrderTerminal>> UpdateSalesOrders(IEnumerable<SalesOrderTerminal> salesOrders);
 }
 
 public class ManufacturingProxyClient : IManufacturingProxyClient
@@ -33,5 +37,34 @@ public class ManufacturingProxyClient : IManufacturingProxyClient
         }
 
         return data;
+    }
+
+    public async Task<bool> UpsertSalesOrders(IEnumerable<SalesOrderTerminal> salesOrders)
+    {
+        var response = await _client.PostAsJsonAsync($"v1/upsertManufacturingSerialsRecord", salesOrders);
+        string data = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogCritical($"Failed to upsert sales orders via Manufacturing Proxy. HTTP call: {(int)response.StatusCode} | {data}");
+            return false;
+        }
+
+        return true;
+    }
+
+    public async Task<IEnumerable<SalesOrderTerminal>> UpdateSalesOrders(IEnumerable<SalesOrderTerminal> salesOrders)
+    {
+        var response = await _client.PutAsJsonAsync($"v1/serialcache", salesOrders);
+        string data = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogCritical($"Failed to upsert sales orders via Manufacturing Proxy. HTTP call: {(int)response.StatusCode} | {data}");
+            return null;
+        }
+
+        var updatedRecords = JsonConvert.DeserializeObject<List<SalesOrderTerminal>>(data);
+        return updatedRecords;
     }
 }

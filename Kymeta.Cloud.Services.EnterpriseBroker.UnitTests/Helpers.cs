@@ -1,5 +1,6 @@
 ﻿using Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle;
 using Kymeta.Cloud.Services.EnterpriseBroker.Models.OSS;
+using Kymeta.Cloud.Services.EnterpriseBroker.Models.Responses;
 using Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce;
 using Kymeta.Cloud.Services.EnterpriseBroker.Repositories;
 using Kymeta.Cloud.Services.EnterpriseBroker.Services;
@@ -180,6 +181,104 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                 PartyId = 30001,
                 OrigSystemReference = "acc30001",
                 Contacts = new List<OracleCustomerAccountContact>()
+            };
+        }
+
+        public static IEnumerable<SalesOrderResponse> BuildSalesOrderResponse(string? salesOrder = null)
+        {
+            return new List<SalesOrderResponse>()
+            {
+                new SalesOrderResponse
+                {
+                    SalesOrder = null,
+                    Terminals = new List<SalesOrderTerminal>
+                    {
+                        new SalesOrderTerminal
+                        {
+                            OracleSalesOrder = salesOrder,
+                            TerminalSerial = "GRZ000C221221001",
+                            OracleTerminalSerial = "GRZ000C221214001",
+                            ProductCode = "U8999-00005-0",
+                            TerminalKpn = "100-99999-101-A",
+                            AntennaSerial = "ANT000C221221001",
+                            SatModem = "90001",
+                            HybridRouterSerial = null,
+                            HybridRouterImei = null,
+                            HybridRouterIccid = null,
+                            BucSerial = "BUC9001",
+                            LnbSerial = "LNB9001",
+                            DiplexerSerial = "DI9001",
+                            DescriptionFirstLine = "Unit Test Desc",
+                            DescriptionSecondLine = null,
+                            IpAddress = "192.168.0.101",
+                            LinkTimestamp = DateTime.UtcNow
+                        }
+                    }
+                }
+            };
+        }
+
+        public static Tuple<bool, IEnumerable<SalesOrderReportItemModel>?, string> BuildOracleReportResponse()
+        {
+            var reportRecords = new List<SalesOrderReportItemModel>()
+            {
+                new SalesOrderReportItemModel
+                {
+                    AccountNumber = "001",
+                    SalesOrderNumber = "8000001",
+                    SerialNumbers = new List<string>
+                    {
+                        "GRZ000C221221001",
+                        "GRZ000C221221002",
+                        "GRZ000C221221003",
+                        "GRZ000C221221004"
+                    }
+                },
+                new SalesOrderReportItemModel
+                {
+                    AccountNumber = "002",
+                    SalesOrderNumber = "8000002",
+                    SerialNumbers = new List<string>
+                    {
+                        "GRZ001C221221001",
+                        "GRZ001C221221002"
+                    }
+                },
+                new SalesOrderReportItemModel
+                {
+                    AccountNumber = "003",
+                    SalesOrderNumber = "8000003",
+                    SerialNumbers = new List<string>() // empty list
+                }
+            };
+
+            return new Tuple<bool, IEnumerable<SalesOrderReportItemModel>?, string>(true, reportRecords, null);
+        }
+
+        public static IEnumerable<SalesOrderTerminal> BuildUpdatedSalesOrderTerminalResponse()
+        {
+            return new List<SalesOrderTerminal>
+            {
+                new SalesOrderTerminal
+                {
+                    OracleSalesOrder = "8000001",
+                    TerminalSerial = "GRZ000C221221001",
+                    OracleTerminalSerial = "GRZ000C221214001",
+                    ProductCode = "U8999-00005-0",
+                    TerminalKpn = "100-99999-101-A",
+                    AntennaSerial = "ANT000C221221001",
+                    SatModem = "90001",
+                    HybridRouterSerial = null,
+                    HybridRouterImei = null,
+                    HybridRouterIccid = null,
+                    BucSerial = "BUC9001",
+                    LnbSerial = "LNB9001",
+                    DiplexerSerial = "DI9001",
+                    DescriptionFirstLine = "Unit Test Desc",
+                    DescriptionSecondLine = null,
+                    IpAddress = "192.168.0.101",
+                    LinkTimestamp = DateTime.UtcNow
+                }
             };
         }
     }
