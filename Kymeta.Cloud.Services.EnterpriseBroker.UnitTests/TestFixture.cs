@@ -14,15 +14,17 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
 {
     public class TestFixture : IDisposable
     {
-        public Mock<ISalesforceClient> SalesforceClient = new Mock<ISalesforceClient>();
-        public Mock<IAccountsClient> AccountsClient = new Mock<IAccountsClient>();
-        public Mock<IUsersClient> UsersClient = new Mock<IUsersClient>();
-        public Mock<IOracleClient> OracleClient = new Mock<IOracleClient>();
-        public Mock<IActionsRepository> ActionsRepository = new Mock<IActionsRepository>();
-        public Mock<IActivityLoggerClient> ActivityLoggerClient = new Mock<IActivityLoggerClient>();
-        public Mock<IActivityLogger> ActivityLogger = new Mock<IActivityLogger>();
-        public Mock<IOssService> OssService = new Mock<IOssService>();
-        public Mock<IOracleService> OracleService = new Mock<IOracleService>();
+        public Mock<ISalesforceClient> SalesforceClient = new();
+        public Mock<IAccountsClient> AccountsClient = new();
+        public Mock<IUsersClient> UsersClient = new();
+        public Mock<IOracleClient> OracleClient = new();
+        public Mock<IActionsRepository> ActionsRepository = new();
+        public Mock<IActivityLoggerClient> ActivityLoggerClient = new();
+        public Mock<IActivityLogger> ActivityLogger = new();
+        public Mock<IOssService> OssService = new();
+        public Mock<IOracleService> OracleService = new();
+        public Mock<ITerminalSerialCacheRepository> TerminalSerialCacheRepository = new();
+        public Mock<IManufacturingProxyClient> ManufacturingProxyClient = new();
         public IConfiguration Configuration;
 
         public TestFixture()

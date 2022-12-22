@@ -30,8 +30,8 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Services.BackgroundOperations
                 executionCount++;
                 _logger.LogInformation($"[{DateTimeOffset.Now}] Synchronize Sales Orders is working. Count: {executionCount}");
                 // init the synchronization
-                var isSuccess = await _oracleService.SynchronizeSalesOrders();
-                if (!isSuccess) _logger.LogCritical($"Failed to synchronize Sales Orders with Oracle.");
+                var syncResult = await _oracleService.SynchronizeSalesOrders();
+                if (!syncResult.Item1) _logger.LogCritical($"Failed to synchronize Sales Orders with Oracle: {syncResult.Item2}");
                 // fetch synchronize interval from config
                 var synchronizeProductsInterval = _config["Intervals:SalesOrders"];
                 // error if no config value is present

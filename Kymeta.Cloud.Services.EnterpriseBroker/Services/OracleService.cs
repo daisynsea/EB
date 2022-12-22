@@ -32,7 +32,8 @@ public interface IOracleService
     Task<Tuple<OraclePersonObject, string>> UpdatePerson(SalesforceContactModel model, OraclePersonObject existingPerson, SalesforceActionTransaction transaction);
     // Helpers
     Task<string> RemapBusinessUnitToOracleSiteAddressSet(string businessUnit, SalesforceActionTransaction transaction);
-    Task<bool> SynchronizeSalesOrders();
+    Task<Tuple<bool, IEnumerable<SalesOrderReportItemModel>?, string>> GetSalesOrders(string reportPath, IEnumerable<string>? terminalSerials = null);
+    Task<Tuple<bool, string?>> SynchronizeSalesOrders();
 }
 
 public class OracleService : IOracleService
@@ -912,21 +913,21 @@ public class OracleService : IOracleService
     #endregion
 
     #region Helpers
-    public async Task<bool> SynchronizeSalesOrders()
+    public async Task<Tuple<bool, string?>> SynchronizeSalesOrders()
     {
         // fetch serial cache sales orders with empty list to get null records
         var cacheSalesOrders = await _terminalSerialCacheRepo.GetSalesOrdersByOrderNumbers(new List<string>());
         if (cacheSalesOrders == null || !cacheSalesOrders.Any())
         {
-            // no records to process/look up, so exit early
-            return true;
+            // no serial cache records to process/look up, so exit early
+            return new Tuple<bool, string?>(true, null);
         }
 
         var oracleResult = await GetSalesOrders(_config["Oracle:Reports:SalesOrders"]);
         if (oracleResult.Item2 == null)
         {
             // no Oracle results were returned, nothing to synchronize with
-            return false;
+            return new Tuple<bool, string?>(false, oracleResult.Item3);
         }
         var reportResults = oracleResult.Item2;
         // iterate SerialCache records that do not have a SalesOrder number
@@ -962,10 +963,13 @@ public class OracleService : IOracleService
         {
             if (serialItem.Terminals == null) continue;
             // update each terminal record with the Sales Order #
-            serialItem.Terminals.Select(terminal => {
+            serialItem.Terminals.Select(terminal =>
+            {
+                // set the Oracle Sales Order number
                 terminal.OracleSalesOrder = serialItem.SalesOrder;
                 return terminal;
-            });
+            }).ToList(); // ToList to evaluate immediately
+
             // add the terminal records to the list of items to be updated in the DB
             salesOrderTerminals.AddRange(serialItem.Terminals);
         }
@@ -975,10 +979,10 @@ public class OracleService : IOracleService
             // update salesOrderTerminals
             var updateResult = await _manufacturingProxyClient.UpdateSalesOrders(salesOrderTerminals);
             // fail the sync, an error occurred while attempting to update
-            if (updateResult == null) return false;
+            if (updateResult == null) return new Tuple<bool, string?>(false, $"Encountered an error while attempting to update SerialCache record(s).");
         }
-      
-        return true;
+
+        return new Tuple<bool, string?>(true, null);
     }
     public async Task<string> RemapBusinessUnitToOracleSiteAddressSet(string businessUnit, SalesforceActionTransaction transaction)
     {
