@@ -1,6 +1,7 @@
 ﻿namespace Kymeta.Cloud.Services.EnterpriseBroker.Services;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Web;
 
 public interface IAddressBrokerService
 {
@@ -133,7 +134,7 @@ public class AddressBrokerService : IAddressBrokerService
                     partySitesToCreate.Add(new OraclePartySite
                     {
                         LocationId = createLocationResult.Item1.LocationId,
-                        PartySiteName = model.SiteName,
+                        PartySiteName = HttpUtility.HtmlEncode(model.SiteName),
                         OrigSystemReference = createLocationResult.Item1.OrigSystemReference,
                         SiteUses = siteUseTypes
                     });
@@ -159,7 +160,7 @@ public class AddressBrokerService : IAddressBrokerService
                         partySitesToCreate.Add(new OraclePartySite
                         {
                             LocationId = updatedLocation.LocationId,
-                            PartySiteName = model.SiteName,
+                            PartySiteName = HttpUtility.HtmlEncode(model.SiteName),
                             OrigSystemReference = updatedLocation.OrigSystemReference,
                             SiteUses = siteUseTypes
                         });
@@ -167,7 +168,7 @@ public class AddressBrokerService : IAddressBrokerService
                     else
                     {
                         // update PartySite
-                        orgPartySite.PartySiteName = model.SiteName;
+                        orgPartySite.PartySiteName = HttpUtility.HtmlEncode(model.SiteName);
                         partySitesToUpdate.Add(orgPartySite);
 
                         // set the response Id
