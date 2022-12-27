@@ -39,7 +39,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
 
             var oracleOrganization = new OracleOrganization();
             _fixture.OracleClient
-                .Setup(oc => oc.SendSoapRequest(It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(oc => oc.SendSoapRequest(It.IsAny<string>(), It.IsAny<string>(), null))
                 .ReturnsAsync(new Tuple<XDocument, string, string>(null, "Explosions", null));
 
             var response = await _oracleService.Object.CreateOrganization(account, partySites, transaction);

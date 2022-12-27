@@ -1,5 +1,8 @@
-﻿using Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.SOAP;
+﻿using CsvHelper;
+using Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.SOAP;
 using Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.SOAP.ResponseModels;
+using System.Globalization;
+using System.Text;
 using System.Web;
 using System.Xml.Serialization;
 
@@ -29,6 +32,8 @@ public interface IOracleService
     Task<Tuple<OraclePersonObject, string>> UpdatePerson(SalesforceContactModel model, OraclePersonObject existingPerson, SalesforceActionTransaction transaction);
     // Helpers
     Task<string> RemapBusinessUnitToOracleSiteAddressSet(string businessUnit, SalesforceActionTransaction transaction);
+    Task<Tuple<bool, IEnumerable<SalesOrderReportItemModel>?, string>> GetSalesOrders(string reportPath, IEnumerable<string>? terminalSerials = null);
+    Task<Tuple<bool, string?>> SynchronizeSalesOrders();
 }
 
 public class OracleService : IOracleService
@@ -36,12 +41,16 @@ public class OracleService : IOracleService
     private readonly IOracleClient _oracleClient;
     private readonly IConfiguration _config;
     private readonly IActionsRepository _actionsRepository;
+    private readonly ITerminalSerialCacheRepository _terminalSerialCacheRepo;
+    private readonly IManufacturingProxyClient _manufacturingProxyClient;
 
-    public OracleService(IOracleClient oracleClient, IConfiguration config, IActionsRepository actionsRepository)
+    public OracleService(IOracleClient oracleClient, IConfiguration config, IActionsRepository actionsRepository, ITerminalSerialCacheRepository terminalSerialCacheRepo, IManufacturingProxyClient manufacturingProxyClient)
     {
         _oracleClient = oracleClient;
         _config = config;
         _actionsRepository = actionsRepository;
+        _terminalSerialCacheRepo = terminalSerialCacheRepo;
+        _manufacturingProxyClient = manufacturingProxyClient;
     }
 
     #region Account / Organization / Customer Account / Customer Profile
@@ -863,7 +872,118 @@ public class OracleService : IOracleService
     }
     #endregion
 
+    #region Reports
+    public async Task<Tuple<bool, IEnumerable<SalesOrderReportItemModel>?, string>> GetSalesOrders(string reportPath, IEnumerable<string>? terminalSerials = null)
+    {
+        // populate the template
+        var fetchReportEnvelope = OracleSoapTemplates.FetchReport(reportPath);
+
+        // Fetch the Report via SOAP service
+        var fetchReportResponse = await _oracleClient.SendSoapRequest(fetchReportEnvelope, $"{_config["Oracle:Endpoint"]}/{_config["Oracle:Services:Reports"]}", "application/soap+xml;charset=UTF-8");
+        if (!string.IsNullOrEmpty(fetchReportResponse.Item2))
+        {
+            return new Tuple<bool, IEnumerable<SalesOrderReportItemModel>?, string>(false, null, $"There was an error fetching the report from Oracle: {fetchReportResponse.Item2}.");
+        }
+
+        // deserialize the xml response envelope
+        XmlSerializer serializer = new(typeof(SalesOrderReportResponseModel));
+        var oracleReportResponse = (SalesOrderReportResponseModel)serializer.Deserialize(fetchReportResponse.Item1.CreateReader());
+
+        // extract the report bytes from the response object
+        var reportBytes = oracleReportResponse?.Body?.runReportResponse?.runReportReturn?.reportBytes;
+        if (reportBytes == null)
+        {
+            return new Tuple<bool, IEnumerable<SalesOrderReportItemModel>?, string>(true, null, $"Report data not found.");
+        }
+
+        // convert the base64 string from the response into a byte array
+        byte[] reportData = Convert.FromBase64String(reportBytes);
+        // create memory stream from base64 file data
+        using var content = new MemoryStream(reportData);
+        // create a reader to read the stream
+        using var reportReader = new StreamReader(content);
+        // create a CSV Reader to parse the file content
+        using var csv = new CsvReader(reportReader, CultureInfo.InvariantCulture);
+        // get the enumerable list of records from the report
+        var oracleReportResults = csv.GetRecords<SalesOrderReportItemModel>()?.ToList();
+
+        // return the Organization that was found
+        return new Tuple<bool, IEnumerable<SalesOrderReportItemModel>?, string>(true, oracleReportResults, null);
+    }
+    #endregion
+
     #region Helpers
+    public async Task<Tuple<bool, string?>> SynchronizeSalesOrders()
+    {
+        // fetch serial cache sales orders with empty list to get null records
+        var cacheSalesOrders = await _terminalSerialCacheRepo.GetSalesOrdersByOrderNumbers(new List<string>());
+        if (cacheSalesOrders == null || !cacheSalesOrders.Any())
+        {
+            // no serial cache records to process/look up, so exit early
+            return new Tuple<bool, string?>(true, null);
+        }
+
+        var oracleResult = await GetSalesOrders(_config["Oracle:Reports:SalesOrders"]);
+        if (oracleResult.Item2 == null)
+        {
+            // no Oracle results were returned, nothing to synchronize with
+            return new Tuple<bool, string?>(false, oracleResult.Item3);
+        }
+        var reportResults = oracleResult.Item2;
+        // iterate SerialCache records that do not have a SalesOrder number
+        foreach (var cachedOrder in cacheSalesOrders)
+        {
+            // look for a matching report record using OracleTerminalSerial and TerminalSerial values
+            var oracleMatch = reportResults.FirstOrDefault(reportRow => {
+                // if the Oracle result has no serials we have nothing to match with, so return false (no match found)
+                if (reportRow.SerialNumbers == null || !reportRow.SerialNumbers.Any()) return false;
+                // if the cached Order (SerialCache) result has no Terminals we have nothing to match with, so return false (no match found)
+                if (cachedOrder.Terminals == null || !cachedOrder.Terminals.Any()) return false;
+
+                // check for any matching TerminalSerial values
+                var serialMatches = reportRow.SerialNumbers.Intersect(cachedOrder.Terminals.Select(t => t.TerminalSerial));
+                // no need to proceed if we already have a match, so return true
+                if (serialMatches.Any()) return true;
+
+                // check for any matching OracleTerminalSerial values
+                serialMatches = reportRow.SerialNumbers.Intersect(cachedOrder.Terminals.Select(t => t.OracleTerminalSerial));
+                // default false means we didn't find a match
+                return serialMatches.Any();
+            });
+
+            // if we found a matching Oracle report record, update the cache record with the Sales Order Number
+            if (oracleMatch != null) cachedOrder.SalesOrder = oracleMatch.SalesOrderNumber;
+        }
+
+        // flatten records to update 
+        var salesOrderTerminals = new List<SalesOrderTerminal>();
+        // isolate the records we associated with a sales order number
+        var cacheItemsWithSalesOrder = cacheSalesOrders.Where(cso => cso.SalesOrder != null);
+        foreach (var serialItem in cacheItemsWithSalesOrder)
+        {
+            if (serialItem.Terminals == null) continue;
+            // update each terminal record with the Sales Order #
+            serialItem.Terminals.Select(terminal =>
+            {
+                // set the Oracle Sales Order number
+                terminal.OracleSalesOrder = serialItem.SalesOrder;
+                return terminal;
+            }).ToList(); // ToList to evaluate immediately
+
+            // add the terminal records to the list of items to be updated in the DB
+            salesOrderTerminals.AddRange(serialItem.Terminals);
+        }
+
+        if (salesOrderTerminals.Any())
+        {
+            // update salesOrderTerminals
+            var updateResult = await _manufacturingProxyClient.UpdateSalesOrders(salesOrderTerminals);
+            // fail the sync, an error occurred while attempting to update
+            if (updateResult == null) return new Tuple<bool, string?>(false, $"Encountered an error while attempting to update SerialCache record(s).");
+        }
+
+        return new Tuple<bool, string?>(true, null);
+    }
     public async Task<string> RemapBusinessUnitToOracleSiteAddressSet(string businessUnit, SalesforceActionTransaction transaction)
     {
         await LogAction(transaction, SalesforceTransactionAction.ValidateBusinessUnit, ActionObjectType.Account, StatusType.Started, businessUnit);

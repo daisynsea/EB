@@ -16,7 +16,7 @@ public interface IOracleClient
     Task<Tuple<OracleOrganizationResponse, string>> UpdateOrganization(UpdateOracleOrganizationModel model, ulong partyNumber);
     Task<Tuple<OracleAddressObject, string>> CreateAddress(string accountNumber, CreateOracleAddressViewModel model);
     Task<Tuple<OracleAddressObject, string>> UpdateAddress(string accountNumber, CreateOracleAddressViewModel model, string partyNumber);
-    Task<Tuple<XDocument, string, string>> SendSoapRequest(string soapEnvelope, string oracleServiceUrl);
+    Task<Tuple<XDocument, string, string>> SendSoapRequest(string soapEnvelope, string oracleServiceUrl, string? contentType = null);
 }
 
 public class OracleClient : IOracleClient
@@ -42,7 +42,7 @@ public class OracleClient : IOracleClient
     /// <param name="soapEnvelope"></param>
     /// <param name="oracleServiceUrl"></param>
     /// <returns></returns>
-    public async Task<Tuple<XDocument, string, string>> SendSoapRequest(string soapEnvelope, string oracleServiceUrl)
+    public async Task<Tuple<XDocument, string, string>> SendSoapRequest(string soapEnvelope, string oracleServiceUrl, string? contentType = null)
     {
         try
         {
@@ -65,7 +65,7 @@ public class OracleClient : IOracleClient
 
             // configure request headers
             request.Method = "POST";
-            request.ContentType = "text/xml;charset=UTF-8";
+            request.ContentType = contentType ?? "text/xml;charset=UTF-8";
             request.ContentLength = byteArray.Length;
 
             // configure the request to use basic authentication, with base64 encoded user name and password
