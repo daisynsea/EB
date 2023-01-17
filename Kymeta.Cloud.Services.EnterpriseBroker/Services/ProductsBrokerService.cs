@@ -297,7 +297,10 @@ public class ProductsBrokerService : IProductsBrokerService
 
         // fetch all the uploaded assets (Related Files) for the Products & upload them to blob storage
         var productsRelatedFiles = await GetRelatedFilesSalesforce(salesforceProductIds);
-        if (productsRelatedFiles == null || productsRelatedFiles.HasErrors)
+        // if there are no files, just skip this step and return the `products`
+        if (productsRelatedFiles == null) return products;
+        // check for errors
+        if (productsRelatedFiles.HasErrors)
         {
             _logger.LogCritical($"Error fetching Salesforce Products related files.", productsRelatedFiles?.Results);
             throw new SynchronizeProductsException($"Unable to fetch Salesforce Products related files.");
