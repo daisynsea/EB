@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce.External;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics.CodeAnalysis;
 
@@ -36,6 +37,21 @@ public class BrokerContactController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Error processing contact action due to an exception: {ex.Message}");
+            return StatusCode(500, ex.Message);
+        }
+    }
+
+    [HttpGet, AllowAnonymous]
+    public async Task<ActionResult<List<SalesforceContactObjectModel>>> GetSalesforceContacts([FromQuery]string? salesforceAccountId = null)
+    {
+        try
+        {
+            var result = await _contactService.GetSalesforceContacts(salesforceAccountId);
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error fetching contacts from Salesforce REST API due to an exception: {ex.Message}");
             return StatusCode(500, ex.Message);
         }
     }
