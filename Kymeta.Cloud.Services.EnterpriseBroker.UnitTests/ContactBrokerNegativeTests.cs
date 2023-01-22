@@ -34,7 +34,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             Helpers.MockActionRepository(_fixture.ActionsRepository, transaction);
 
             // Act
-            var svc = new ContactBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object);
+            var svc = new ContactBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.SalesforceClient.Object);
             var result = await svc.ProcessContactAction(model);
 
             // Assert
@@ -62,7 +62,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                 .ReturnsAsync(new Tuple<bool, OracleOrganization, string>(false, null, "Explosions"));
 
             // Act
-            var svc = new ContactBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object);
+            var svc = new ContactBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.SalesforceClient.Object);
             var result = await svc.ProcessContactAction(model);
 
             // Assert
@@ -94,7 +94,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                 .ReturnsAsync(new Tuple<bool, OracleCustomerAccount, string>(false, null, string.Empty));
 
             // Act
-            var svc = new ContactBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object);
+            var svc = new ContactBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.SalesforceClient.Object);
             var result = await svc.ProcessContactAction(model);
 
             // Assert
@@ -133,7 +133,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                 .ReturnsAsync(new Tuple<bool, IEnumerable<OraclePersonObject>, string>(false, null, "Explosions"));
 
             // Act
-            var svc = new ContactBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object);
+            var svc = new ContactBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.SalesforceClient.Object);
             var result = await svc.ProcessContactAction(model);
 
             // Assert
@@ -176,7 +176,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                 .ReturnsAsync(new Tuple<OraclePersonObject, string>(null, "Explosions"));
 
             // Act
-            var svc = new ContactBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object);
+            var svc = new ContactBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.SalesforceClient.Object);
             var result = await svc.ProcessContactAction(model);
 
             // Assert
@@ -227,7 +227,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                 .ReturnsAsync(new Tuple<OraclePersonObject, string>(null, "Explosions"));
 
             // Act
-            var svc = new ContactBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object);
+            var svc = new ContactBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.SalesforceClient.Object);
             var result = await svc.ProcessContactAction(model);
 
             // Assert
@@ -283,7 +283,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                 .ReturnsAsync(new Tuple<OracleCustomerAccount, string>(null, "Explosions"));
 
             // Act
-            var svc = new ContactBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object);
+            var svc = new ContactBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.SalesforceClient.Object);
             var result = await svc.ProcessContactAction(model);
 
             // Assert
