@@ -14,6 +14,7 @@ public class SalesforceAccountObjectModel
     public string? AccountType__c { get; set; }
     public string? Sub_Type__c { get; set; }
     public string? Type_of_Company__c { get; set; }
+    public string? Primary_Contact__c { get; set; }
     public string? Business_Unit__c { get; set; }
     public string? Oracle_Acct__c { get; set; }
     public string? KSN_Acct_ID__c { get; set; }
