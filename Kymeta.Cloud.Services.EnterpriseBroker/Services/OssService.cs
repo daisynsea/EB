@@ -58,6 +58,21 @@ public interface IOssService
     /// <param name="salesforceIds">List of strings which are Salesforce object Ids</param>
     /// <returns></returns>
     Task<List<AccountV2>> GetAccountsByManySalesforceIds(List<string> salesforceIds);
+    /// <summary>
+    /// Remap Salesforce Account Object to OSS Account Object
+    /// </summary>
+    /// <param name="model"></param>
+    /// <param name="sfModel"></param>
+    /// <param name="oracleAccountId"></param>
+    /// <param name="allContacts"></param>
+    /// <returns></returns>
+    Task<AccountV2> RemapSalesforceAccountToOssAccount(
+        SalesforceAccountModel model,
+        SalesforceAccountObjectModel sfModel,
+        string? oracleAccountId = null,
+        IEnumerable<SalesforceContactObjectModel>? allContacts = null,
+        IEnumerable<AccountV2> allOssAccounts = null
+        );
 }
 
 public class OssService : IOssService
@@ -259,13 +274,15 @@ public class OssService : IOssService
     public async virtual Task<AccountV2> RemapSalesforceAccountToOssAccount(
         SalesforceAccountModel model,
         SalesforceAccountObjectModel sfModel,
-        string? oracleAccountId = null
+        string? oracleAccountId = null,
+        IEnumerable<SalesforceContactObjectModel>? allContacts = null,
+        IEnumerable<AccountV2> allOssAccounts = null
         )
     {
         var account = new AccountV2
         {
             Id = string.IsNullOrEmpty(sfModel.KSN_Acct_ID__c) ? Guid.NewGuid() : Guid.Parse(sfModel.KSN_Acct_ID__c),
-            SalesforceAccountId = model.ObjectId,
+            SalesforceAccountId = sfModel.Id,
             Enabled = !sfModel.Inactive__c ?? true,
             Name = sfModel.Name,
             Origin = CreatedOriginEnum.SF,
@@ -291,7 +308,11 @@ public class OssService : IOssService
         // Overwrite the default Kymeta ID if the parent Id is present
         if (!string.IsNullOrEmpty(sfModel.ParentId))
         {
-            var parentAccount = (await _accountsClient.GetAccountsByManySalesforceIds(new List<string> { sfModel.ParentId }))?.FirstOrDefault();
+            // pull from list of available first
+            AccountV2 parentAccount = allOssAccounts?.FirstOrDefault(a => a.SalesforceAccountId == sfModel.ParentId);
+            // if null, pull from OSS
+            if (parentAccount == null) parentAccount = (await _accountsClient.GetAccountsByManySalesforceIds(new List<string> { sfModel.ParentId }))?.FirstOrDefault();
+            // if not null, bind
             if (parentAccount != null)
             {
                 account.Id = parentAccount.Id;
@@ -301,7 +322,11 @@ public class OssService : IOssService
         // Add a primary contact
         if (!string.IsNullOrEmpty(sfModel.Primary_Contact__c))
         {
-            var contactFromSalesforce = await _sfClient.GetContactFromSalesforce(sfModel.Primary_Contact__c);
+            // pull from list if available first
+            SalesforceContactObjectModel contactFromSalesforce = allContacts?.FirstOrDefault(c => c.Id == sfModel.Primary_Contact__c);
+            // if null, pull from SF
+            if (contactFromSalesforce == null) contactFromSalesforce = await _sfClient.GetContactFromSalesforce(sfModel.Primary_Contact__c);
+            // if not null, bind
             if (contactFromSalesforce != null)
             {
                 account.PrimaryContact = new PrimaryContact

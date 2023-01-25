@@ -20,6 +20,7 @@ public interface IAccountBrokerService
     Task<SalesforceAccountObjectModel> GetSalesforceAccountById(string accountId);
     Task<List<SalesforceAccountObjectModel>> GetSalesforceAccounts();
     Task<string?> UpdateSalesforceAccount(SalesforceAccountObjectModel model);
+    Task<int> SyncSalesforceAccountsToOss();
 }
 
 public class AccountBrokerService : IAccountBrokerService
@@ -714,5 +715,17 @@ public class AccountBrokerService : IAccountBrokerService
         {
             return ex.Message;
         }
+    }
+
+    public async Task<int> SyncSalesforceAccountsToOss()
+    {
+        var contacts = await _sfClient.GetContactsFromSalesforce();
+        var accounts = await _sfClient.GetAccountsFromSalesforce();
+
+        var remapped = accounts.Select(a => _ossService.RemapSalesforceAccountToOssAccount(null, a, a.Oracle_Acct__c, contacts));
+
+        // TODO: Implement the call to update many accounts at once in Accounts service
+
+        return remapped.Count();
     }
 }
