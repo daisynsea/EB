@@ -159,7 +159,7 @@ public class SalesforceClient : ISalesforceClient
             _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
 
             string queryBase = $"{url}/services/data/v53.0/query/?q=";
-            string querySelectStatement = $"SELECT a.Id,a.Name,a.IsPartner,a.AccountType__c,a.Sub_Type__c,a.Vertical__c,a.KSN_Acct_ID__c,a.Master_Agreement__c,a.Account_Manager__c,a.Marketing_Representative__c,a.Type_of_Company__c,a.Business_Unit__c,a.Oracle_Acct__c,a.Pricebook__c,a.Volume_Tier__c,a.EB_Configurator_Contact__c,a.EB_Configurator_Contact_Override__c,a.EB_Configurator_PB_C_Visible__c,a.EB_Configurator_Discount_Tier__c,a.EB_Configurator_PB_M_Visible__c,a.EB_Configurator_Pricing_MSRP_Visible__c,a.EB_Configurator_Visible__c,a.EB_Configurator_Pricing_WS_Visible__c FROM Account a";
+            string querySelectStatement = $"SELECT a.Id,a.Name,a.IsPartner,a.ParentId,a.AccountType__c,a.Sub_Type__c,a.Vertical__c,a.KSN_Acct_ID__c,a.Master_Agreement__c,a.Account_Manager__c,a.Marketing_Representative__c,a.Type_of_Company__c,a.Business_Unit__c,a.Oracle_Acct__c,a.Pricebook__c,a.Volume_Tier__c,a.EB_Configurator_Contact__c,a.EB_Configurator_Contact_Override__c,a.EB_Configurator_PB_C_Visible__c,a.EB_Configurator_Discount_Tier__c,a.EB_Configurator_PB_M_Visible__c,a.EB_Configurator_Pricing_MSRP_Visible__c,a.EB_Configurator_Visible__c,a.EB_Configurator_Pricing_WS_Visible__c FROM Account a";
             string fullUrl = queryBase + querySelectStatement;
 
             var response = await _client.GetAsync(fullUrl);
