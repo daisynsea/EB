@@ -7,10 +7,9 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.HttpClients;
 /// </summary>
 public interface IAccountsClient
 {
-    Task<Tuple<Account, string>> AddAccount(Account model);
-    Task<Tuple<Account, string>> UpdateAccount(Guid id, Account model);
-    Task<Account> GetAccountBySalesforceId(string sfid);
-    Task<List<Account>> GetAccountsByManySalesforceIds(List<string> salesforceIds);
+    Task<Tuple<AccountV2, string>> AddAccount(AccountV2 model);
+    Task<Tuple<AccountV2, string>> UpdateAccount(Guid id, AccountV2 model);
+    Task<List<AccountV2>> GetAccountsByManySalesforceIds(List<string> salesforceIds);
 }
 public class AccountsClient : IAccountsClient
 {
@@ -26,52 +25,42 @@ public class AccountsClient : IAccountsClient
         _logger = logger;
     }
 
-    public async Task<Tuple<Account, string>> AddAccount(Account model)
+    public async Task<Tuple<AccountV2, string>> AddAccount(AccountV2 model)
     {
-        var response = await _client.PostAsJsonAsync($"v1", model);
+        var response = await _client.PostAsJsonAsync($"v2", model);
         string data = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogCritical($"Failed AddAccount HTTP call: {(int)response.StatusCode} | {data} | Model sent: {JsonSerializer.Serialize(model)}");
-            return new Tuple<Account, string>(null, data);
+            return new Tuple<AccountV2, string>(null, data);
         }
         
-        return new Tuple<Account, string>(JsonSerializer.Deserialize<Account>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }), null);
+        return new Tuple<AccountV2, string>(JsonSerializer.Deserialize<AccountV2>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }), null);
 
     }
 
-    public async Task<Tuple<Account, string>> UpdateAccount(Guid id, Account model)
+    public async Task<Tuple<AccountV2, string>> UpdateAccount(Guid id, AccountV2 model)
     {
-        var response = await _client.PutAsJsonAsync($"v1/{id}", model);
+        var response = await _client.PutAsJsonAsync($"v2/{id}", model);
         string data = await response.Content?.ReadAsStringAsync();
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogCritical($"Failed UpdateAccount HTTP call: {(int)response.StatusCode} | {data} | Model sent: {JsonSerializer.Serialize(model)}");
-            return new Tuple<Account, string>(null, data);
+            return new Tuple<AccountV2, string>(null, data);
         }
 
-        return new Tuple<Account, string>(JsonSerializer.Deserialize<Account>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }), null);
+        return new Tuple<AccountV2, string>(JsonSerializer.Deserialize<AccountV2>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }), null);
 
     }
 
-    public async Task<Account> GetAccountBySalesforceId(string sfid)
+    public async Task<List<AccountV2>> GetAccountsByManySalesforceIds(List<string> salesforceIds)
     {
-        var response = await _client.GetAsync($"v1/sfid/{sfid}");
+        var response = await _client.PostAsJsonAsync($"v2/sfid", salesforceIds);
         string data = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode) return null;
 
-        return JsonSerializer.Deserialize<Account>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-    }
-
-    public async Task<List<Account>> GetAccountsByManySalesforceIds(List<string> salesforceIds)
-    {
-        var response = await _client.PostAsJsonAsync($"v1/sfid", salesforceIds);
-        string data = await response.Content.ReadAsStringAsync();
-
-        if (!response.IsSuccessStatusCode) return null;
-
-        return JsonSerializer.Deserialize<List<Account>>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        return JsonSerializer.Deserialize<List<AccountV2>>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
     }
 }

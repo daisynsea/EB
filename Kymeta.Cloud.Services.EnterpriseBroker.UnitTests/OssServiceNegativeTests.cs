@@ -24,17 +24,18 @@ public class OssNegativeServiceTests : IClassFixture<TestFixture>
     public async void AddAccount_WithExistingAccount_ReturnsError()
     {
         var model = Helpers.BuildSalesforceAccountModel();
+        var sfModel = Helpers.BuildSalesforceObjectModel();
         var transaction = Helpers.BuildSalesforceTransaction();
 
         // Arrange
-        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object);
+        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object, _fixture.SalesforceClient.Object);;
         ossService.CallBase = true;
-        ossService.Setup(x => x.GetAccountBySalesforceId(It.IsAny<string>())).ReturnsAsync(new Account());
+        ossService.Setup(x => x.GetAccountBySalesforceId(It.IsAny<string>())).ReturnsAsync(new AccountV2());
         ossService.Setup(x => x.LogAction(It.IsAny<SalesforceActionTransaction>(), It.IsAny<SalesforceTransactionAction>(), It.IsAny<ActionObjectType>(), It.IsAny<StatusType>(), It.IsAny<string>(), It.IsAny<string>()))
             .Verifiable();
 
         // Act
-        var result = await ossService.Object.AddAccount(model, transaction);
+        var result = await ossService.Object.AddAccount(model, sfModel, transaction);
 
         // Assert
         Assert.Null(result.Item1);
@@ -48,12 +49,13 @@ public class OssNegativeServiceTests : IClassFixture<TestFixture>
     public async void AddAccount_AddFails_ReturnsError()
     {
         var model = Helpers.BuildSalesforceAccountModel();
+        var sfModel = Helpers.BuildSalesforceObjectModel();
         var transaction = Helpers.BuildSalesforceTransaction();
 
         // Arrange
-        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object);
+        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object, _fixture.SalesforceClient.Object);
         ossService.CallBase = true;
-        ossService.Setup(x => x.GetAccountBySalesforceId(It.IsAny<string>())).ReturnsAsync((Account?)null);
+        ossService.Setup(x => x.GetAccountBySalesforceId(It.IsAny<string>())).ReturnsAsync((AccountV2?)null);
         ossService.Setup(x => x.LogAction(It.IsAny<SalesforceActionTransaction>(), It.IsAny<SalesforceTransactionAction>(), It.IsAny<ActionObjectType>(), It.IsAny<StatusType>(), It.IsAny<string>(), It.IsAny<string>()))
             .Verifiable();
         _fixture.UsersClient
@@ -66,11 +68,11 @@ public class OssNegativeServiceTests : IClassFixture<TestFixture>
             .Setup(x => x.EditRolePermissions(It.IsAny<Guid>(), It.IsAny<List<Guid>>()))
             .ReturnsAsync(new Role { AccountId = Guid.NewGuid(), Name = $"Unit Test Account Admin", Description = "Owner of the account. Has all permissions" });
         _fixture.AccountsClient
-            .Setup(x => x.AddAccount(It.IsAny<Account>()))
-            .ReturnsAsync(new Tuple<Account, string>(null, "Explosions"));
+            .Setup(x => x.AddAccount(It.IsAny<AccountV2>()))
+            .ReturnsAsync(new Tuple<AccountV2, string>(null, "Explosions"));
 
         // Act
-        var result = await ossService.Object.AddAccount(model, transaction);
+        var result = await ossService.Object.AddAccount(model, sfModel, transaction);
 
         // Assert
         Assert.Null(result.Item1);
@@ -84,23 +86,24 @@ public class OssNegativeServiceTests : IClassFixture<TestFixture>
     public async void AddAccount_AddThrowsAnException_ReturnsError()
     {
         var model = Helpers.BuildSalesforceAccountModel();
+        var sfModel = Helpers.BuildSalesforceObjectModel();
         var transaction = Helpers.BuildSalesforceTransaction();
 
         // Arrange
-        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object);
+        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object, _fixture.SalesforceClient.Object);;
         ossService.CallBase = true;
-        ossService.Setup(x => x.GetAccountBySalesforceId(It.IsAny<string>())).ReturnsAsync((Account?)null);
+        ossService.Setup(x => x.GetAccountBySalesforceId(It.IsAny<string>())).ReturnsAsync((AccountV2?)null);
         ossService.Setup(x => x.LogAction(It.IsAny<SalesforceActionTransaction>(), It.IsAny<SalesforceTransactionAction>(), It.IsAny<ActionObjectType>(), It.IsAny<StatusType>(), It.IsAny<string>(), It.IsAny<string>()))
             .Verifiable();
         _fixture.UsersClient
             .Setup(x => x.GetUserByEmail(It.IsAny<string>()))
             .ReturnsAsync(new User { Email = "primary@email.com" });
         _fixture.AccountsClient
-            .Setup(x => x.AddAccount(It.IsAny<Account>()))
+            .Setup(x => x.AddAccount(It.IsAny<AccountV2>()))
             .ThrowsAsync(new Exception("Explosions"));
 
         // Act
-        var result = await ossService.Object.AddAccount(model, transaction);
+        var result = await ossService.Object.AddAccount(model, sfModel, transaction);
 
         // Assert
         Assert.Null(result.Item1);
@@ -114,18 +117,19 @@ public class OssNegativeServiceTests : IClassFixture<TestFixture>
     public async void UpdateAccount_AccountNotFound_ReturnsError()
     {
         var model = Helpers.BuildSalesforceAccountModel();
+        var sfModel = Helpers.BuildSalesforceObjectModel();
         var transaction = Helpers.BuildSalesforceTransaction();
         var account = new Account { Id = Guid.NewGuid() };
 
         // Arrange
-        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object);
+        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object, _fixture.SalesforceClient.Object);;
         ossService.CallBase = true;
-        ossService.Setup(x => x.GetAccountBySalesforceId(It.IsAny<string>())).ReturnsAsync((Account?)null);
+        ossService.Setup(x => x.GetAccountBySalesforceId(It.IsAny<string>())).ReturnsAsync((AccountV2?)null);
         ossService.Setup(x => x.LogAction(It.IsAny<SalesforceActionTransaction>(), It.IsAny<SalesforceTransactionAction>(), It.IsAny<ActionObjectType>(), It.IsAny<StatusType>(), It.IsAny<string>(), It.IsAny<string>()))
             .Verifiable();
 
         // Act
-        var result = await ossService.Object.UpdateAccount(model, transaction);
+        var result = await ossService.Object.UpdateAccount(model, sfModel, transaction);
 
         // Assert
         Assert.Null(result.Item1);
@@ -139,11 +143,12 @@ public class OssNegativeServiceTests : IClassFixture<TestFixture>
     public async void UpdateAccount_UpdateFails_ReturnsError()
     {
         var model = Helpers.BuildSalesforceAccountModel();
+        var sfModel = Helpers.BuildSalesforceObjectModel();
         var transaction = Helpers.BuildSalesforceTransaction();
-        var account = new Account { Id = Guid.NewGuid() };
+        var account = new AccountV2 { Id = Guid.NewGuid() };
 
         // Arrange
-        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object);
+        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object, _fixture.SalesforceClient.Object);;
         ossService.CallBase = true;
         ossService.Setup(x => x.GetAccountBySalesforceId(It.IsAny<string>())).ReturnsAsync(account);
         ossService.Setup(x => x.LogAction(It.IsAny<SalesforceActionTransaction>(), It.IsAny<SalesforceTransactionAction>(), It.IsAny<ActionObjectType>(), It.IsAny<StatusType>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -152,11 +157,11 @@ public class OssNegativeServiceTests : IClassFixture<TestFixture>
            .Setup(x => x.GetUserByEmail(It.IsAny<string>()))
            .ReturnsAsync(new User { Email = "primary@email.com" });
         _fixture.AccountsClient
-            .Setup(x => x.UpdateAccount(It.IsAny<Guid>(), It.IsAny<Account>()))
-            .ReturnsAsync(new Tuple<Account, string>(null, "Explosions"));
+            .Setup(x => x.UpdateAccount(It.IsAny<Guid>(), It.IsAny<AccountV2>()))
+            .ReturnsAsync(new Tuple<AccountV2, string>(null, "Explosions"));
 
         // Act
-        var result = await ossService.Object.UpdateAccount(model, transaction);
+        var result = await ossService.Object.UpdateAccount(model, sfModel, transaction);
 
         // Assert
         Assert.Null(result.Item1);
@@ -170,11 +175,12 @@ public class OssNegativeServiceTests : IClassFixture<TestFixture>
     public async void UpdateAccount_UpdateThrowsException_ReturnsError()
     {
         var model = Helpers.BuildSalesforceAccountModel();
+        var sfModel = Helpers.BuildSalesforceObjectModel();
         var transaction = Helpers.BuildSalesforceTransaction();
-        var account = new Account { Id = Guid.NewGuid() };
+        var account = new AccountV2 { Id = Guid.NewGuid() };
 
         // Arrange
-        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object);
+        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object, _fixture.SalesforceClient.Object);;
         ossService.CallBase = true;
         ossService.Setup(x => x.GetAccountBySalesforceId(It.IsAny<string>())).ReturnsAsync(account);
         ossService.Setup(x => x.LogAction(It.IsAny<SalesforceActionTransaction>(), It.IsAny<SalesforceTransactionAction>(), It.IsAny<ActionObjectType>(), It.IsAny<StatusType>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -183,11 +189,11 @@ public class OssNegativeServiceTests : IClassFixture<TestFixture>
            .Setup(x => x.GetUserByEmail(It.IsAny<string>()))
            .ReturnsAsync(new User { Email = "primary@email.com" });
         _fixture.AccountsClient
-            .Setup(x => x.UpdateAccount(It.IsAny<Guid>(), It.IsAny<Account>()))
+            .Setup(x => x.UpdateAccount(It.IsAny<Guid>(), It.IsAny<AccountV2>()))
             .ThrowsAsync(new Exception("Explosions"));
 
         // Act
-        var result = await ossService.Object.UpdateAccount(model, transaction);
+        var result = await ossService.Object.UpdateAccount(model, sfModel, transaction);
 
         // Assert
         Assert.Null(result.Item1);
@@ -201,13 +207,13 @@ public class OssNegativeServiceTests : IClassFixture<TestFixture>
     {
         var model = Helpers.BuildSalesforceAccountModel();
         var transaction = Helpers.BuildSalesforceTransaction();
-        var account = new Account { Id = Guid.NewGuid() };
+        var account = new AccountV2 { Id = Guid.NewGuid() };
         string newOracleId = "123";
 
         // Arrange
-        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object);
+        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object, _fixture.SalesforceClient.Object);;
         ossService.CallBase = true;
-        ossService.Setup(x => x.GetAccountBySalesforceId(It.IsAny<string>())).ReturnsAsync((Account?)null);
+        ossService.Setup(x => x.GetAccountBySalesforceId(It.IsAny<string>())).ReturnsAsync((AccountV2?)null);
         ossService.Setup(x => x.LogAction(It.IsAny<SalesforceActionTransaction>(), It.IsAny<SalesforceTransactionAction>(), It.IsAny<ActionObjectType>(), It.IsAny<StatusType>(), It.IsAny<string>(), It.IsAny<string>()))
             .Verifiable();
 
@@ -226,11 +232,11 @@ public class OssNegativeServiceTests : IClassFixture<TestFixture>
     {
         var model = Helpers.BuildSalesforceAccountModel();
         var transaction = Helpers.BuildSalesforceTransaction();
-        var account = new Account { Id = Guid.NewGuid() };
+        var account = new AccountV2 { Id = Guid.NewGuid() };
         string newOracleId = "123";
 
         // Arrange
-        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object);
+        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object, _fixture.SalesforceClient.Object);;
         ossService.CallBase = true;
         ossService.Setup(x => x.GetAccountBySalesforceId(It.IsAny<string>())).ReturnsAsync(account);
         ossService.Setup(x => x.LogAction(It.IsAny<SalesforceActionTransaction>(), It.IsAny<SalesforceTransactionAction>(), It.IsAny<ActionObjectType>(), It.IsAny<StatusType>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -239,8 +245,8 @@ public class OssNegativeServiceTests : IClassFixture<TestFixture>
             .Setup(x => x.GetUserByEmail(It.IsAny<string>()))
             .ReturnsAsync(new User { Email = "primary@email.com" });
         _fixture.AccountsClient
-            .Setup(x => x.UpdateAccount(It.IsAny<Guid>(), It.IsAny<Account>()))
-            .ReturnsAsync(new Tuple<Account, string>(null, "Explosions"));
+            .Setup(x => x.UpdateAccount(It.IsAny<Guid>(), It.IsAny<AccountV2>()))
+            .ReturnsAsync(new Tuple<AccountV2, string>(null, "Explosions"));
 
         // Act
         var result = await ossService.Object.UpdateAccountOracleId(model, newOracleId, transaction);
@@ -257,11 +263,11 @@ public class OssNegativeServiceTests : IClassFixture<TestFixture>
     {
         var model = Helpers.BuildSalesforceAccountModel();
         var transaction = Helpers.BuildSalesforceTransaction();
-        var account = new Account { Id = Guid.NewGuid() };
+        var account = new AccountV2 { Id = Guid.NewGuid() };
         string newOracleId = "123";
 
         // Arrange
-        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object);
+        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object, _fixture.SalesforceClient.Object);;
         ossService.CallBase = true;
         ossService.Setup(x => x.GetAccountBySalesforceId(It.IsAny<string>())).ReturnsAsync(account);
         ossService.Setup(x => x.LogAction(It.IsAny<SalesforceActionTransaction>(), It.IsAny<SalesforceTransactionAction>(), It.IsAny<ActionObjectType>(), It.IsAny<StatusType>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -270,7 +276,7 @@ public class OssNegativeServiceTests : IClassFixture<TestFixture>
             .Setup(x => x.GetUserByEmail(It.IsAny<string>()))
             .ReturnsAsync(new User { Email = "primary@email.com" });
         _fixture.AccountsClient
-            .Setup(x => x.UpdateAccount(It.IsAny<Guid>(), It.IsAny<Account>()))
+            .Setup(x => x.UpdateAccount(It.IsAny<Guid>(), It.IsAny<AccountV2>()))
             .ThrowsAsync(new Exception("Explosions"));
 
         // Act

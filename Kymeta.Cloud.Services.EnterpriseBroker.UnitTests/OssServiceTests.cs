@@ -23,12 +23,13 @@ public class OssServiceTests : IClassFixture<TestFixture>
     public async void AddAccount_WithValidInput_ReturnsCreatedAccount()
     {
         var model = Helpers.BuildSalesforceAccountModel();
+        var sfModel = Helpers.BuildSalesforceObjectModel();
         var transaction = Helpers.BuildSalesforceTransaction();
 
         // Arrange
-        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object);
+        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object, _fixture.SalesforceClient.Object);
         ossService.CallBase = true;
-        ossService.Setup(x => x.GetAccountBySalesforceId(It.IsAny<string>())).ReturnsAsync((Account?)null);
+        ossService.Setup(x => x.GetAccountBySalesforceId(It.IsAny<string>())).ReturnsAsync((AccountV2?)null);
         ossService.Setup(x => x.LogAction(It.IsAny<SalesforceActionTransaction>(), It.IsAny<SalesforceTransactionAction>(), It.IsAny<ActionObjectType>(), It.IsAny<StatusType>(), It.IsAny<string>(), It.IsAny<string>()))
             .Verifiable();
         _fixture.UsersClient
@@ -41,13 +42,13 @@ public class OssServiceTests : IClassFixture<TestFixture>
             .Setup(x => x.EditRolePermissions(It.IsAny<Guid>(), It.IsAny<List<Guid>>()))
             .ReturnsAsync(new Role { AccountId = Guid.NewGuid(), Name = $"Unit Test Account Admin", Description = "Owner of the account. Has all permissions" });
         _fixture.AccountsClient
-            .Setup(x => x.AddAccount(It.IsAny<Account>()))
-            .ReturnsAsync(new Tuple<Account, string>(new Account() { Id = Guid.NewGuid() }, string.Empty));
+            .Setup(x => x.AddAccount(It.IsAny<AccountV2>()))
+            .ReturnsAsync(new Tuple<AccountV2, string>(new AccountV2() { Id = Guid.NewGuid() }, string.Empty));
         _fixture.ActivityLoggerClient
             .Setup(x => x.AddActivity(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()));
 
         // Act
-        var result = await ossService.Object.AddAccount(model, transaction);
+        var result = await ossService.Object.AddAccount(model, sfModel, transaction);
 
         // Assert
         Assert.NotNull(result.Item1);
@@ -60,12 +61,13 @@ public class OssServiceTests : IClassFixture<TestFixture>
     public async void UpdateAccount_WithValidInput_ReturnsUpdatedAccount()
     {
         var model = Helpers.BuildSalesforceAccountModel();
+        var sfModel = Helpers.BuildSalesforceObjectModel();
         model.ParentId = "abc123";
         var transaction = Helpers.BuildSalesforceTransaction();
-        var account = new Account { Id = Guid.NewGuid(), ParentId = Guid.NewGuid() };
+        var account = new AccountV2 { Id = Guid.NewGuid(), Parent = new ParentAccount { Id = Guid.NewGuid() } };
 
         // Arrange
-        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object);
+        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object, _fixture.SalesforceClient.Object);
         ossService.CallBase = true;
         ossService.Setup(x => x.GetAccountBySalesforceId(It.IsAny<string>())).ReturnsAsync(account);
         ossService.Setup(x => x.LogAction(It.IsAny<SalesforceActionTransaction>(), It.IsAny<SalesforceTransactionAction>(), It.IsAny<ActionObjectType>(), It.IsAny<StatusType>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -74,13 +76,13 @@ public class OssServiceTests : IClassFixture<TestFixture>
             .Setup(x => x.GetUserByEmail(It.IsAny<string>()))
             .ReturnsAsync(new User { Email = "primary@email.com" });
         _fixture.AccountsClient
-            .Setup(x => x.UpdateAccount(It.IsAny<Guid>(), It.IsAny<Account>()))
-            .ReturnsAsync(new Tuple<Account, string>(account, string.Empty));
+            .Setup(x => x.UpdateAccount(It.IsAny<Guid>(), It.IsAny<AccountV2>()))
+            .ReturnsAsync(new Tuple<AccountV2, string>(account, string.Empty));
         _fixture.ActivityLoggerClient
             .Setup(x => x.AddActivity(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()));
 
         // Act
-        var result = await ossService.Object.UpdateAccount(model, transaction);
+        var result = await ossService.Object.UpdateAccount(model, sfModel, transaction);
 
         // Assert
         Assert.NotNull(result.Item1);
@@ -94,28 +96,29 @@ public class OssServiceTests : IClassFixture<TestFixture>
     {
         var model = Helpers.BuildSalesforceAccountModel();
         model.ParentId = "abc123";
+        var sfModel = Helpers.BuildSalesforceObjectModel();
         var transaction = Helpers.BuildSalesforceTransaction();
-        var account = new Account { Id = Guid.NewGuid(), ParentId = Guid.NewGuid() };
+        var account = new AccountV2 { Id = Guid.NewGuid(), Parent = new ParentAccount { Id = Guid.NewGuid() } };
 
         // Arrange
-        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object);
+        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object, _fixture.SalesforceClient.Object);
         ossService.CallBase = true;
         ossService.Setup(x => x.GetAccountBySalesforceId(It.IsAny<string>())).ReturnsAsync(account);
         ossService.Setup(x => x.LogAction(It.IsAny<SalesforceActionTransaction>(), It.IsAny<SalesforceTransactionAction>(), It.IsAny<ActionObjectType>(), It.IsAny<StatusType>(), It.IsAny<string>(), It.IsAny<string>()))
             .Verifiable();
-        ossService.Setup(x => x.UpdateChildAccounts(It.IsAny<Account>(), It.IsAny<SalesforceAccountModel>(), It.IsAny<SalesforceActionTransaction>()))
-            .ReturnsAsync(new Tuple<bool, List<Account>?, string>(true, null, null));
+        ossService.Setup(x => x.UpdateChildAccounts(It.IsAny<AccountV2>(), It.IsAny<SalesforceAccountModel>(), It.IsAny<SalesforceActionTransaction>()))
+            .ReturnsAsync(new Tuple<bool, List<AccountV2>?, string>(true, null, null));
         _fixture.UsersClient
             .Setup(x => x.GetUserByEmail(It.IsAny<string>()))
             .ReturnsAsync(new User { Email = "primary@email.com" });
         _fixture.AccountsClient
-            .Setup(x => x.UpdateAccount(It.IsAny<Guid>(), It.IsAny<Account>()))
-            .ReturnsAsync(new Tuple<Account, string>(account, string.Empty));
+            .Setup(x => x.UpdateAccount(It.IsAny<Guid>(), It.IsAny<AccountV2>()))
+            .ReturnsAsync(new Tuple<AccountV2, string>(account, string.Empty));
         _fixture.ActivityLoggerClient
             .Setup(x => x.AddActivity(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()));
 
         // Act
-        var result = await ossService.Object.UpdateAccount(model, transaction);
+        var result = await ossService.Object.UpdateAccount(model, sfModel, transaction);
 
         // Assert
         Assert.NotNull(result.Item1);
@@ -129,11 +132,11 @@ public class OssServiceTests : IClassFixture<TestFixture>
     {
         var model = Helpers.BuildSalesforceAccountModel();
         var transaction = Helpers.BuildSalesforceTransaction();
-        var account = new Account { Id = Guid.NewGuid() };
+        var account = new AccountV2 { Id = Guid.NewGuid() };
         string newOracleId = "123";
 
         // Arrange
-        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object);
+        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object, _fixture.SalesforceClient.Object);
         ossService.CallBase = true;
         ossService.Setup(x => x.GetAccountBySalesforceId(It.IsAny<string>())).ReturnsAsync(account);
         ossService.Setup(x => x.LogAction(It.IsAny<SalesforceActionTransaction>(), It.IsAny<SalesforceTransactionAction>(), It.IsAny<ActionObjectType>(), It.IsAny<StatusType>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -142,8 +145,8 @@ public class OssServiceTests : IClassFixture<TestFixture>
             .Setup(x => x.GetUserByEmail(It.IsAny<string>()))
             .ReturnsAsync(new User { Email = "primary@email.com" });
         _fixture.AccountsClient
-            .Setup(x => x.UpdateAccount(It.IsAny<Guid>(), It.IsAny<Account>()))
-            .ReturnsAsync(new Tuple<Account, string>(account, string.Empty));
+            .Setup(x => x.UpdateAccount(It.IsAny<Guid>(), It.IsAny<AccountV2>()))
+            .ReturnsAsync(new Tuple<AccountV2, string>(account, string.Empty));
         _fixture.ActivityLoggerClient
             .Setup(x => x.AddActivity(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()));
 
@@ -163,7 +166,7 @@ public class OssServiceTests : IClassFixture<TestFixture>
     {
         // Arrange
         string validInput = "Tier 3(101-250)";
-        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object);
+        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object, _fixture.SalesforceClient.Object);
 
         // Act
         var result = ossService.Object.GetDiscountTierFromSalesforceAPIValue(validInput);
@@ -179,7 +182,7 @@ public class OssServiceTests : IClassFixture<TestFixture>
     public void GetDiscountTierFromSalesforceAPIValue_Returns1_WithInvalidInput()
     {
         // Arrange
-        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object);
+        var ossService = new Mock<OssService>(_fixture.Configuration, _fixture.AccountsClient.Object, _fixture.UsersClient.Object, _fixture.ActionsRepository.Object, _fixture.ActivityLoggerClient.Object, _fixture.SalesforceClient.Object);
 
         // Act
         var result1 = ossService.Object.GetDiscountTierFromSalesforceAPIValue("Tier 3)101-250)");

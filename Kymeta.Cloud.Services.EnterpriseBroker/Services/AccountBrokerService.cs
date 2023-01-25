@@ -127,6 +127,9 @@ public class AccountBrokerService : IAccountBrokerService
             {
                 try
                 {
+                    // fetch the entire account model from salesforce
+                    var accountFromSalesforce = await _sfClient.GetAccountFromSalesforce(model.ObjectId);
+
                     // First, fetch to see if the account exists in OSS. If it does, we do an update. Otherwise we add.
                     var existingAccount = await _ossService.GetAccountBySalesforceId(model.ObjectId);
                     // Set initial OSSStatus response value to Successful. It will get overwritten if there is an error.
@@ -139,7 +142,7 @@ public class AccountBrokerService : IAccountBrokerService
                         response.OssAccountId = existingAccount.Id?.ToString();
                         ossAccountId = existingAccount.Id.ToString();
                         // Update the account
-                        var updatedAccountTuple = await _ossService.UpdateAccount(model, salesforceTransaction);
+                        var updatedAccountTuple = await _ossService.UpdateAccount(model, accountFromSalesforce, salesforceTransaction);
                         // Item1 is the account object -- if it's null, we have a problem
                         if (updatedAccountTuple.Item1 == null)
                         {
@@ -164,7 +167,7 @@ public class AccountBrokerService : IAccountBrokerService
                     else
                     {
                         // Keep in mind, when adding, we do not fill in the Oracle Id here -- we update it after all the Oracle creation is finished
-                        var addedAccountTuple = await _ossService.AddAccount(model, salesforceTransaction);
+                        var addedAccountTuple = await _ossService.AddAccount(model, accountFromSalesforce, salesforceTransaction);
                         if (string.IsNullOrEmpty(addedAccountTuple.Item2)) // No error!
                         {
                             response.OssAccountId = addedAccountTuple.Item1.Id.ToString();

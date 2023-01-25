@@ -21,7 +21,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
         public OracleServiceNegativeTests(TestFixture fixture)
         {
             _fixture = fixture;
-            _oracleService = new Mock<OracleService>(_fixture.OracleClient.Object, _fixture.Configuration, _fixture.ActionsRepository.Object);
+            _oracleService = new Mock<OracleService>(_fixture.OracleClient.Object, _fixture.Configuration, _fixture.ActionsRepository.Object, _fixture.TerminalSerialCacheRepository.Object, _fixture.ManufacturingProxyClient.Object);
             _oracleService.CallBase = true;
             _oracleService.Setup(x => x.LogAction(It.IsAny<SalesforceActionTransaction>(), It.IsAny<SalesforceTransactionAction>(), It.IsAny<ActionObjectType>(), It.IsAny<StatusType>(), It.IsAny<string>(), It.IsAny<string>()))
                           .Verifiable();
