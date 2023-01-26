@@ -71,7 +71,7 @@ public interface IOssService
         SalesforceAccountObjectModel sfModel,
         string? oracleAccountId = null,
         IEnumerable<SalesforceContactObjectModel>? allContacts = null,
-        IEnumerable<AccountV2> allOssAccounts = null
+        IEnumerable<AccountV2>? allOssAccounts = null
         );
 }
 
@@ -315,8 +315,8 @@ public class OssService : IOssService
             // if not null, bind
             if (parentAccount != null)
             {
-                account.Id = parentAccount.Id;
-                account.Name = parentAccount.Name;
+                account.Parent.Id = parentAccount.Id;
+                account.Parent.Name = parentAccount.Name;
             }
         }
         // Add a primary contact
