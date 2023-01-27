@@ -88,4 +88,30 @@ public class UsersClient : IUsersClient
 
         return JsonSerializer.Deserialize<User>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
     }
+
+    public async Task<User> UpdateUser(Guid id, User model)
+    {
+        var response = await _client.PutAsJsonAsync($"v2/users/{id}", new { model.FirstName, model.LastName, model.Enabled, model.RoleId, model.AccountId, model.ContactType, model.Email });
+
+        if (response.IsSuccessStatusCode)
+        {
+            string data = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<User>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        }
+
+        return null;
+    }
+
+    public async Task<User> AddUser(User model)
+    {
+        var response = await _client.PostAsJsonAsync($"v2/users", new { model.FirstName, model.LastName, model.Enabled, model.RoleId, model.AccountId, model.ContactType, model.Email });
+
+        if (response.IsSuccessStatusCode)
+        {
+            string data = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<User>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        }
+
+        return null;
+    }
 }

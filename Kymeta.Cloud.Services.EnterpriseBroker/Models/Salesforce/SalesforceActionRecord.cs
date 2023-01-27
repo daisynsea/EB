@@ -111,7 +111,10 @@ public enum SalesforceTransactionAction
     UpdatePersonInOracle,
     UpdateCustomerContactContactInOracle,
     // Validation
-    ValidateBusinessUnit
+    ValidateBusinessUnit,
+    // OSS Contact
+    CreateUserInOss,
+    UpdateUserInOss
 }
 
 public enum ActionObjectType

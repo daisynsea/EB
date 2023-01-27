@@ -195,6 +195,49 @@ public class AccountBrokerService : IAccountBrokerService
                         }
                     }
 
+                    // If we have contacts
+                    #region Contacts > Users
+                    if (model.Contacts != null && model.Contacts.Count > 0)
+                    {
+                        List<Tuple<string, Guid>> addedUsersToSendToSalesforce = new();
+                        foreach (var contact in model.Contacts)
+                        {
+                            var existingContact = await _ossService.GetUserByEmail(contact.Email);
+
+                            if (existingContact == null)
+                            {
+                                // We're creating a new user
+                                var addedUserResult = await _ossService.CreateUserInOSS(contact, salesforceTransaction);
+                                if (addedUserResult.Item1 == null)
+                                {
+                                    Console.WriteLine($"[DEBUG] Error: {addedUserResult.Item2}");
+                                }
+
+                                contactsForSalesforce.Add(new AccountChildResponse
+                                {
+                                    SalesforceId = contact.ObjectId,
+                                    OssId = addedUserResult.Item1?.Id.ToString()
+                                });
+
+                                // update in salesforce
+                                await _sfClient.UpdateContactInSalesforce(new SalesforceContactObjectModel
+                                {
+                                    Id = contact.ObjectId,
+                                    OSS_Contact_ID__c = addedUserResult.Item1?.Id.ToString()
+                                });
+                            } else
+                            {
+                                // We're updating a contact
+                                var updatedUserResult = await _ossService.UpdateUserInOSS(contact, salesforceTransaction);
+                                if (updatedUserResult.Item1 == null)
+                                {
+                                    Console.WriteLine($"[DEBUG] Error: {updatedUserResult.Item2}");
+                                }
+                            }
+                        }
+                    }
+                    #endregion
+
                     // set this value on the model so Oracle can intake it
                     model.OssId = ossAccountId;
                 }

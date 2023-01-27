@@ -73,6 +73,26 @@ public interface IOssService
         IEnumerable<SalesforceContactObjectModel>? allContacts = null,
         IEnumerable<AccountV2>? allOssAccounts = null
         );
+
+    /// <summary>
+    /// Gets a user by e-mail from respective service
+    /// </summary>
+    /// <param name="email">Email of the user</param>
+    /// <returns>User object</returns>
+    Task<User> GetUserByEmail(string email);
+    /// <summary>
+    /// Creates a user in OSS
+    /// </summary>
+    /// <param name="model">User object</param>
+    /// <returns>User object</returns>
+    Task<Tuple<User, string>> CreateUserInOSS(SalesforceContactModel model, SalesforceActionTransaction transaction);
+    /// <summary>
+    /// Updates a user in OSS
+    /// </summary>
+    /// <param name="id">Id of the user</param>
+    /// <param name="model">User object</param>
+    /// <returns>User object</returns>
+    Task<Tuple<User, string>> UpdateUserInOSS(SalesforceContactModel model, SalesforceActionTransaction transaction);
 }
 
 public class OssService : IOssService
@@ -413,5 +433,40 @@ public class OssService : IOssService
 
         // everything was updated as we intend, return success
         return new Tuple<bool, List<AccountV2>?, string>(true, updatedChildrenAccounts, null);
+    }
+    
+    public async virtual Task<User> GetUserByEmail(string email)
+    {
+        return await _usersClient.GetUserByEmail(email);
+    }
+
+    public virtual User RemapSalesforceContactToOssUser(SalesforceContactModel model, )
+    {
+        var user = new User
+        {
+            AccountId = model.
+        };
+        return user;
+    }
+
+    public async Task<Tuple<User, string>> CreateUserInOSS(Guid accountId, SalesforceContactModel model, SalesforceActionTransaction transaction)
+    {
+        await LogAction(transaction, SalesforceTransactionAction.CreateUserInOss, ActionObjectType.Contact, StatusType.Started);
+        string error = null;
+        // Verify exists
+        var existingContact = await GetUserByEmail(model.Email);
+        if (existingContact != null) // If account exists, return from this action with an error
+        {
+            error = $"Contact with Email {model.Email} already exists in the system.";
+            await LogAction(transaction, SalesforceTransactionAction.CreateUserInOss, ActionObjectType.Contact, StatusType.Error, null, error);
+            return new Tuple<User, string>(null, error);
+        }
+        // remap
+        var ossUserModel = RemapSalesforceContactToOssUser(model);
+    }
+
+    public async Task<Tuple<User, string>> UpdateUserInOSS(SalesforceContactModel model, SalesforceActionTransaction transaction)
+    {
+
     }
 }

@@ -16,6 +16,7 @@ public interface ISalesforceClient
     Task<SalesforceAddressObjectModel> GetAddressFromSalesforce(string addressId);
     Task<SalesforceContactObjectModel> GetContactFromSalesforce(string contactId);
     Task<List<SalesforceContactObjectModel>> GetContactsFromSalesforce(string? accountId = null);
+    Task UpdateContactInSalesforce(SalesforceContactObjectModel model);
     Task<SalesforceUserObjectModel> GetUserFromSalesforce(string userId);
     Task<T?> GetReport<T>(string reportId);
     Task<IEnumerable<SalesforceProductObjectModelV2>> GetProductsByManyIds(IEnumerable<string> productIds);
@@ -508,7 +509,7 @@ public class SalesforceClient : ISalesforceClient
         try
         {
             var json = JsonConvert.SerializeObject(account);
-            var content = new StringContent(json, Encoding.UTF8, "application/jsom");
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             var tokenAndUrl = await GetTokenAndUrl();
             var token = tokenAndUrl?.Item1;
@@ -523,6 +524,31 @@ public class SalesforceClient : ISalesforceClient
         {
             _logger.LogError(ex, $"Error updating account in SF: {ex.Message}");
             ex.Data.Add("ErrorData", $"Error updating account in SF: {ex.Message}");
+            throw;
+        }
+    }
+
+    public async Task UpdateContactInSalesforce(SalesforceContactObjectModel model)
+    {
+        try
+        {
+            var json = JsonConvert.SerializeObject(model);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var tokenAndUrl = await GetTokenAndUrl();
+            var token = tokenAndUrl?.Item1;
+            var url = tokenAndUrl?.Item2;
+
+            _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+
+            var response = await _client.PatchAsync($"{url}/services/data/v53.0/sobjects/Contact/{model.Id}", content);
+
+            if (!response.IsSuccessStatusCode) throw new Exception($"Response was not successful. Code {response.StatusCode}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error updating contact in SF: {ex.Message}");
+            ex.Data.Add("ErrorData", $"Error updating contact in SF: {ex.Message}");
             throw;
         }
     }

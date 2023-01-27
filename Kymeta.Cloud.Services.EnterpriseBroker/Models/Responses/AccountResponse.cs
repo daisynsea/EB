@@ -28,6 +28,7 @@
     {
         public string? OracleEntityType { get; set; }
         public string? OracleId { get; set; }
+        public string? OssId { get; set; }
         public string? SalesforceId { get; set; }
     }
 }

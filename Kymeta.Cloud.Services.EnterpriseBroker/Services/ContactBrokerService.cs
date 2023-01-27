@@ -15,12 +15,18 @@ public class ContactBrokerService : IContactBrokerService
     private readonly IActionsRepository _actionsRepository;
     private readonly IOracleService _oracleService;
     private readonly ISalesforceClient _sfClient;
+    private readonly IOssService _ossService;
 
-    public ContactBrokerService(IActionsRepository actionsRepository, IOracleService oracleService, ISalesforceClient salesforceClient)
+    public ContactBrokerService(
+        IActionsRepository actionsRepository, 
+        IOracleService oracleService, 
+        ISalesforceClient salesforceClient,
+        IOssService ossService)
     {
         _actionsRepository = actionsRepository;
         _oracleService = oracleService;
         _sfClient = salesforceClient;
+        _ossService = ossService;
     }
 
     public async Task<List<SalesforceContactObjectModel>> GetSalesforceContacts(string? accountId = null)
@@ -34,6 +40,7 @@ public class ContactBrokerService : IContactBrokerService
         * WHERE TO SYNC
         */
         var syncToOracle = model.SyncToOracle.GetValueOrDefault();
+        var syncToOss = model.SyncToOss.GetValueOrDefault();
 
         /*
          * LOG THE ENTERPRISE APPLICATION BROKER ACTION
@@ -72,6 +79,60 @@ public class ContactBrokerService : IContactBrokerService
 
         try
         {
+            if (syncToOss)
+            {
+                try
+                {
+                    // fetch the entire contact model from salesforce
+                    var contactFromSalesforce = await _sfClient.GetContactFromSalesforce(model.ObjectId);
+                    // First, fetch to see if the contact exists in OSS. If it does, we do an update. Otherwise we add.
+                    var existingContact = await _ossService.GetUserByEmail(contactFromSalesforce.Email);
+                    // Set initial OSSStatus response value to Successful. It will get overwritten if there is an error.
+                    response.OSSStatus = StatusType.Successful;
+
+                    // If the account exists, it's an update
+                    if (existingContact == null)
+                    {
+                        // We're creating a new user
+                        var addedUserResult = await _ossService.CreateUserInOSS(model, salesforceTransaction);
+                        if (addedUserResult.Item1 == null)
+                        {
+                            Console.WriteLine($"[DEBUG] Error: {addedUserResult.Item2}");
+                        }
+
+                        await _sfClient.UpdateContactInSalesforce(contactFromSalesforce);
+                    }
+                    else
+                    {
+                        // We're updating a contact
+                        var updatedUserResult = await _ossService.UpdateUserInOSS(model, salesforceTransaction);
+                        if (updatedUserResult.Item1 == null)
+                        {
+                            Console.WriteLine($"[DEBUG] Error: {updatedUserResult.Item2}");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    response.OSSStatus = StatusType.Error;
+                    response.OSSErrorMessage = $"Error syncing to OSS due to an exception: {ex.Message}";
+
+                    if (salesforceTransaction.TransactionLog == null) salesforceTransaction.TransactionLog = new List<SalesforceActionRecord>();
+                    // Add the salesforce transaction record
+                    var actionRecord = new SalesforceActionRecord
+                    {
+                        ObjectType = ActionObjectType.Account,
+                        Action = salesforceTransaction.TransactionLog.OrderByDescending(s => s.Timestamp).FirstOrDefault()?.Action ?? SalesforceTransactionAction.Default,
+                        Status = StatusType.Error,
+                        Timestamp = DateTime.UtcNow,
+                        ErrorMessage = $"Error syncing to OSS due to an exception: {ex.Message}",
+                        EntityId = model.ObjectId
+                    };
+                    salesforceTransaction.TransactionLog?.Add(actionRecord);
+                    await _actionsRepository.AddTransactionRecord(salesforceTransaction.Id, salesforceTransaction.Object.ToString() ?? "Unknown", actionRecord);
+                }
+            }
+
             #region Send to Oracle
             if (syncToOracle)
             {

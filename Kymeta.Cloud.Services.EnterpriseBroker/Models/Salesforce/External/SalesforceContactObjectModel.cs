@@ -19,4 +19,5 @@ public class SalesforceContactObjectModel
     public string? Fax { get; set; }
     public string? Email { get; set; }
     public string? Contact_Role__c { get; set; } // Bill to or Ship to    
+    public string? OSS_Contact_ID__c { get; set; } // User Id
 }
