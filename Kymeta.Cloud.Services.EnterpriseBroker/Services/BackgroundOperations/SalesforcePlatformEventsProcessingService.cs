@@ -52,6 +52,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Services.BackgroundOperations
                 var serverUri = new Uri(authResult.Item2);
                 string endpoint = string.Format($"{serverUri.Scheme}://{serverUri.Host}/cometd/43.0");
                 var bayeuxClient = new BayeuxClient(endpoint, new[] { transport });
+                // add replay extension to be able to re-process potential missed events in case of service interruption
                 bayeuxClient.AddExtension(new ReplayExtension());
                 bayeuxClient.Handshake();
                 bayeuxClient.WaitFor(1000, new List<BayeuxClient.State>() { BayeuxClient.State.CONNECTED });
@@ -59,8 +60,11 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Services.BackgroundOperations
                 _logger.LogInformation($"Activating listeners for Salesforce Platform Events.");
 
                 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-                // Subscription to EB_Contact_Event__e
-                IClientSessionChannel contactEventChannel = bayeuxClient.GetChannel("/event/EB_Contact_Event__e");
+                // define the channel connection
+                // replayId -1: (Default if no replay option is specified.) Subscriber receives new events that are broadcast after the client subscribes.
+                // replayId -2: Subscriber receives all events, including past events that are within the retention window and new events.
+                IClientSessionChannel contactEventChannel = bayeuxClient.GetChannel("/event/EB_Contact_Event__e", -1);
+                // subscribe to events on the channel
                 contactEventChannel.Subscribe(new ContactEventListener());
                 _logger.LogInformation($"Listening for events from Salesforce on the '{contactEventChannel}' channel...");
 
