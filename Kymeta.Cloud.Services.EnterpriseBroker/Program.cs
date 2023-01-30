@@ -85,6 +85,7 @@ builder.Services.AddScoped<IProductsBrokerService, ProductsBrokerService>();
 builder.Services.AddScoped<IFileStorageService, FileStorageService>();
 builder.Services.AddScoped<ITerminalSerialCacheRepository, TerminalSerialCacheRepository>();
 
+#region Background Services
 // add background operation services
 builder.Services.Configure<HostOptions>(hostOptions =>
 {
@@ -95,6 +96,9 @@ builder.Services.AddHostedService<SalesforceBackgroundOperationService>();
 builder.Services.AddScoped<ISalesforceProcessingService, SalesforceProcessingService>();
 builder.Services.AddHostedService<OracleBackgroundOperationService>();
 builder.Services.AddScoped<IOracleProcessingService, OracleProcessingService>();
+builder.Services.AddHostedService<SalesforcePlatformEventsBackgroundOperationService>();
+builder.Services.AddScoped<ISalesforcePlatformEventsProcessingService, SalesforcePlatformEventsProcessingService>();
+#endregion
 
 // configure redis
 builder.Services.AddRedisClient(new RedisClientOptions

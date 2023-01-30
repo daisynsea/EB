@@ -13,6 +13,7 @@ public interface ISalesforceClient
     Task UpdateAccountInSalesforce(SalesforceAccountObjectModel account);
     #endregion
 
+    Task<Tuple<string, string>?> GetTokenAndUrl();
     Task<SalesforceAddressObjectModel> GetAddressFromSalesforce(string addressId);
     Task<SalesforceContactObjectModel> GetContactFromSalesforce(string contactId);
     Task<List<SalesforceContactObjectModel>> GetContactsFromSalesforce(string? accountId = null);
@@ -444,7 +445,7 @@ public class SalesforceClient : ISalesforceClient
     }
     #endregion
 
-    private async Task<Tuple<string, string>?> GetTokenAndUrl()
+    public async Task<Tuple<string, string>?> GetTokenAndUrl()
     {
         var token = _redis.StringGet<string>("EB:SFToken");
         var url = _redis.StringGet<string>("EB:SFApiRoot");
@@ -452,16 +453,7 @@ public class SalesforceClient : ISalesforceClient
         // authenticate
         if (string.IsNullOrEmpty(token))
         {
-            var authRequest = new SalesforceAuthenticationRequest
-            {
-                ClientId = _config["Salesforce:ConnectedApp:ClientId"],
-                ClientSecret = _config["Salesforce:ConnectedApp:ClientSecret"],
-                GrantType = "password",
-                Username = _config["Salesforce:Username"],
-                Password = _config["Salesforce:Password"]
-            };
-            var authObject = await Authenticate(authRequest);
-
+            var authObject = await Authenticate();
             if (authObject != null)
             {
                 token = authObject.AccessToken;
@@ -469,7 +461,7 @@ public class SalesforceClient : ISalesforceClient
             }
             else
             {
-                _logger.LogError($"[EB] Attempted to log into Salesforce, but failed to get token. First 6 of client id: {authRequest.ClientId.Substring(0, 6)}, First 6 of client secret: {authRequest.ClientSecret.Substring(0, 6)}");
+                _logger.LogError($"[EB] Attempted to log into Salesforce, but failed to get token. First 6 of client id: {_config["Salesforce:ConnectedApp:ClientId"]?.Substring(0, 6)}, First 6 of client secret: {_config["Salesforce:ConnectedApp:ClientSecret"]?.Substring(0, 6)}");
                 return null;
             }
         }
@@ -477,15 +469,15 @@ public class SalesforceClient : ISalesforceClient
         return new Tuple<string, string>(token, url);
     }
 
-    private async Task<SalesforceAuthenticationResponse> Authenticate(SalesforceAuthenticationRequest request)
+    private async Task<SalesforceAuthenticationResponse> Authenticate()
     {
         HttpContent content = new FormUrlEncodedContent(new Dictionary<string, string>
         {
             { "grant_type", "password" },
-            { "client_id", request.ClientId ?? "defaultclientid" },
-            { "client_secret", request.ClientSecret ?? "defaultclientsecret" },
-            { "username", request.Username ?? "defaultusername" },
-            { "password", request.Password ?? "defaultpassword" }
+            { "client_id", _config["Salesforce:ConnectedApp:ClientId"] ?? "defaultclientid" },
+            { "client_secret", _config["Salesforce:ConnectedApp:ClientSecret"] ?? "defaultclientsecret" },
+            { "username", _config["Salesforce:Username"] ?? "defaultusername" },
+            { "password", _config["Salesforce:Password"] ?? "defaultpassword" }
         });
 
         var response = await _client.PostAsync($"{_config["Salesforce:LoginEndpoint"]}/services/oauth2/token", content);
