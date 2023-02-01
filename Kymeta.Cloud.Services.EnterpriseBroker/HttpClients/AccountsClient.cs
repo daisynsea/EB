@@ -10,6 +10,7 @@ public interface IAccountsClient
     Task<Tuple<AccountV2, string>> AddAccount(AccountV2 model);
     Task<Tuple<AccountV2, string>> UpdateAccount(Guid id, AccountV2 model);
     Task<List<AccountV2>> GetAccountsByManySalesforceIds(List<string> salesforceIds);
+    Task<string> SyncAccountsFromSalesforce(List<AccountV2> accounts);
 }
 public class AccountsClient : IAccountsClient
 {
@@ -62,5 +63,19 @@ public class AccountsClient : IAccountsClient
         if (!response.IsSuccessStatusCode) return null;
 
         return JsonSerializer.Deserialize<List<AccountV2>>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+    }
+
+    public async Task<string> SyncAccountsFromSalesforce(List<AccountV2> accounts)
+    {
+        var response = await _client.PostAsJsonAsync($"v2/trigger/sync", accounts);
+        string data = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogCritical($"Failed SyncAccountsToOSS HTTP call: {(int)response.StatusCode} | {data}");
+            return $"Error syncing to OSS: {data}";
+        }
+
+        return data;
     }
 }

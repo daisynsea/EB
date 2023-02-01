@@ -764,10 +764,19 @@ public class AccountBrokerService : IAccountBrokerService
     {
         var contacts = await _sfClient.GetContactsFromSalesforce();
         var accounts = await _sfClient.GetAccountsFromSalesforce();
+        var justTheIds = accounts.Select(a => a.Id).ToList();
+        var ossAccounts = await _ossService.GetAccountsByManySalesforceIds(justTheIds);
 
-        var remapped = accounts.Select(a => _ossService.RemapSalesforceAccountToOssAccount(null, a, a.Oracle_Acct__c, contacts));
+        Console.WriteLine($"{contacts.Count} contacts found in Salesforce.");
+        Console.WriteLine($"{accounts.Count} accounts found in Salesforce.");
 
-        // TODO: Implement the call to update many accounts at once in Accounts service
+        var remapped = accounts.Select(async (a) => await _ossService.RemapSalesforceAccountToOssAccount(null, a, a.Oracle_Acct__c, contacts, ossAccounts));
+
+        var result = (await Task.WhenAll(remapped)).ToList();
+
+        Console.WriteLine($"Writing {result.Count} to OSS.");
+
+        var response = await _ossService.SyncAccountsToOSS(result);
 
         return remapped.Count();
     }

@@ -93,6 +93,12 @@ public interface IOssService
     /// <param name="model">User object</param>
     /// <returns>User object</returns>
     Task<Tuple<User, string>> UpdateUserInOSS(SalesforceContactModel model, SalesforceActionTransaction transaction);
+    /// <summary>
+    /// Syncs accounts to OSS from SF
+    /// </summary>
+    /// <param name="accounts">List of accounts</param>
+    /// <returns>String with success or fail</returns>
+    Task<string> SyncAccountsToOSS(List<AccountV2> accounts);
 }
 
 public class OssService : IOssService
@@ -289,6 +295,11 @@ public class OssService : IOssService
     public async virtual Task<List<AccountV2>> GetAccountsByManySalesforceIds(List<string> salesforceIds)
     {
         return await _accountsClient.GetAccountsByManySalesforceIds(salesforceIds);
+    }
+
+    public async virtual Task<string> SyncAccountsToOSS(List<AccountV2> accounts)
+    {
+        return await _accountsClient.SyncAccountsFromSalesforce(accounts);
     }
 
     public async virtual Task<AccountV2> RemapSalesforceAccountToOssAccount(
