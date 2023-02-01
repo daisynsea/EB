@@ -7,10 +7,14 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Services.BackgroundOperations.P
 {
     public class AssetEventListener : IMessageListener
     {
+        private readonly IConfiguration _config;
+        private readonly ILogger<AssetEventListener> _logger;
         private readonly ICacheRepository _cacheRepo;
 
-        public AssetEventListener(ICacheRepository cacheRepo)
+        public AssetEventListener(IConfiguration config, ILogger<AssetEventListener> logger, ICacheRepository cacheRepo)
         {
+            _config = config;
+            _logger = logger;
             _cacheRepo = cacheRepo;
         }
 
@@ -24,15 +28,16 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Services.BackgroundOperations.P
             // fetch the JSON
             var convertedJson = message.Json;
             // deserialize JSON into C# model
-            var obj = JsonConvert.DeserializeObject<AssetEventRoot>(convertedJson);
-            if (obj == null)
+            var assetEvent = JsonConvert.DeserializeObject<AssetEventRoot>(convertedJson);
+            if (assetEvent == null)
             {
+                _logger.LogCritical($"[PLATFORM_EVENTS] Unable to deserialize message payload: Asset event not recognized.");
                 return;
             }
-            _cacheRepo.SetSalesforceEventReplayId("AssetReplayId", obj.Data.Event.ReplayId.ToString());
-            // write to console for demonstration purposes
-            Console.WriteLine(convertedJson);
-            Console.WriteLine($"Message received ({obj?.Data.Payload.CreatedDate}) - Name: {obj?.Data.Payload.Name}");
+            // assign replayId to redis cache to establish replay starting point in event of service failure
+            _cacheRepo.SetSalesforceEventReplayId(_config["Salesforce:PlatformEvents:Channels:Asset"], assetEvent.Data.Event.ReplayId.ToString());
+            // TODO: take action with message data
+            _logger.LogInformation($"Message received ({assetEvent?.Data.Payload.CreatedDate}) - Name: {assetEvent?.Data.Payload.Name}");
         }
     }
 }

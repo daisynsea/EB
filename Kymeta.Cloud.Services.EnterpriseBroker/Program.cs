@@ -85,10 +85,10 @@ builder.Services.AddScoped<IOracleService, OracleService>();
 builder.Services.AddScoped<ISalesforceProductsRepository, SalesforceProductsRepository>();
 builder.Services.AddScoped<IQuotesRepository, QuotesRepository>();
 builder.Services.AddScoped<IConfiguratorQuoteRequestService, ConfiguratorQuoteRequestService>();
-builder.Services.AddScoped<IProductsBrokerService, ProductsBrokerService>();
 builder.Services.AddScoped<IFileStorageService, FileStorageService>();
 builder.Services.AddScoped<ITerminalSerialCacheRepository, TerminalSerialCacheRepository>();
 
+builder.Services.AddScoped<IProductsBrokerService, ProductsBrokerService>();
 builder.Services.AddSingleton<ICacheRepository, CacheRepository>();
 builder.Services.AddSingleton<IMessageListener, AssetEventListener>();
 
@@ -99,10 +99,10 @@ builder.Services.Configure<HostOptions>(hostOptions =>
     // prevent host crash if background operation encounters an Exception
     hostOptions.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore;
 });
-//builder.Services.AddHostedService<SalesforceBackgroundOperationService>();
-//builder.Services.AddSingleton<ISalesforceProcessingService, SalesforceProcessingService>();
-//builder.Services.AddHostedService<OracleBackgroundOperationService>();
-//builder.Services.AddSingleton<IOracleProcessingService, OracleProcessingService>();
+builder.Services.AddHostedService<SalesforceBackgroundOperationService>();
+builder.Services.AddScoped<ISalesforceProcessingService, SalesforceProcessingService>();
+builder.Services.AddHostedService<OracleBackgroundOperationService>();
+builder.Services.AddScoped<IOracleProcessingService, OracleProcessingService>();
 builder.Services.AddHostedService<SalesforcePlatformEventsBackgroundOperationService>();
 builder.Services.AddSingleton<ISalesforcePlatformEventsProcessingService, SalesforcePlatformEventsProcessingService>();
 #endregion

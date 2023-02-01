@@ -1,7 +1,5 @@
 ﻿using CometD.NetCore.Bayeux.Client;
 using CometD.NetCore.Bayeux;
-using Newtonsoft.Json;
-using Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce.External.PlatformEvents;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.Services.BackgroundOperations.PlatformEventListeners
 {
@@ -17,14 +15,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Services.BackgroundOperations.P
             // fetch the JSON
             var convertedJson = message.Json;
             Console.WriteLine(convertedJson);
-            // TODO: if message indicates auth failed, we must renew the token and refresh/store in redis
-            // TODO: so the background service can re-establish a new bayeux client and subscriptions
-            // TODO: have redis indicate need of a new Bayeux client
-
-
-            //// deserialize JSON into C# model
-            //var obj = JsonConvert.DeserializeObject<ContactEventRoot>(convertedJson);
-            // write to console for demonstration purposes
+            // TODO: if message indicates auth failed, renew the token and refresh/store in redis?
         }
     }
 }
