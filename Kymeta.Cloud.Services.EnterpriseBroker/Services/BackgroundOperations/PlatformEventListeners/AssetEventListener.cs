@@ -5,10 +5,17 @@ using Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce.External.Platform
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.Services.BackgroundOperations.PlatformEventListeners
 {
-    class ContactEventListener : IMessageListener
+    public class AssetEventListener : IMessageListener
     {
+        private readonly ICacheRepository _cacheRepo;
+
+        public AssetEventListener(ICacheRepository cacheRepo)
+        {
+            _cacheRepo = cacheRepo;
+        }
+
         /// <summary>
-        /// Listen for messages from Salesforce Platform Events for Contacts
+        /// Listen for messages from Salesforce Platform Events for Assets
         /// </summary>
         /// <param name="channel"></param>
         /// <param name="message"></param>
@@ -17,10 +24,15 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Services.BackgroundOperations.P
             // fetch the JSON
             var convertedJson = message.Json;
             // deserialize JSON into C# model
-            var obj = JsonConvert.DeserializeObject<ContactEventRoot>(convertedJson);
+            var obj = JsonConvert.DeserializeObject<AssetEventRoot>(convertedJson);
+            if (obj == null)
+            {
+                return;
+            }
+            _cacheRepo.SetSalesforceEventReplayId("AssetReplayId", obj.Data.Event.ReplayId.ToString());
             // write to console for demonstration purposes
             Console.WriteLine(convertedJson);
-            Console.WriteLine($"Message received ({obj?.Data.Payload.KCS_Contact_Id__c}) - Name: {obj?.Data.Payload.KCS_Contact_FirstName__c} {obj?.Data.Payload.KCS_Contact_LastName__c} [{obj?.Data.Payload.KCS_Contact_Email__c}]");
+            Console.WriteLine($"Message received ({obj?.Data.Payload.CreatedDate}) - Name: {obj?.Data.Payload.Name}");
         }
     }
 }

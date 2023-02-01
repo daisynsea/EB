@@ -2,7 +2,6 @@
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce.External.PlatformEvents
 {
-
     public class SalesforcePlatformEventData<T>
     {
         [JsonProperty("schema")]
@@ -17,5 +16,11 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce.External.Plat
     {
         [JsonProperty("replayId")]
         public int ReplayId { get; set; }
+    }
+    
+    public class PlatformEventPayload
+    {
+        public string CreatedById { get; set; }
+        public DateTime CreatedDate { get; set; }
     }
 }

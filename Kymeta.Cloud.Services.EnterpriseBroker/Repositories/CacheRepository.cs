@@ -10,8 +10,9 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Repositories
         SalesforceProductObjectModelV2 GetProduct(string productId);
         IEnumerable<SalesforceProductObjectModelV2> GetProducts();
         void DeleteProducts(IEnumerable<string> productIds);
-        void ClearCacheCompletely();
+        void ClearProductsCacheCompletely();
         void SetProducts(IEnumerable<SalesforceProductObjectModelV2> products);
+        void SetSalesforceEventReplayId(string field, string replayId);
     }
     public class CacheRepository : ICacheRepository
     {
@@ -28,7 +29,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Repositories
             _redisClient.HashSetField(_SALESFORCE_PRODUCTS_KEY, model.Id, model);
         }
 
-        public void ClearCacheCompletely()
+        public void ClearProductsCacheCompletely()
         {
             _redisClient.KeyRemove(_SALESFORCE_PRODUCTS_KEY);
         }
@@ -58,6 +59,11 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Repositories
         public void UpdateProduct(SalesforceProductObjectModelV2 model)
         {
             _redisClient.HashSetField(_SALESFORCE_PRODUCTS_KEY, model.Id, model);
+        }
+
+        public void SetSalesforceEventReplayId(string field, string replayId)
+        {
+            _redisClient.HashSetField("EB:PlatformEvents:ReplayIds", field, replayId);
         }
     }
 }

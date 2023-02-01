@@ -28,7 +28,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Services.BackgroundOperations
             }
             catch (Exception ex)
             {
-                _logger.LogCritical(ex, "SalesforcePlatformEvents Background Service execution stopping due to an unhandeled exception.");
+                _logger.LogCritical(ex, "[BACKGROUND] SalesforcePlatformEvents Background Service execution stopping due to an unhandeled exception.");
             }
         }
 
