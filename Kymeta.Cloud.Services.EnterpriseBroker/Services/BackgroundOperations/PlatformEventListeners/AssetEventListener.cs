@@ -29,16 +29,16 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Services.BackgroundOperations.P
             // fetch the JSON
             var convertedJson = message.Json;
             // deserialize JSON into C# model
-            var assetEvent = JsonConvert.DeserializeObject<MessageData<SalesforceAssetEventPayload>>(convertedJson);
-            if (assetEvent == null || assetEvent.Event == null)
+            var assetEvent = JsonConvert.DeserializeObject<MessageEnvelope<SalesforceAssetEventPayload>>(convertedJson);
+            if (assetEvent == null || assetEvent.Data?.Event == null)
             {
                 _logger.LogCritical($"[PLATFORM_EVENTS] Unable to deserialize message payload: Asset event not recognized.");
                 return;
             }
             // assign replayId to redis cache to establish replay starting point in event of service failure
-            _cacheRepo.SetSalesforceEventReplayId(_config["Salesforce:PlatformEvents:Channels:Asset"], assetEvent.Event.ReplayId.ToString());
+            _cacheRepo.SetSalesforceEventReplayId(_config["Salesforce:PlatformEvents:Channels:Asset"], assetEvent.Data.Event.ReplayId.ToString());
             // TODO: take action with message data
-            _logger.LogInformation($"Message received ({assetEvent.Payload.CreatedDate}) - Name: {assetEvent?.Payload.Name}");
+            _logger.LogInformation($"Message received ({assetEvent.Data.Payload.CreatedDate}) - Name: {assetEvent?.Data.Payload.Name}");
         }
     }
 }
