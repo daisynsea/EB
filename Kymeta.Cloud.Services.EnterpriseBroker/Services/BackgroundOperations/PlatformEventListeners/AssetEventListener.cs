@@ -28,6 +28,11 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Services.BackgroundOperations.P
         {
             // fetch the JSON
             var convertedJson = message.Json;
+            if (convertedJson == null)
+            {
+                _logger.LogCritical($"[PLATFORM_EVENTS] Message content not available.");
+                return;
+            }
             // deserialize JSON into C# model
             var assetEvent = JsonConvert.DeserializeObject<MessageEnvelope<SalesforceAssetEventPayload>>(convertedJson);
             if (assetEvent == null || assetEvent.Data?.Event == null)
