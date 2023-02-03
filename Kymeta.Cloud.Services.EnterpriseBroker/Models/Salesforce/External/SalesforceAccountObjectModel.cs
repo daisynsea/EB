@@ -10,6 +10,7 @@ public class SalesforceAccountObjectModel
     public string? ParentId { get; set; }
     public string? CreatedDate { get; set; }
     public bool? IsPartner { get; set; }
+    public bool? Inactive__c { get; set; }
     public string? AccountType__c { get; set; }
     public string? Sub_Type__c { get; set; }
     public string? Type_of_Company__c { get; set; }

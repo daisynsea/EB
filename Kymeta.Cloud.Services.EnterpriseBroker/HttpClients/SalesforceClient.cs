@@ -1,18 +1,25 @@
 ﻿using Kymeta.Cloud.Commons.Databases.Redis;
 using Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce.External;
 using Newtonsoft.Json;
+using System.Text;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.HttpClients;
 
 public interface ISalesforceClient
 {
+    #region Account-related
+    Task<SalesforceAccountObjectModel> GetAccountFromSalesforce(string accountId);
+    Task<List<SalesforceAccountObjectModel>> GetAccountsFromSalesforce();
+    Task UpdateAccountInSalesforce(SalesforceAccountObjectModel account);
+    #endregion
+
     Task<SalesforceAddressObjectModel> GetAddressFromSalesforce(string addressId);
     Task<SalesforceContactObjectModel> GetContactFromSalesforce(string contactId);
-    Task<SalesforceAccountObjectModel> GetAccountFromSalesforce(string accountId);
+    Task<List<SalesforceContactObjectModel>> GetContactsFromSalesforce(string? accountId = null);
     Task<SalesforceUserObjectModel> GetUserFromSalesforce(string userId);
     Task<T?> GetReport<T>(string reportId);
     Task<IEnumerable<SalesforceProductObjectModelV2>> GetProductsByManyIds(IEnumerable<string> productIds);
-    Task<SalesforceQueryObjectModel> GetRelatedFiles(IEnumerable<string> salesforceIds);
+    Task<SalesforceQueryObjectModel<SalesforceQueryRelatedFilesModel>> GetRelatedFiles(IEnumerable<string> salesforceIds);
     Task<SalesforceFileResponseModel?> GetFileMetadataByManyIds(IEnumerable<string> fileIds);
     Task<Stream> DownloadFileContent(string downloadUrl);
 }
@@ -84,6 +91,38 @@ public class SalesforceClient : ISalesforceClient
         }
     }
 
+    public async Task<List<SalesforceContactObjectModel>> GetContactsFromSalesforce(string? accountId = null)
+    {
+        try
+        {
+            var tokenAndUrl = await GetTokenAndUrl();
+            var token = tokenAndUrl?.Item1;
+            var url = tokenAndUrl?.Item2;
+
+            _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+
+            string queryBase = $"{url}/services/data/v53.0/query/?q=";
+            string querySelectStatement = $"SELECT c.Id, c.FirstName, c.LastName, c.Name, c.Email, c.Account.Name, c.Description, c.Primary_Contact__c, c.Technical_Contact__c FROM Contact c";
+            string fullUrl = queryBase + querySelectStatement;
+            if (accountId != null) fullUrl += $" WHERE c.AccountId = '{accountId}'";
+
+            var response = await _client.GetAsync(fullUrl);
+            var stringResponse = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode) return null;
+
+            var accountObject = JsonConvert.DeserializeObject<SalesforceQueryObjectModel<SalesforceContactObjectModel>>(stringResponse);
+
+            return accountObject?.Records;
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"[EB] Exception thrown when fetching Contact from Salesforce: {ex.Message}");
+            return null;
+        }
+    }
+
     public async Task<SalesforceAccountObjectModel> GetAccountFromSalesforce(string accountId)
     {
         try
@@ -106,6 +145,36 @@ public class SalesforceClient : ISalesforceClient
         {
             _logger.LogError($"[EB] Exception thrown when fetching Account from Salesforce: {ex.Message}");
             return null;
+        }
+    }
+
+    public async Task<List<SalesforceAccountObjectModel>> GetAccountsFromSalesforce()
+    {
+        try
+        {
+            var tokenAndUrl = await GetTokenAndUrl();
+            var token = tokenAndUrl?.Item1;
+            var url = tokenAndUrl?.Item2;
+
+            _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+
+            string queryBase = $"{url}/services/data/v53.0/query/?q=";
+            string querySelectStatement = $"SELECT a.Id,a.Name,a.IsPartner,a.AccountType__c,a.Sub_Type__c,a.Vertical__c,a.Master_Agreement__c,Account_Manager__c,Marketing_Representative__c,Type_of_Company__c,Business_Unit__c,Oracle_Acct__c,Pricebook__c,Volume_Tier__c,EB_Configurator_Contact__c,EB_Configurator_Contact_Override__c,EB_Configurator_PB_C_Visible__c,EB_Configurator_Discount_Tier__c,EB_Configurator_PB_M_Visible__c,EB_Configurator_Pricing_MSRP_Visible__c,EB_Configurator_Visible__c,EB_Configurator_Pricing_WS_Visible__c FROM Account a";
+            string fullUrl = queryBase + querySelectStatement;
+
+            var response = await _client.GetAsync(fullUrl);
+            var stringResponse = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode) return null;
+
+            var accounts = JsonConvert.DeserializeObject<SalesforceQueryObjectModel<SalesforceAccountObjectModel>>(stringResponse);
+
+            return accounts?.Records;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"[EB] Exception thrown when fetching Contact from Salesforce: {ex.Message}");
+            throw;
         }
     }
 
@@ -161,6 +230,7 @@ public class SalesforceClient : ISalesforceClient
         }
     }
 
+    #region Product-related Methods
     public async Task<IEnumerable<SalesforceProductObjectModelV2>> GetProductsByManyIds(IEnumerable<string> productIds)
     {
         try
@@ -206,7 +276,7 @@ public class SalesforceClient : ISalesforceClient
             return null;
         }
     }
-    public async Task<SalesforceQueryObjectModel> GetRelatedFiles(IEnumerable<string> salesforceIds)
+    public async Task<SalesforceQueryObjectModel<SalesforceQueryRelatedFilesModel>> GetRelatedFiles(IEnumerable<string> salesforceIds)
     {
         try
         {
@@ -246,12 +316,12 @@ public class SalesforceClient : ISalesforceClient
             }
 
             // isolate the response data for each request
-            var result = new SalesforceQueryObjectModel();
+            var result = new SalesforceQueryObjectModel<SalesforceQueryRelatedFilesModel>();
             foreach (var res in batchResponses)
             {
                 // extract the data from the response
                 var data = await res.Content.ReadAsStringAsync();
-                var queryResult = JsonConvert.DeserializeObject<SalesforceQueryObjectModel>(data);
+                var queryResult = JsonConvert.DeserializeObject<SalesforceQueryObjectModel<SalesforceQueryRelatedFilesModel>>(data);
 
                 // add all of the file records to the return object
                 if (result.Records == null)
@@ -372,6 +442,8 @@ public class SalesforceClient : ISalesforceClient
             return null;
         }
     }
+    #endregion
+
     private async Task<Tuple<string, string>?> GetTokenAndUrl()
     {
         var token = _redis.StringGet<string>("EB:SFToken");
@@ -429,6 +501,30 @@ public class SalesforceClient : ISalesforceClient
         }
 
         return authenticationObject;
+    }
+
+    public async Task UpdateAccountInSalesforce(SalesforceAccountObjectModel account)
+    {
+        try
+        {
+            var json = JsonConvert.SerializeObject(account);
+            var content = new StringContent(json, Encoding.UTF8, "application/jsom");
+
+            var tokenAndUrl = await GetTokenAndUrl();
+            var token = tokenAndUrl?.Item1;
+            var url = tokenAndUrl?.Item2;
+
+            _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+
+            var response = await _client.PatchAsync($"{url}/services/data/v53.0/sobjects/Account/{account.Id}", content);
+
+            if (!response.IsSuccessStatusCode) throw new Exception($"Response was not successful. Code {response.StatusCode}");
+        } catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error updating account in SF: {ex.Message}");
+            ex.Data.Add("ErrorData", $"Error updating account in SF: {ex.Message}");
+            throw;
+        }
     }
 }
 

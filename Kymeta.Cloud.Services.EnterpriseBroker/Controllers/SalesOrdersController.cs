@@ -22,7 +22,7 @@ public class SalesOrdersController : ControllerBase
     }
 
     [HttpPost, AllowAnonymous]
-    public async Task<ActionResult<IEnumerable<SalesOrderResponse>>> CreateOrderQuote([FromBody] IEnumerable<string> salesOrders)
+    public async Task<ActionResult<IEnumerable<SalesOrderResponse>>> GetSalesOrders([FromBody] IEnumerable<string> salesOrders)
     {
         try
         {

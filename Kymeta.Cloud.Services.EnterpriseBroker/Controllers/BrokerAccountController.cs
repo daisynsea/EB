@@ -61,4 +61,23 @@ public class BrokerAccountController : ControllerBase
             return StatusCode(500, ex.Message);
         }
     }
+
+    /// <summary>
+    /// Fetch all salesforce accounts from Salesforce
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet, AllowAnonymous]
+    public async Task<ActionResult<List<SalesforceAccountObjectModel>>> GetSalesforceAccounts()
+    {
+        try
+        {
+            var result = await _accountBrokerService.GetSalesforceAccounts();
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error fetching accounts from Salesforce REST API due to an exception: {ex.Message}");
+            return StatusCode(500, ex.Message);
+        }
+    }
 }

@@ -1077,6 +1077,44 @@ public static class OracleSoapTemplates
     }
     #endregion
 
+    #region Reports
+    /// <summary>
+    ///  A template for fetching a Report from Oracle based on Absolute Path.
+    /// </summary>
+    /// <returns>Returns the XML SOAP payload for Oracle HTTP request.</returns>
+    public static string FetchReport(string reportAbsolutePath)
+    {
+        if (string.IsNullOrEmpty(reportAbsolutePath)) return null;
+
+        var fetchReportEnvelope =
+            $@"<soap:Envelope 
+	            xmlns:soap=""http://www.w3.org/2003/05/soap-envelope""
+	            xmlns:pub=""http://xmlns.oracle.com/oxp/service/PublicReportService"">
+               <soap:Header/>
+               <soap:Body>
+                  <pub:runReport>
+                     <pub:reportRequest>
+                        <pub:parameterNameValues>
+                           <!--Zero or more repetitions:-->
+                           <pub:item>
+                              <pub:name>p_report_type</pub:name>
+                              <pub:values>
+                                 <!--Zero or more repetitions:-->
+                                 <pub:item>SHIPMENT</pub:item>
+                              </pub:values>
+                           </pub:item>
+                        </pub:parameterNameValues>
+                        <pub:reportAbsolutePath>{reportAbsolutePath}</pub:reportAbsolutePath>
+                        <pub:sizeOfDataChunkDownload>-1</pub:sizeOfDataChunkDownload>
+                     </pub:reportRequest>
+                     <pub:appParams></pub:appParams>
+                  </pub:runReport>
+               </soap:Body>
+            </soap:Envelope>";
+        return fetchReportEnvelope;
+    }
+    #endregion
+
     #region Helpers
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum AddressType

@@ -1,22 +1,31 @@
 ﻿namespace Kymeta.Cloud.Services.EnterpriseBroker.Services;
 
 using Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.SOAP;
+using Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce.External;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 public interface IContactBrokerService
 {
     Task<UnifiedResponse> ProcessContactAction(SalesforceContactModel model);
+    Task<List<SalesforceContactObjectModel>> GetSalesforceContacts(string? accountId = null);
 }
 
 public class ContactBrokerService : IContactBrokerService
 {
     private readonly IActionsRepository _actionsRepository;
     private readonly IOracleService _oracleService;
+    private readonly ISalesforceClient _sfClient;
 
-    public ContactBrokerService(IActionsRepository actionsRepository, IOracleService oracleService)
+    public ContactBrokerService(IActionsRepository actionsRepository, IOracleService oracleService, ISalesforceClient salesforceClient)
     {
         _actionsRepository = actionsRepository;
         _oracleService = oracleService;
+        _sfClient = salesforceClient;
+    }
+
+    public async Task<List<SalesforceContactObjectModel>> GetSalesforceContacts(string? accountId = null)
+    {
+        return await _sfClient.GetContactsFromSalesforce(accountId);
     }
 
     public async Task<UnifiedResponse> ProcessContactAction(SalesforceContactModel model)

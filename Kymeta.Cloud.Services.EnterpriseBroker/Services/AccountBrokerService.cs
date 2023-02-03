@@ -18,6 +18,8 @@ public interface IAccountBrokerService
     /// <returns>Processed action</returns>
     Task<UnifiedResponse> ProcessAccountAction(SalesforceAccountModel model);
     Task<SalesforceAccountObjectModel> GetSalesforceAccountById(string accountId);
+    Task<List<SalesforceAccountObjectModel>> GetSalesforceAccounts();
+    Task<string?> UpdateSalesforceAccount(SalesforceAccountObjectModel model);
 }
 
 public class AccountBrokerService : IAccountBrokerService
@@ -38,6 +40,11 @@ public class AccountBrokerService : IAccountBrokerService
     public async Task<SalesforceAccountObjectModel> GetSalesforceAccountById(string accountId)
     {
         return await _sfClient.GetAccountFromSalesforce(accountId);
+    }
+
+    public async Task<List<SalesforceAccountObjectModel>> GetSalesforceAccounts()
+    {
+        return await _sfClient.GetAccountsFromSalesforce();
     }
 
     public async Task<UnifiedResponse> ProcessAccountAction(SalesforceAccountModel model)
@@ -692,5 +699,17 @@ public class AccountBrokerService : IAccountBrokerService
         }
 
         return response;
+    }
+
+    public async Task<string?> UpdateSalesforceAccount(SalesforceAccountObjectModel model)
+    {
+        try
+        {
+            await _sfClient.UpdateAccountInSalesforce(model);
+            return null;
+        } catch (Exception ex)
+        {
+            return ex.Message;
+        }
     }
 }
