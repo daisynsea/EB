@@ -8,6 +8,8 @@ public interface IUsersClient
     Task<Role> EditRolePermissions(Guid roleId, List<Guid> permissionIds);
     Task<List<Permission>> GetPermissions(Guid? roleId);
     Task<User> GetUserByEmail(string email);
+    Task<Tuple<User, string>> AddUser(User model);
+    Task<Tuple<User, string>> UpdateUser(Guid id, User model);
 }
 public class UsersClient : IUsersClient
 {
@@ -89,29 +91,21 @@ public class UsersClient : IUsersClient
         return JsonSerializer.Deserialize<User>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
     }
 
-    public async Task<User> UpdateUser(Guid id, User model)
+    public async Task<Tuple<User, string>> UpdateUser(Guid id, User model)
     {
         var response = await _client.PutAsJsonAsync($"v2/users/{id}", new { model.FirstName, model.LastName, model.Enabled, model.RoleId, model.AccountId, model.ContactType, model.Email });
-
-        if (response.IsSuccessStatusCode)
-        {
-            string data = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<User>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-        }
-
-        return null;
+        string data = await response.Content.ReadAsStringAsync();
+        if (!response.IsSuccessStatusCode) return new Tuple<User, string>(null, data);
+        var userObject = JsonSerializer.Deserialize<User>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        return new Tuple<User, string>(userObject, string.Empty);
     }
 
-    public async Task<User> AddUser(User model)
+    public async Task<Tuple<User, string>> AddUser(User model)
     {
         var response = await _client.PostAsJsonAsync($"v2/users", new { model.FirstName, model.LastName, model.Enabled, model.RoleId, model.AccountId, model.ContactType, model.Email });
-
-        if (response.IsSuccessStatusCode)
-        {
-            string data = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<User>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-        }
-
-        return null;
+        string data = await response.Content.ReadAsStringAsync();
+        if (!response.IsSuccessStatusCode) return new Tuple<User, string>(null, data);
+        var userObject = JsonSerializer.Deserialize<User>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        return new Tuple<User, string>(userObject, string.Empty);
     }
 }

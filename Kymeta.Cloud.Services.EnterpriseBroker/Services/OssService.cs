@@ -451,11 +451,11 @@ public class OssService : IOssService
         return await _usersClient.GetUserByEmail(email);
     }
 
-    public virtual User RemapSalesforceContactToOssUser(SalesforceContactModel model, )
+    public virtual User RemapSalesforceContactToOssUser(SalesforceContactModel model)
     {
         var user = new User
         {
-            AccountId = model.
+            
         };
         return user;
     }
@@ -472,12 +472,31 @@ public class OssService : IOssService
             await LogAction(transaction, SalesforceTransactionAction.CreateUserInOss, ActionObjectType.Contact, StatusType.Error, null, error);
             return new Tuple<User, string>(null, error);
         }
+
         // remap
         var ossUserModel = RemapSalesforceContactToOssUser(model);
-    }
 
-    public async Task<Tuple<User, string>> UpdateUserInOSS(SalesforceContactModel model, SalesforceActionTransaction transaction)
-    {
+        try
+        {
+            // add the User
+            var addedUser = await _usersClient.AddUser(ossUserModel);
+            if (addedUser == null)
+            {
+                error = $"There was an error adding the User to OSS: {addedUser.Item2}";
+                await LogAction(transaction, SalesforceTransactionAction.CreateUserInOss, ActionObjectType.Contact, StatusType.Error, null, error);
+                return new Tuple<User, string>(null, error);
+            }
 
+            await LogAction(transaction, SalesforceTransactionAction.CreateUserInOss, ActionObjectType.Contact, StatusType.Successful, addedUser.Item1.Id.ToString());
+            await _activityLoggerClient.AddActivity(ActivityEntityTypes.Users, addedUser.Item1.Id, addedUser.Item1.FullName, addedUser.Item1.Id, $"{addedUser.Item1.FullName}", "adduser", null, null, JsonConvert.SerializeObject(addedUser));
+
+            return new Tuple<User, string>(ossUserModel, String.Empty);
+        }
+        catch (Exception ex)
+        {
+            error = $"There was an error calling the OSS Users service: {ex.Message}";
+            await LogAction(transaction, SalesforceTransactionAction.CreateUserInOss, ActionObjectType.Contact, StatusType.Error, null, error);
+            return new Tuple<User, string>(null, error);
+        }
     }
 }
