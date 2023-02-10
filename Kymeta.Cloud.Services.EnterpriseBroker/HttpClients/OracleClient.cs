@@ -21,6 +21,8 @@ public interface IOracleClient
 
 public class OracleClient : IOracleClient
 {
+    private const string UserName = "Oracle:Username";
+    private const string Password = "Oracle:Password";
     private HttpClient _client;
     private ILogger<OracleClient> _logger;
     private IConfiguration _config;
@@ -29,7 +31,7 @@ public class OracleClient : IOracleClient
     {
         client.BaseAddress = new Uri(configuration.GetValue<string>("Oracle:Endpoint"));
         // custom BasicAuthenticationHeaderValue class to wrap the encoding 
-        client.DefaultRequestHeaders.Authorization = new BasicAuthenticationHeaderValue(configuration.GetValue<string>("Oracle:Username"), configuration.GetValue<string>("Oracle:Password"));
+        client.DefaultRequestHeaders.Authorization = new BasicAuthenticationHeaderValue(configuration.GetValue<string>(UserName), configuration.GetValue<string>(Password));
         _client = client;
         _config = configuration;
 
@@ -50,39 +52,13 @@ public class OracleClient : IOracleClient
             if (string.IsNullOrEmpty(soapEnvelope)) return new Tuple<XDocument, string, string>(null, $"soapEnvelope is required.", null);
             if (string.IsNullOrEmpty(oracleServiceUrl)) return new Tuple<XDocument, string, string>(null, $"oracleServiceUrl is required.", null);
 
-            // encode the XML envelope (payload)
-            byte[] byteArray = Encoding.UTF8.GetBytes(soapEnvelope);
-
-            // construct the base 64 encoded string used as credentials for the service call
-            byte[] toEncodeAsBytes = Encoding.ASCII.GetBytes(_config["Oracle:Username"] + ":" + _config["Oracle:Password"]);
-            string credentials = Convert.ToBase64String(toEncodeAsBytes);
 
             // TODO: check to see if we can re-use BasicAuthenticationHeaderValue (below) instead of encoding above
             //var creds = new BasicAuthenticationHeaderValue(_config.GetValue<string>("Oracle:Username"), _config.GetValue<string>("Oracle:Password"));
 
-            // create HttpWebRequest connection to the service
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(oracleServiceUrl);
+            HttpWebRequest request = CreateRequest(oracleServiceUrl, contentType);
 
-            // configure request headers
-            request.Method = "POST";
-            request.ContentType = contentType ?? "text/xml;charset=UTF-8";
-            request.ContentLength = byteArray.Length;
-
-            // configure the request to use basic authentication, with base64 encoded user name and password
-            request.Headers.Add("Authorization", $"Basic {credentials}");
-
-            // write the xml payload to the request
-            Stream dataStream = request.GetRequestStream();
-            dataStream.Write(byteArray, 0, byteArray.Length);
-            dataStream.Close();
-
-            var doc = new XDocument();
-            // get the response and process it (print out the response XDocument doc)
-            using (WebResponse response = await request.GetResponseAsync())
-            {
-                using Stream stream = response.GetResponseStream();
-                doc = XDocument.Load(stream);
-            }
+            XDocument doc = await ReadResponse(request);
             Console.WriteLine(doc);
             return new Tuple<XDocument, string, string>(doc, null, null);
         }
@@ -111,6 +87,49 @@ public class OracleClient : IOracleClient
             Console.WriteLine(ex.Message);
             return new Tuple<XDocument, string, string>(null, ex.Message, null);
         }
+
+        string GetBasicAuthString()
+        {
+
+            // construct the base 64 encoded string used as credentials for the service call
+            byte[] toEncodeAsBytes = Encoding.ASCII.GetBytes(_config[UserName] + ":" + _config[Password]);
+            string credentials = Convert.ToBase64String(toEncodeAsBytes);
+            return credentials;
+        }
+
+        HttpWebRequest CreateRequest(string oracleServiceUrl, string? contentType)
+        {
+            byte[] byteArray = Encoding.UTF8.GetBytes(soapEnvelope);
+            // create HttpWebRequest connection to the service
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(oracleServiceUrl);
+
+            // configure request headers
+            request.Method = "POST";
+            request.ContentType = contentType ?? "text/xml;charset=UTF-8";
+            request.ContentLength = byteArray.Length;
+
+            // configure the request to use basic authentication, with base64 encoded user name and password
+            request.Headers.Add("Authorization", $"Basic {GetBasicAuthString()}");
+
+            // write the xml payload to the request
+            Stream dataStream = request.GetRequestStream();
+            dataStream.Write(byteArray, 0, byteArray.Length);
+            dataStream.Close();
+            return request;
+        }
+    }
+
+    private static async Task<XDocument> ReadResponse(HttpWebRequest request)
+    {
+        var doc = new XDocument();
+        // get the response and process it (print out the response XDocument doc)
+        using (WebResponse response = await request.GetResponseAsync())
+        {
+            using Stream stream = response.GetResponseStream();
+            doc = XDocument.Load(stream);
+        }
+
+        return doc;
     }
 
     public async Task<Tuple<OracleOrganizationResponse, string>> CreateOrganization(CreateOracleOrganizationModel model)
