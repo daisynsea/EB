@@ -1,6 +1,8 @@
 ﻿using Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.REST;
 using System.Text.Json;
 using System.Text;
+using Kymeta.Cloud.Services.EnterpriseBroker.Models;
+using System.Configuration;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.HttpClients
 {
@@ -13,11 +15,16 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.HttpClients
 
     public class OracleClient : IOracleClient
     {
+        private const string UserName = "Oracle:Username";
+        private const string Password = "Oracle:Password";
         private readonly HttpClient _client;
         private readonly ILogger<IOracleClient> _logger;
 
-        public OracleClient(HttpClient client, ILogger<IOracleClient> logger)
+        public OracleClient(HttpClient client, IConfiguration configuration, ILogger<IOracleClient> logger)
         {
+            client.BaseAddress = new Uri(configuration.GetValue<string>("Oracle:Endpoint"));
+            // custom BasicAuthenticationHeaderValue class to wrap the encoding 
+            client.DefaultRequestHeaders.Authorization = new BasicAuthenticationHeaderValue(configuration.GetValue<string>(UserName), configuration.GetValue<string>(Password));
             _client = client;
             _logger = logger;
         }
