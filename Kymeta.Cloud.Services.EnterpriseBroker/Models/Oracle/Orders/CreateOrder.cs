@@ -1,6 +1,6 @@
 ﻿namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.Orders
 {
-    public class CreateOrder
+    public record CreateOrder
     {
         public string? SourceTransactionNumber { get; set; }
         public string? SourceTransactionId { get; set; }
@@ -24,7 +24,7 @@
         public IEnumerable<OrderLines> Lines { get; set; } = null!;
     }
 
-    public class OrderLines
+    public record OrderLines
     {
         public long SourceTransactionLineId { get; set; }
         public long SourceTransactionLineNumber { get; set; }
@@ -37,15 +37,14 @@
         public string OrderedUOM { get; set; }
     }
 
-    public class CustomerBill
+    public record CustomerBill
     {
         public long AccountNumber { get; set; }
         //public long ContactNumber { get; set; }
         //public string AddressId { get; set; }
     }
 
-
-    public class CustomerShip
+    public record CustomerShip
     {
         public long PartyNumber { get; set; }
         //public long ContactNumber { get; set; }
