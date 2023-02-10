@@ -5,7 +5,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.REST
     public class OracleResponse
     {
        
-        public OracleResponse(HttpStatusCode statusCode, string? message = null, object? data)
+        public OracleResponse(HttpStatusCode statusCode, string? message = null, object? data = null)
         {
             StatusCode = statusCode;
             Message = message;
