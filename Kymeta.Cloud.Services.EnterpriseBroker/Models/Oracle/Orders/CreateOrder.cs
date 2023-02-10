@@ -2,18 +2,18 @@
 {
     public class CreateOrder
     {
-        public string SourceTransactionNumber { get; set; }
-        public string SourceTransactionId { get; set; }
-        public string OrderKey { get; set; }
-        public string SourceTransactionSystem { get; set; }
-        public string BusinessUnitName { get; set; }
-        public string BuyingPartyNumber { get; set; }
-        public string BuyingPartyContactNumber { get; set; }
-        public string TransactionType { get; set; }
-        public string RequestedShipDate { get; set; }
-        public string PaymentTerms { get; set; }
-        public string TransactionalCurrencyCode { get; set; }
-        public string RequestingBusinessUnitName { get; set; }
+        public string? SourceTransactionNumber { get; set; }
+        public string? SourceTransactionId { get; set; }
+        public string? OrderKey { get; set; }
+        public string? SourceTransactionSystem { get; set; }
+        public string? BusinessUnitName { get; set; }
+        public string? BuyingPartyNumber { get; set; }
+        public string? BuyingPartyContactNumber { get; set; }
+        public string? TransactionType { get; set; }
+        public string? RequestedShipDate { get; set; }
+        public string? PaymentTerms { get; set; }
+        public string? TransactionalCurrencyCode { get; set; }
+        public string? RequestingBusinessUnitName { get; set; }
         public bool FreezePriceFlag { get; set; }
         public bool FreezeShippingChargeFlag { get; set; }
         public bool FreezeTaxFlag { get; set; }
@@ -21,7 +21,6 @@
         public long SourceTransactionRevisionNumber { get; set; }
         public CustomerBill BillToCustomer { get; set; } = null!;
         public CustomerShip ShipToCustomer { get; set; } = null!;
-
         public IEnumerable<OrderLines> Lines { get; set; } = null!;
     }
 
