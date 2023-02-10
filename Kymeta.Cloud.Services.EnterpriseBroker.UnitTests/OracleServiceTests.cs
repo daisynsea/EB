@@ -23,7 +23,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
         public OracleServiceTests(TestFixture fixture)
         {
             _fixture = fixture;
-            _oracleService = new Mock<OracleService>(_fixture.OracleClient.Object, _fixture.Configuration, _fixture.ActionsRepository.Object, _fixture.TerminalSerialCacheRepository.Object, _fixture.ManufacturingProxyClient.Object);
+            _oracleService = new Mock<OracleService>(_fixture.OracleSoapClient.Object, _fixture.Configuration, _fixture.ActionsRepository.Object, _fixture.TerminalSerialCacheRepository.Object, _fixture.ManufacturingProxyClient.Object);
             _oracleService.CallBase = true;
             _oracleService.Setup(x => x.LogAction(It.IsAny<SalesforceActionTransaction>(), It.IsAny<SalesforceTransactionAction>(), It.IsAny<ActionObjectType>(), It.IsAny<StatusType>(), It.IsAny<string>(), It.IsAny<string>()))
                           .Verifiable();
@@ -41,7 +41,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             // simulate XML response object with sample XML
             XDocument xDoc = XDocument.Load("TestFiles\\create-organization-soap-response.xml");
 
-            _fixture.OracleClient
+            _fixture.OracleSoapClient
                 .Setup(oc => oc.SendSoapRequest(It.IsAny<string>(), It.IsAny<string>(), null))
                 .ReturnsAsync(new Tuple<XDocument, string, string>(xDoc, null, null));
             _fixture.OracleService.Setup(os => os.CreateOrganization(It.IsAny<SalesforceAccountModel>(), It.IsAny<List<OraclePartySite>>(), transaction))
@@ -72,7 +72,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                 PartyNumber = "123",
                 PartyId = 456
             };
-            _fixture.OracleClient.Setup(x => x.UpdateOrganization(It.IsAny<UpdateOracleOrganizationModel>(), It.IsAny<ulong>()))
+            _fixture.OracleSoapClient.Setup(x => x.UpdateOrganization(It.IsAny<UpdateOracleOrganizationModel>(), It.IsAny<ulong>()))
                 .ReturnsAsync(new Tuple<OracleOrganizationResponse, string>(oracleOrganizationResponse, string.Empty));
 
             var oracleOrganization = new OracleOrganization();
@@ -104,7 +104,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             _fixture.ManufacturingProxyClient
                 .Setup(mpc => mpc.UpdateSalesOrders(It.IsAny<IEnumerable<SalesOrderTerminal>>()))
                 .ReturnsAsync(new List<SalesOrderTerminal>(updatedTerminalResult));
-            _fixture.OracleClient
+            _fixture.OracleSoapClient
                 .Setup(oc => oc.SendSoapRequest(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(new Tuple<XDocument, string, string>(xDoc, null, null));
 

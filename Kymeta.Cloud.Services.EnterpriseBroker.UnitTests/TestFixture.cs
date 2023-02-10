@@ -17,7 +17,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
         public Mock<ISalesforceClient> SalesforceClient = new();
         public Mock<IAccountsClient> AccountsClient = new();
         public Mock<IUsersClient> UsersClient = new();
-        public Mock<IOracleClient> OracleClient = new();
+        public Mock<IOracleSoapClient> OracleSoapClient = new();
         public Mock<IActionsRepository> ActionsRepository = new();
         public Mock<IActivityLoggerClient> ActivityLoggerClient = new();
         public Mock<IActivityLogger> ActivityLogger = new();
