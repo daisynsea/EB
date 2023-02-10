@@ -69,7 +69,7 @@ else
 builder.Services.AddHealthChecks();
 // Add services
 builder.Services.AddHttpClient<IAccountsClient, AccountsClient>();
-builder.Services.AddHttpClient<IOracleClient, OracleClient>();
+builder.Services.AddHttpClient<IOracleSoapClient, OracleSoapClient>();
 builder.Services.AddHttpClient<IUsersClient, UsersClient>();
 builder.Services.AddHttpClient<IActivityLoggerClient, ActivityLoggerClient>();
 builder.Services.AddHttpClient<IFileStorageClient, FileStorageClient>();
