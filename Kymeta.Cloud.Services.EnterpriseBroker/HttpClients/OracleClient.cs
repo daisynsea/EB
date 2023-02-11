@@ -84,10 +84,11 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.HttpClients
 
         public async Task<OracleResponse> CreateOrder(CreateOrder newOrder, CancellationToken cancellationToken)
         {
-            var content = new StringContent(JsonSerializer.Serialize(newOrder), Encoding.UTF8, "application/json");
+            var serialized = JsonSerializer.Serialize(newOrder, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            var content = new StringContent(serialized, Encoding.UTF8, "application/json");
+
+            HttpResponseMessage response = await _client.PostAsync("fscmRestApi/resources/11.13.18.05/salesOrdersForOrderHub", content, cancellationToken);
            
-            HttpResponseMessage response = await _client.PostAsync("/fscmRestApi/resources/11.13.18.05/salesOrdersForOrderHub", content, cancellationToken);
-            
             return  await response.ProcessResponseFromOracle(cancellationToken);
         }
     }

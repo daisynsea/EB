@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.Orders
 {
@@ -20,38 +20,38 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.Orders
         public bool FreezeShippingChargeFlag { get; set; }
         public bool FreezeTaxFlag { get; set; }
         public bool SubmittedFlag { get; set; }
-        public long SourceTransactionRevisionNumber { get; set; }
-        [JsonProperty("billToCustomer")]
-        public CustomerBill BillToCustomer { get; set; } = null!;
-        [JsonProperty("shipToCustomer")]
-        public CustomerShip ShipToCustomer { get; set; } = null!;
-        [JsonProperty("lines")]
-        public IEnumerable<OrderLines> Lines { get; set; } = null!;
+        public string? SourceTransactionRevisionNumber { get; set; }
+        [JsonPropertyName("billToCustomer")]
+        public CustomerBill[] BillToCustomer { get; set; } = Array.Empty<CustomerBill>();
+        [JsonPropertyName("shipToCustomer")]
+        public CustomerShip[] ShipToCustomer { get; set; } = Array.Empty<CustomerShip>();
+        [JsonPropertyName("lines")]
+        public OrderLines[] Lines { get; set; } = Array.Empty<OrderLines>();
     }
 
     public record OrderLines
     {
-        public long SourceTransactionLineId { get; set; }
-        public long SourceTransactionLineNumber { get; set; }
-        public long SourceTransactionScheduleId { get; set; }
-        public long SourceScheduleNumber { get; set; }
-        public string TransactionCategoryCode { get; set; }
-        public string TransactionLineType { get; set; }
-        public string ProductNumber { get; set; }
-        public long OrderedQuantity { get; set; }
-        public string OrderedUOM { get; set; }
+        public string? SourceTransactionLineId { get; set; }
+        public string? SourceTransactionLineNumber { get; set; }
+        public string? SourceTransactionScheduleId { get; set; }
+        public string? SourceScheduleNumber { get; set; }
+        public string? TransactionCategoryCode { get; set; }
+        public string? TransactionLineType { get; set; }
+        public string? ProductNumber { get; set; }
+        public string? OrderedQuantity { get; set; }
+        public string? OrderedUOM { get; set; }
     }
 
     public record CustomerBill
     {
-        public long AccountNumber { get; set; }
+        public string? AccountNumber { get; set; }
         //public long ContactNumber { get; set; }
         //public string AddressId { get; set; }
     }
 
     public record CustomerShip
     {
-        public long PartyNumber { get; set; }
+        public string? PartyNumber { get; set; }
         //public long ContactNumber { get; set; }
         //public string AddressId { get; set; }
     }
