@@ -1,4 +1,6 @@
-﻿namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.Orders
+﻿using Newtonsoft.Json;
+
+namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.Orders
 {
     public record CreateOrder
     {
@@ -19,8 +21,11 @@
         public bool FreezeTaxFlag { get; set; }
         public bool SubmittedFlag { get; set; }
         public long SourceTransactionRevisionNumber { get; set; }
+        [JsonProperty("billToCustomer")]
         public CustomerBill BillToCustomer { get; set; } = null!;
+        [JsonProperty("shipToCustomer")]
         public CustomerShip ShipToCustomer { get; set; } = null!;
+        [JsonProperty("lines")]
         public IEnumerable<OrderLines> Lines { get; set; } = null!;
     }
 
