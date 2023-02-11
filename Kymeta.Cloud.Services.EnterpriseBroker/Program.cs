@@ -14,9 +14,11 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Serialization;
 
+[assembly: InternalsVisibleTo("Kymeta.Cloud.Services.EnterpriseBroker.IntegrationTests")]
 var builder = WebApplication.CreateBuilder(args);
 // Default connection limit is 100 seconds, make it a lot longer just in case Oracle sucks
 builder.WebHost.UseKestrel(options =>
