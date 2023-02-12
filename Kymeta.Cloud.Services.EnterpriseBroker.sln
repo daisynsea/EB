@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kymeta.Cloud.Services.Enter
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kymeta.Cloud.Services.EnterpriseBroker.UnitTests", "Kymeta.Cloud.Services.EnterpriseBroker.UnitTests\Kymeta.Cloud.Services.EnterpriseBroker.UnitTests.csproj", "{61BAEE74-0F8D-434A-800D-725D744381A0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kymeta.Cloud.Services.EnterpriseBroker.IntegrationTests", "IntegrationTests\Kymeta.Cloud.Services.EnterpriseBroker.IntegrationTests.csproj", "{6228FBEE-7290-4E6C-9488-4E3FDC49E570}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kymeta.Cloud.Services.EnterpriseBroker.IntegrationTests", "Kymeta.Cloud.Services.EnterpriseBroker.IntegrationTests\Kymeta.Cloud.Services.EnterpriseBroker.IntegrationTests.csproj", "{6228FBEE-7290-4E6C-9488-4E3FDC49E570}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
