@@ -126,7 +126,6 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.IntegrationTests
             return this;
         }
 
-
         public CreateOrderBuilder WithShipToCustomer(CustomerShip customerShip)
         {
             order.ShipToCustomer = new[] { customerShip };
