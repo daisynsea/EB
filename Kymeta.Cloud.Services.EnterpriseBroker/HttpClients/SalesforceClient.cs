@@ -1,5 +1,6 @@
 ﻿using Kymeta.Cloud.Commons.Databases.Redis;
 using Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce.External;
+using Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce.Orders;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models;
 using Newtonsoft.Json;
 using System.Text;
@@ -24,6 +25,8 @@ public interface ISalesforceClient
     Task<SalesforceQueryObjectModel<SalesforceQueryRelatedFilesModel>> GetRelatedFiles(IEnumerable<string> salesforceIds);
     Task<SalesforceFileResponseModel?> GetFileMetadataByManyIds(IEnumerable<string> fileIds);
     Task<Stream> DownloadFileContent(string downloadUrl);
+
+    Task<IEnumerable<OrderProduct>> GetOrderProducts(string orderNumber, CancellationToken cancellationToken);
 }
 
 public class SalesforceClient : ISalesforceClient
@@ -544,6 +547,21 @@ public class SalesforceClient : ISalesforceClient
             ex.Data.Add("ErrorData", $"Error updating account in SF: {ex.Message}");
             throw;
         }
+    }
+
+    public async Task<IEnumerable<OrderProduct>> GetOrderProducts(string orderNumber, CancellationToken cancellationToken)
+    {
+        var tokenAndUrl = await GetTokenAndUrl();
+        var token = tokenAndUrl?.Item1;
+        var url = tokenAndUrl?.Item2;
+        if (!_client.DefaultRequestHeaders.Contains("Authorization"))
+        {
+            _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+        }
+       
+        HttpResponseMessage response = await _client.GetAsync($"{url}/services/data/v56.0/query?q=select FIELDS(ALL) from OrderItem where orderId=’{orderNumber}’ and sync_to_oracle__c=false LIMIT 200", cancellationToken);
+
+        return new[] { new OrderProduct() };
     }
 }
 
