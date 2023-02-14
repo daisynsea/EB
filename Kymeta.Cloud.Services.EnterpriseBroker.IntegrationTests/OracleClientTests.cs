@@ -5,16 +5,16 @@ using Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.Orders;
 
 namespace IntegrationTests
 {
-    public class OracleClientTests
+    public class OracleClientTests: TestApplicationFixture
     {
         private readonly IOracleClient _client;
-        public OracleClientTests()
+        public OracleClientTests(EnterpriseBrokerFactory factory) : base(factory)
         {
-            _client = TestApplication.GetRequiredService<IOracleClient>();
+            _client = Resolve<IOracleClient>();
         }
 
         [Fact]
-        public async Task CreateOrder_InvalidOrder_RetrunsCreatedWithPayloadIssues()
+        public async Task CreateOrder_InvalidOrder_ReturnsCreatedWithPayloadIssues()
         {
             Random random = new Random();
 
