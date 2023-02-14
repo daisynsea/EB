@@ -6,12 +6,12 @@ using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients;
 
 namespace IntegrationTests
 {
-    public class SalesforceClientTests
+    public class SalesforceClientTests: TestApplicationFixture
     {
         private readonly ISalesforceClient _client;
-        public SalesforceClientTests()
+        public SalesforceClientTests(EnterpriseBrokerFactory factory) : base(factory)
         {
-            _client = TestApplication.GetRequiredService<ISalesforceClient>();
+            _client = Resolve<ISalesforceClient>();
         }
 
        
