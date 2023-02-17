@@ -87,6 +87,16 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Services.BackgroundOperations
                 IClientSessionChannel assetEventChannel = bayeuxClient.GetChannel($"/event/{_config["Salesforce:PlatformEvents:Channels:Asset"]}", assetReplayId);
                 assetEventChannel.Subscribe(_assetEventListener);
                 _logger.LogInformation($"Listening for events from Salesforce on the '{assetEventChannel}' channel...");
+
+                #region Asset Serial Update
+                // fetch replay id from redis to fetch all messages from most recent message processed
+                var assetSerialUpdateReplayId = _cacheRepo.GetSalesforceEventReplayId(_config["Salesforce:PlatformEvents:Channels:AssetSerialUpdate"]);
+
+                // connect to the event channel and add the event listner
+                IClientSessionChannel assetSerialUpdateEventChannel = bayeuxClient.GetChannel($"/event/{_config["Salesforce:PlatformEvents:Channels:AssetSerialUpdate"]}", assetSerialUpdateReplayId);
+                assetSerialUpdateEventChannel.Subscribe(_assetEventListener);
+                _logger.LogInformation($"Listening for events from Salesforce on the '{assetSerialUpdateEventChannel}' channel...");
+                #endregion
                 #endregion
             }
             catch (Exception ex)

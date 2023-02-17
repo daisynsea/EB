@@ -6,6 +6,6 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce.External.Plat
     public class SalesforceAssetEventPayload : MessagePayload
     {
         [JsonProperty("Name__c")]
-        public string Name { get; set; }
+        public string Name { get; set; } = null!;
     }
 }
