@@ -80,4 +80,19 @@ public class BrokerAccountController : ControllerBase
             return StatusCode(500, ex.Message);
         }
     }
+
+    [HttpGet("syncToOss"), AllowAnonymous]
+    public async Task<ActionResult<int>> SyncSalesforceAccountsToOss()
+    {
+        try
+        {
+            var result = await _accountBrokerService.SyncSalesforceAccountsToOss();
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error fetching accounts from Salesforce REST API due to an exception: {ex.Message}");
+            return StatusCode(500, ex.Message);
+        }
+    }
 }

@@ -9,10 +9,11 @@ public interface ISalesforceClient
 {
     #region Account-related
     Task<SalesforceAccountObjectModel> GetAccountFromSalesforce(string accountId);
-    Task<List<SalesforceAccountObjectModel>> GetAccountsFromSalesforce();
+    Task<List<SalesforceAccountObjectModel>> GetAccountsFromSalesforce(bool syncEnabledOnly = true);
     Task UpdateAccountInSalesforce(SalesforceAccountObjectModel account);
     #endregion
 
+    Task<Tuple<string, string>?> GetTokenAndUrl();
     Task<SalesforceAddressObjectModel> GetAddressFromSalesforce(string addressId);
     Task<SalesforceContactObjectModel> GetContactFromSalesforce(string contactId);
     Task<List<SalesforceContactObjectModel>> GetContactsFromSalesforce(string? accountId = null);
@@ -47,7 +48,11 @@ public class SalesforceClient : ISalesforceClient
             var token = tokenAndUrl?.Item1;
             var url = tokenAndUrl?.Item2;
 
-            _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+            if (!_client.DefaultRequestHeaders.Contains("Authorization"))
+            {
+                _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+            }
+
             var response = await _client.GetAsync($"{url}/services/data/v53.0/sobjects/Address__c/{addressId}");
             var stringResponse = await response.Content.ReadAsStringAsync();
 
@@ -73,7 +78,11 @@ public class SalesforceClient : ISalesforceClient
             var token = tokenAndUrl?.Item1;
             var url = tokenAndUrl?.Item2;
 
-            _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+            if (!_client.DefaultRequestHeaders.Contains("Authorization"))
+            {
+                _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+            }
+
             var response = await _client.GetAsync($"{url}/services/data/v53.0/sobjects/Contact/{contactId}");
             var stringResponse = await response.Content.ReadAsStringAsync();
 
@@ -99,7 +108,10 @@ public class SalesforceClient : ISalesforceClient
             var token = tokenAndUrl?.Item1;
             var url = tokenAndUrl?.Item2;
 
-            _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+            if (!_client.DefaultRequestHeaders.Contains("Authorization"))
+            {
+                _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+            }
 
             string queryBase = $"{url}/services/data/v53.0/query/?q=";
             string querySelectStatement = $"SELECT c.Id, c.FirstName, c.LastName, c.Name, c.Email, c.Account.Name, c.Description, c.Primary_Contact__c, c.Technical_Contact__c FROM Contact c";
@@ -131,7 +143,11 @@ public class SalesforceClient : ISalesforceClient
             var token = tokenAndUrl?.Item1;
             var url = tokenAndUrl?.Item2;
 
-            _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+            if (!_client.DefaultRequestHeaders.Contains("Authorization"))
+            {
+                _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+            }
+
             var response = await _client.GetAsync($"{url}/services/data/v53.0/sobjects/Account/{accountId}");
             var stringResponse = await response.Content.ReadAsStringAsync();
 
@@ -148,7 +164,7 @@ public class SalesforceClient : ISalesforceClient
         }
     }
 
-    public async Task<List<SalesforceAccountObjectModel>> GetAccountsFromSalesforce()
+    public async Task<List<SalesforceAccountObjectModel>> GetAccountsFromSalesforce(bool syncEnabledOnly = true)
     {
         try
         {
@@ -156,10 +172,17 @@ public class SalesforceClient : ISalesforceClient
             var token = tokenAndUrl?.Item1;
             var url = tokenAndUrl?.Item2;
 
-            _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+            if (!_client.DefaultRequestHeaders.Contains("Authorization"))
+            {
+                _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+            }
 
             string queryBase = $"{url}/services/data/v53.0/query/?q=";
-            string querySelectStatement = $"SELECT a.Id,a.Name,a.IsPartner,a.AccountType__c,a.Sub_Type__c,a.Vertical__c,a.Master_Agreement__c,Account_Manager__c,Marketing_Representative__c,Type_of_Company__c,Business_Unit__c,Oracle_Acct__c,Pricebook__c,Volume_Tier__c,EB_Configurator_Contact__c,EB_Configurator_Contact_Override__c,EB_Configurator_PB_C_Visible__c,EB_Configurator_Discount_Tier__c,EB_Configurator_PB_M_Visible__c,EB_Configurator_Pricing_MSRP_Visible__c,EB_Configurator_Visible__c,EB_Configurator_Pricing_WS_Visible__c FROM Account a";
+            string querySelectStatement = $"SELECT a.Id,a.Name,a.IsPartner,a.ParentId,a.AccountType__c,a.Sub_Type__c,a.Vertical__c,a.KSN_Acct_ID__c,a.Oracle_Acct__c,a.Master_Agreement__c,a.Account_Manager__c,a.Marketing_Representative__c,a.Sync_Instructions__c,a.Type_of_Company__c,a.Business_Unit__c,a.Pricebook__c,a.Volume_Tier__c,a.EB_Configurator_Contact__c,a.EB_Configurator_Contact_Override__c,a.EB_Configurator_PB_C_Visible__c,a.EB_Configurator_Discount_Tier__c,a.EB_Configurator_PB_M_Visible__c,a.EB_Configurator_Pricing_MSRP_Visible__c,a.EB_Configurator_Visible__c,a.EB_Configurator_Pricing_WS_Visible__c FROM Account a";
+            if (syncEnabledOnly)
+            {
+                querySelectStatement += $" WHERE a.Sync_Instructions__c = 'Sync to All'";
+            }
             string fullUrl = queryBase + querySelectStatement;
 
             var response = await _client.GetAsync(fullUrl);
@@ -186,7 +209,11 @@ public class SalesforceClient : ISalesforceClient
             var token = tokenAndUrl?.Item1;
             var url = tokenAndUrl?.Item2;
 
-            _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+            if (!_client.DefaultRequestHeaders.Contains("Authorization"))
+            {
+                _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+            }
+
             var response = await _client.GetAsync($"{url}/services/data/v53.0/sobjects/User/{userId}");
             var stringResponse = await response.Content.ReadAsStringAsync();
 
@@ -444,7 +471,7 @@ public class SalesforceClient : ISalesforceClient
     }
     #endregion
 
-    private async Task<Tuple<string, string>?> GetTokenAndUrl()
+    public async Task<Tuple<string, string>?> GetTokenAndUrl()
     {
         var token = _redis.StringGet<string>("EB:SFToken");
         var url = _redis.StringGet<string>("EB:SFApiRoot");
@@ -452,16 +479,7 @@ public class SalesforceClient : ISalesforceClient
         // authenticate
         if (string.IsNullOrEmpty(token))
         {
-            var authRequest = new SalesforceAuthenticationRequest
-            {
-                ClientId = _config["Salesforce:ConnectedApp:ClientId"],
-                ClientSecret = _config["Salesforce:ConnectedApp:ClientSecret"],
-                GrantType = "password",
-                Username = _config["Salesforce:Username"],
-                Password = _config["Salesforce:Password"]
-            };
-            var authObject = await Authenticate(authRequest);
-
+            var authObject = await Authenticate();
             if (authObject != null)
             {
                 token = authObject.AccessToken;
@@ -469,7 +487,7 @@ public class SalesforceClient : ISalesforceClient
             }
             else
             {
-                _logger.LogError($"[EB] Attempted to log into Salesforce, but failed to get token. First 6 of client id: {authRequest.ClientId.Substring(0, 6)}, First 6 of client secret: {authRequest.ClientSecret.Substring(0, 6)}");
+                _logger.LogError($"[EB] Attempted to log into Salesforce, but failed to get token. First 6 of client id: {_config["Salesforce:ConnectedApp:ClientId"]?.Substring(0, 6)}, First 6 of client secret: {_config["Salesforce:ConnectedApp:ClientSecret"]?.Substring(0, 6)}");
                 return null;
             }
         }
@@ -477,15 +495,15 @@ public class SalesforceClient : ISalesforceClient
         return new Tuple<string, string>(token, url);
     }
 
-    private async Task<SalesforceAuthenticationResponse> Authenticate(SalesforceAuthenticationRequest request)
+    private async Task<SalesforceAuthenticationResponse> Authenticate()
     {
         HttpContent content = new FormUrlEncodedContent(new Dictionary<string, string>
         {
             { "grant_type", "password" },
-            { "client_id", request.ClientId ?? "defaultclientid" },
-            { "client_secret", request.ClientSecret ?? "defaultclientsecret" },
-            { "username", request.Username ?? "defaultusername" },
-            { "password", request.Password ?? "defaultpassword" }
+            { "client_id", _config["Salesforce:ConnectedApp:ClientId"] ?? "defaultclientid" },
+            { "client_secret", _config["Salesforce:ConnectedApp:ClientSecret"] ?? "defaultclientsecret" },
+            { "username", _config["Salesforce:Username"] ?? "defaultusername" },
+            { "password", _config["Salesforce:Password"] ?? "defaultpassword" }
         });
 
         var response = await _client.PostAsync($"{_config["Salesforce:LoginEndpoint"]}/services/oauth2/token", content);

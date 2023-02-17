@@ -1,6 +1,7 @@
 ﻿using Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle;
 using Kymeta.Cloud.Services.EnterpriseBroker.Models.OSS;
 using Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce;
+using Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce.External;
 using Kymeta.Cloud.Services.EnterpriseBroker.Services;
 using Moq;
 using System;
@@ -32,17 +33,17 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
             var transaction = Helpers.BuildSalesforceTransaction();
             Helpers.MockActionRepository(_fixture.ActionsRepository, transaction);
 
-            var accountFromOss = new Account { Id = Guid.NewGuid() };
+            var accountFromOss = new AccountV2 { Id = Guid.NewGuid() };
             _fixture.OssService
                 .Setup(oss => oss.GetAccountBySalesforceId(It.IsAny<string>()))
                 .ReturnsAsync(accountFromOss);
             _fixture.OssService
-                .Setup(oss => oss.UpdateChildAccounts(It.IsAny<Account>(), It.IsAny<SalesforceAccountModel>(), It.IsAny<SalesforceActionTransaction>()))
-                .ReturnsAsync(new Tuple<bool, List<Account>?, string>(true, null, null));
+                .Setup(oss => oss.UpdateChildAccounts(It.IsAny<AccountV2>(), It.IsAny<SalesforceAccountModel>(), It.IsAny<SalesforceActionTransaction>()))
+                .ReturnsAsync(new Tuple<bool, List<AccountV2>?, string>(true, null, null));
             // Because the account is found above, we're doing an update
             _fixture.OssService
-                .Setup(oss => oss.UpdateAccount(It.IsAny<SalesforceAccountModel>(), It.IsAny<SalesforceActionTransaction>()))
-                .ReturnsAsync(new Tuple<Account, string>(null, $"Error when updating"));
+                .Setup(oss => oss.UpdateAccount(It.IsAny<SalesforceAccountModel>(), It.IsAny<SalesforceAccountObjectModel>(), It.IsAny<SalesforceActionTransaction>()))
+                .ReturnsAsync(new Tuple<AccountV2, string>(null, $"Error when updating"));
 
             // Act
             var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object, _fixture.SalesforceClient.Object);
@@ -75,10 +76,10 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
 
             _fixture.OssService
                 .Setup(oss => oss.GetAccountBySalesforceId(It.IsAny<string>()))
-                .ReturnsAsync((Account)null);
+                .ReturnsAsync((AccountV2)null);
             _fixture.OssService
-                .Setup(oss => oss.AddAccount(It.IsAny<SalesforceAccountModel>(), It.IsAny<SalesforceActionTransaction>()))
-                .ReturnsAsync(new Tuple<Account, string>(null, $"Error when adding"));
+                .Setup(oss => oss.AddAccount(It.IsAny<SalesforceAccountModel>(), It.IsAny<SalesforceAccountObjectModel>(), It.IsAny<SalesforceActionTransaction>()))
+                .ReturnsAsync(new Tuple<AccountV2, string>(null, $"Error when adding"));
 
             // Act
             var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object, _fixture.SalesforceClient.Object);

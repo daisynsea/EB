@@ -1,6 +1,7 @@
 ﻿using Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle;
 using Kymeta.Cloud.Services.EnterpriseBroker.Models.OSS;
 using Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce;
+using Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce.External;
 using Kymeta.Cloud.Services.EnterpriseBroker.Services;
 using Moq;
 using System;
@@ -31,17 +32,17 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
         var transaction = Helpers.BuildSalesforceTransaction();
         Helpers.MockActionRepository(_fixture.ActionsRepository, transaction);
 
-        var accountFromOss = new Account { Id = Guid.NewGuid() };
+        var accountFromOss = new AccountV2 { Id = Guid.NewGuid() };
         _fixture.OssService
             .Setup(oss => oss.GetAccountBySalesforceId(It.IsAny<string>()))
             .ReturnsAsync(accountFromOss);
         // Because the account is found above, we're doing an update
         _fixture.OssService
-            .Setup(oss => oss.UpdateAccount(It.IsAny<SalesforceAccountModel>(), It.IsAny<SalesforceActionTransaction>()))
-            .ReturnsAsync(new Tuple<Account, string>(accountFromOss, string.Empty));
+            .Setup(oss => oss.UpdateAccount(It.IsAny<SalesforceAccountModel>(), It.IsAny<SalesforceAccountObjectModel>(), It.IsAny<SalesforceActionTransaction>()))
+            .ReturnsAsync(new Tuple<AccountV2, string>(accountFromOss, string.Empty));
         _fixture.OssService
-            .Setup(oss => oss.UpdateChildAccounts(It.IsAny<Account>(), It.IsAny<SalesforceAccountModel>(), It.IsAny<SalesforceActionTransaction>()))
-            .ReturnsAsync(new Tuple<bool, List<Account>?, string>(true, null, null));
+            .Setup(oss => oss.UpdateChildAccounts(It.IsAny<AccountV2>(), It.IsAny<SalesforceAccountModel>(), It.IsAny<SalesforceActionTransaction>()))
+            .ReturnsAsync(new Tuple<bool, List<AccountV2>?, string>(true, null, null));
 
         // Act
         var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object, _fixture.SalesforceClient.Object);
@@ -70,17 +71,17 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
         var transaction = Helpers.BuildSalesforceTransaction();
         Helpers.MockActionRepository(_fixture.ActionsRepository, transaction);
         
-        var accountFromOss = new Account { Id = Guid.NewGuid() };
+        var accountFromOss = new AccountV2 { Id = Guid.NewGuid() };
         _fixture.OssService
             .Setup(oss => oss.GetAccountBySalesforceId(It.IsAny<string>()))
-            .ReturnsAsync((Account?)null); // Mock a null return!
+            .ReturnsAsync((AccountV2?)null); // Mock a null return!
         // Because the account is not found above, it means we're adding, so mock that here
         _fixture.OssService
-            .Setup(oss => oss.AddAccount(It.IsAny<SalesforceAccountModel>(), It.IsAny<SalesforceActionTransaction>()))
-            .ReturnsAsync(new Tuple<Account, string>(accountFromOss, string.Empty));
+            .Setup(oss => oss.AddAccount(It.IsAny<SalesforceAccountModel>(), It.IsAny<SalesforceAccountObjectModel>(), It.IsAny<SalesforceActionTransaction>()))
+            .ReturnsAsync(new Tuple<AccountV2, string>(accountFromOss, string.Empty));
         _fixture.OssService
-            .Setup(oss => oss.UpdateChildAccounts(It.IsAny<Account>(), It.IsAny<SalesforceAccountModel>(), It.IsAny<SalesforceActionTransaction>()))
-            .ReturnsAsync(new Tuple<bool, List<Account>?, string>(true, null, null));
+            .Setup(oss => oss.UpdateChildAccounts(It.IsAny<AccountV2>(), It.IsAny<SalesforceAccountModel>(), It.IsAny<SalesforceActionTransaction>()))
+            .ReturnsAsync(new Tuple<bool, List<AccountV2>?, string>(true, null, null));
 
         // Act
         var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object, _fixture.SalesforceClient.Object);
@@ -110,16 +111,16 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
         Helpers.MockActionRepository(_fixture.ActionsRepository, transaction);
         
         // Mock OSS portion of the request
-        var accountFromOss = new Account { Id = Guid.NewGuid() };
+        var accountFromOss = new AccountV2 { Id = Guid.NewGuid() };
         _fixture.OssService
             .Setup(oss => oss.GetAccountBySalesforceId(It.IsAny<string>()))
             .ReturnsAsync(accountFromOss);
         _fixture.OssService
-            .Setup(oss => oss.UpdateAccount(It.IsAny<SalesforceAccountModel>(), It.IsAny<SalesforceActionTransaction>()))
-            .ReturnsAsync(new Tuple<Account, string>(accountFromOss, string.Empty));
+            .Setup(oss => oss.UpdateAccount(It.IsAny<SalesforceAccountModel>(), It.IsAny<SalesforceAccountObjectModel>(), It.IsAny<SalesforceActionTransaction>()))
+            .ReturnsAsync(new Tuple<AccountV2, string>(accountFromOss, string.Empty));
         _fixture.OssService
-            .Setup(oss => oss.UpdateChildAccounts(It.IsAny<Account>(), It.IsAny<SalesforceAccountModel>(), It.IsAny<SalesforceActionTransaction>()))
-            .ReturnsAsync(new Tuple<bool, List<Account>?, string>(true, null, null));
+            .Setup(oss => oss.UpdateChildAccounts(It.IsAny<AccountV2>(), It.IsAny<SalesforceAccountModel>(), It.IsAny<SalesforceActionTransaction>()))
+            .ReturnsAsync(new Tuple<bool, List<AccountV2>?, string>(true, null, null));
         // Mock Oracle portion of the request
         var oracleOrg = Helpers.BuildOracleOrganization();
         _fixture.OracleService
@@ -168,7 +169,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
             .ReturnsAsync(new Tuple<bool, OracleCustomerAccountProfile, string>(true, customerProfile, string.Empty));
         _fixture.OssService
             .Setup(oss => oss.UpdateAccountOracleId(It.IsAny<SalesforceAccountModel>(), It.IsAny<string>(), transaction))
-            .ReturnsAsync(new Tuple<Account, string>(accountFromOss, string.Empty));
+            .ReturnsAsync(new Tuple<AccountV2, string>(accountFromOss, string.Empty));
 
         // Act
         var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object, _fixture.SalesforceClient.Object);
@@ -198,16 +199,16 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
         Helpers.MockActionRepository(_fixture.ActionsRepository, transaction);
 
         // Mock OSS portion of the request
-        var accountFromOss = new Account { Id = Guid.NewGuid() };
+        var accountFromOss = new AccountV2 { Id = Guid.NewGuid() };
         _fixture.OssService
             .Setup(oss => oss.GetAccountBySalesforceId(It.IsAny<string>()))
             .ReturnsAsync(accountFromOss);
         _fixture.OssService
-            .Setup(oss => oss.UpdateAccount(It.IsAny<SalesforceAccountModel>(), It.IsAny<SalesforceActionTransaction>()))
-            .ReturnsAsync(new Tuple<Account, string>(accountFromOss, string.Empty));
+            .Setup(oss => oss.UpdateAccount(It.IsAny<SalesforceAccountModel>(), It.IsAny<SalesforceAccountObjectModel>(), It.IsAny<SalesforceActionTransaction>()))
+            .ReturnsAsync(new Tuple<AccountV2, string>(accountFromOss, string.Empty));
         _fixture.OssService
-            .Setup(oss => oss.UpdateChildAccounts(It.IsAny<Account>(), It.IsAny<SalesforceAccountModel>(), It.IsAny<SalesforceActionTransaction>()))
-            .ReturnsAsync(new Tuple<bool, List<Account>?, string>(true, null, null));
+            .Setup(oss => oss.UpdateChildAccounts(It.IsAny<AccountV2>(), It.IsAny<SalesforceAccountModel>(), It.IsAny<SalesforceActionTransaction>()))
+            .ReturnsAsync(new Tuple<bool, List<AccountV2>?, string>(true, null, null));
         // Mock Oracle portion of the request
         var oracleOrg = new OracleOrganization
         {
@@ -321,7 +322,7 @@ public class AccountBrokerServiceTests : IClassFixture<TestFixture>
             .ReturnsAsync(new Tuple<OracleCustomerAccountProfile, string>(customerProfile, string.Empty));
         _fixture.OssService
             .Setup(oss => oss.UpdateAccountOracleId(It.IsAny<SalesforceAccountModel>(), It.IsAny<string>(), transaction))
-            .ReturnsAsync(new Tuple<Account, string>(accountFromOss, string.Empty));
+            .ReturnsAsync(new Tuple<AccountV2, string>(accountFromOss, string.Empty));
 
         // Act
         var svc = new AccountBrokerService(_fixture.ActionsRepository.Object, _fixture.OracleService.Object, _fixture.OssService.Object, _fixture.SalesforceClient.Object);

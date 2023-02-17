@@ -20,6 +20,7 @@ public interface IAccountBrokerService
     Task<SalesforceAccountObjectModel> GetSalesforceAccountById(string accountId);
     Task<List<SalesforceAccountObjectModel>> GetSalesforceAccounts();
     Task<string?> UpdateSalesforceAccount(SalesforceAccountObjectModel model);
+    Task<int> SyncSalesforceAccountsToOss();
 }
 
 public class AccountBrokerService : IAccountBrokerService
@@ -127,6 +128,9 @@ public class AccountBrokerService : IAccountBrokerService
             {
                 try
                 {
+                    // fetch the entire account model from salesforce
+                    var accountFromSalesforce = await _sfClient.GetAccountFromSalesforce(model.ObjectId);
+
                     // First, fetch to see if the account exists in OSS. If it does, we do an update. Otherwise we add.
                     var existingAccount = await _ossService.GetAccountBySalesforceId(model.ObjectId);
                     // Set initial OSSStatus response value to Successful. It will get overwritten if there is an error.
@@ -139,7 +143,7 @@ public class AccountBrokerService : IAccountBrokerService
                         response.OssAccountId = existingAccount.Id?.ToString();
                         ossAccountId = existingAccount.Id.ToString();
                         // Update the account
-                        var updatedAccountTuple = await _ossService.UpdateAccount(model, salesforceTransaction);
+                        var updatedAccountTuple = await _ossService.UpdateAccount(model, accountFromSalesforce, salesforceTransaction);
                         // Item1 is the account object -- if it's null, we have a problem
                         if (updatedAccountTuple.Item1 == null)
                         {
@@ -164,7 +168,7 @@ public class AccountBrokerService : IAccountBrokerService
                     else
                     {
                         // Keep in mind, when adding, we do not fill in the Oracle Id here -- we update it after all the Oracle creation is finished
-                        var addedAccountTuple = await _ossService.AddAccount(model, salesforceTransaction);
+                        var addedAccountTuple = await _ossService.AddAccount(model, accountFromSalesforce, salesforceTransaction);
                         if (string.IsNullOrEmpty(addedAccountTuple.Item2)) // No error!
                         {
                             response.OssAccountId = addedAccountTuple.Item1.Id.ToString();
@@ -711,5 +715,26 @@ public class AccountBrokerService : IAccountBrokerService
         {
             return ex.Message;
         }
+    }
+
+    public async Task<int> SyncSalesforceAccountsToOss()
+    {
+        var contacts = await _sfClient.GetContactsFromSalesforce();
+        var accounts = await _sfClient.GetAccountsFromSalesforce();
+        var justTheIds = accounts.Select(a => a.Id).ToList();
+        var ossAccounts = await _ossService.GetAccountsByManySalesforceIds(justTheIds);
+
+        Console.WriteLine($"{contacts.Count} contacts found in Salesforce.");
+        Console.WriteLine($"{accounts.Count} accounts found in Salesforce.");
+
+        var remapped = accounts.Select(async (a) => await _ossService.RemapSalesforceAccountToOssAccount(null, a, a.Oracle_Acct__c, contacts, ossAccounts));
+
+        var result = (await Task.WhenAll(remapped)).ToList();
+
+        Console.WriteLine($"Writing {result.Count} to OSS.");
+
+        var response = await _ossService.SyncAccountsToOSS(result);
+
+        return remapped.Count();
     }
 }

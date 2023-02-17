@@ -408,7 +408,7 @@ public class ProductsBrokerService : IProductsBrokerService
         }
 
         // clear the cache so we can re-hydrate it
-        _cacheRepository.ClearCacheCompletely();
+        _cacheRepository.ClearProductsCacheCompletely();
         // add to Redis all the Product Metadata & their asset references (Blob storage (CDN))
         _cacheRepository.SetProducts(products);
 

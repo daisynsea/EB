@@ -2,6 +2,7 @@
 using Kymeta.Cloud.Services.EnterpriseBroker.Models.OSS;
 using Kymeta.Cloud.Services.EnterpriseBroker.Models.Responses;
 using Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce;
+using Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce.External;
 using Kymeta.Cloud.Services.EnterpriseBroker.Repositories;
 using Kymeta.Cloud.Services.EnterpriseBroker.Services;
 using Moq;
@@ -85,6 +86,22 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests
                         ObjectId = "acc70003"
                     }
                 }
+            };
+        }
+
+        public static SalesforceAccountObjectModel BuildSalesforceObjectModel(string name = "Trident Ltd")
+        {
+            return new SalesforceAccountObjectModel
+            {
+                Id = "acc30001",
+                KSN_Acct_ID__c = Guid.NewGuid().ToString(),
+                Oracle_Acct__c = "or3001",
+                ParentId = "acc20001",
+                Type_of_Company__c = "Partner",
+                Approved__c = true,
+                Volume_Tier__c = "Tier 4(251-500)",
+                Pricebook__c = "CPB & MPB & OW",
+                Name = name
             };
         }
 
