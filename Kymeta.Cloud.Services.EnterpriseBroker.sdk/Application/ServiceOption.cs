@@ -80,6 +80,10 @@ public static class ServiceOptionExtensions
         subject.Salesforce.Password.NotEmpty(message: msg);
         subject.Salesforce.LoginEndpoint.NotEmpty(message: msg);
 
+        subject.Oracle.Username.NotEmpty(message: msg);
+        subject.Oracle.Password.NotEmpty(message: msg);
+        subject.Oracle.Endpoint.NotEmpty(message: msg);
+
         subject.Salesforce.PlatformEvents.NotNull(message: msg);
         subject.Salesforce.PlatformEvents.Channels.NotNull(message: msg);
         subject.Salesforce.PlatformEvents.Channels.Asset.NotEmpty(message: msg);
