@@ -38,13 +38,13 @@ public interface IOracleService
 
 public class OracleService : IOracleService
 {
-    private readonly IOracleSoapClient _oracleClient;
+    private readonly IOracleClient _oracleClient;
     private readonly IConfiguration _config;
     private readonly IActionsRepository _actionsRepository;
     private readonly ITerminalSerialCacheRepository _terminalSerialCacheRepo;
     private readonly IManufacturingProxyClient _manufacturingProxyClient;
 
-    public OracleService(IOracleSoapClient oracleClient, IConfiguration config, IActionsRepository actionsRepository, ITerminalSerialCacheRepository terminalSerialCacheRepo, IManufacturingProxyClient manufacturingProxyClient)
+    public OracleService(IOracleClient oracleClient, IConfiguration config, IActionsRepository actionsRepository, ITerminalSerialCacheRepository terminalSerialCacheRepo, IManufacturingProxyClient manufacturingProxyClient)
     {
         _oracleClient = oracleClient;
         _config = config;
