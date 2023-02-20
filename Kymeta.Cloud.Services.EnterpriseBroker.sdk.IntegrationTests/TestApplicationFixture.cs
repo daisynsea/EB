@@ -2,6 +2,7 @@
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests;
 
+[CollectionDefinition("Integration")]
 public class TestApplicationFixture : IClassFixture<EnterpriseBrokerFactory>
 {
     private readonly EnterpriseBrokerFactory _factory;
