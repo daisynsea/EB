@@ -1,7 +1,6 @@
-﻿
-using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients;
+﻿using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients;
 
-namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Test.Application;
+namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests;
 
 internal class TestSalesforceClient : ISalesforceClient2
 {
