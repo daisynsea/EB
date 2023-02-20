@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
-namespace Kymeta.Cloud.Services.EnterpriseBroker.IntegrationTests;
+namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests;
 
 public class TestApplicationFixture : IClassFixture<EnterpriseBrokerFactory>
 {

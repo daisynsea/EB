@@ -1,7 +1,6 @@
-﻿
-using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders;
+﻿using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders;
 
-namespace Kymeta.Cloud.Services.EnterpriseBroker.IntegrationTests
+namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
 {
     public class OracleCreateOrderBuilder
     {

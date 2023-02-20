@@ -15,8 +15,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kymeta.Cloud.Services.Enter
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests", "Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests\Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests.csproj", "{61B4DE0A-D50C-40C0-BD09-E5D35EC37F9E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kymeta.Cloud.Services.EnterpriseBroker.IntegrationTests", "Kymeta.Cloud.Services.EnterpriseBroker.IntegrationTests\Kymeta.Cloud.Services.EnterpriseBroker.IntegrationTests.csproj", "{6228FBEE-7290-4E6C-9488-4E3FDC49E570}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,10 +45,6 @@ Global
 		{61B4DE0A-D50C-40C0-BD09-E5D35EC37F9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{61B4DE0A-D50C-40C0-BD09-E5D35EC37F9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{61B4DE0A-D50C-40C0-BD09-E5D35EC37F9E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6228FBEE-7290-4E6C-9488-4E3FDC49E570}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6228FBEE-7290-4E6C-9488-4E3FDC49E570}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6228FBEE-7290-4E6C-9488-4E3FDC49E570}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6228FBEE-7290-4E6C-9488-4E3FDC49E570}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

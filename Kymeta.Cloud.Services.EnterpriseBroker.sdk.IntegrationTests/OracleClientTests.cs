@@ -1,11 +1,10 @@
 using FluentAssertions;
-using Kymeta.Cloud.Services.EnterpriseBroker.IntegrationTests;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders;
 
-namespace IntegrationTests
+namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
 {
-    public class OracleClientTests: TestApplicationFixture
+    public class OracleClientTests : TestApplicationFixture
     {
         private readonly IOracleRestClient _client;
         public OracleClientTests(EnterpriseBrokerFactory factory) : base(factory)
@@ -20,7 +19,7 @@ namespace IntegrationTests
 
             var order = new OracleCreateOrderBuilder()
                  .WithSourceTransactionNumber(random.Next(1000000, 9999999).ToString())
-                 .WithSourceTransactionId(random.Next(1000,9999).ToString())
+                 .WithSourceTransactionId(random.Next(1000, 9999).ToString())
                  .WithOrderKey("OPS:0047355")
                  .WithSourceTransactionSystem("OPS")
                  .WithBusinessUnitName("Kymeta Corporation BU")
