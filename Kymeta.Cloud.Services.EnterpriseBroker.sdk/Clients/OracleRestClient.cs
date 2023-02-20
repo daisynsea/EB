@@ -1,9 +1,8 @@
-﻿using Kymeta.Cloud.Services.EnterpriseBroker.HttpClients;
-using Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.REST;
-using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders;
+﻿using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using System.Text;
+using Newtonsoft.Json.Linq;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients
 {
@@ -11,14 +10,15 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients
     {
         Task<OracleResponse<CreateOrderResponse>> CreateOrder(OracleCreateOrder newOrder, CancellationToken cancellationToken);
     }
-    public class OracleRestClient: IOracleRestClient
+
+    public class OracleRestClient : IOracleRestClient
     {
         private readonly HttpClient _client;
         private readonly ILogger<IOracleRestClient> _logger;
         public OracleRestClient(HttpClient client, ILogger<IOracleRestClient> logger)
         {
             _client = client;
-            _logger = logger;   
+            _logger = logger;
         }
 
         public async Task<OracleResponse<CreateOrderResponse>> CreateOrder(OracleCreateOrder newOrder, CancellationToken cancellationToken)
@@ -28,7 +28,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients
 
             HttpResponseMessage response = await _client.PostAsync("fscmRestApi/resources/11.13.18.05/salesOrdersForOrderHub", content, cancellationToken);
 
-            return await response.ProcessResponseFromOracle(cancellationToken);
+            return await response.ProcessResponseFromOracle<CreateOrderResponse>(cancellationToken);
         }
     }
 }

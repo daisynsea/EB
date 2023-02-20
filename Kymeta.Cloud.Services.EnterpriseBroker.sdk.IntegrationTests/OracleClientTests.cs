@@ -39,8 +39,8 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
 
             var result = await _client.CreateOrder(order, CancellationToken.None);
             result.StatusCode.Should().Be(System.Net.HttpStatusCode.Created);
-            result.Data.Should().NotBeNull();
-            result.Data.ToString().Should().Contain("\"MessageText\" : \"The application didn't submit the sales order because it failed validation.\"");
+            result.Content.Should().NotBeNull();
+            result.Content.ToString().Should().Contain("\"MessageText\" : \"The application didn't submit the sales order because it failed validation.\"");
         }
 
         [Fact]
@@ -85,8 +85,8 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
 
             var result = await _client.CreateOrder(order, CancellationToken.None);
             result.StatusCode.Should().Be(System.Net.HttpStatusCode.Created);
-            result.Data.Should().NotBeNull();
-            result.Data.ToString().Should().Contain("\"MessageText\" : \"The application successfully imported the sales order.\"");
+            result.Content.Should().NotBeNull();
+            result.Content.ToString().Should().Contain("\"MessageText\" : \"The application successfully imported the sales order.\"");
         }
 
         [Fact]
@@ -145,7 +145,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
             var result = await _client.CreateOrder(order, CancellationToken.None);
             result.StatusCode.Should().Be(System.Net.HttpStatusCode.BadRequest);
             result.Message.Should().Be("Bad Request");
-            result.Data.Should().Be("The request failed because a sales order with transaction 0047355 from source system OPS already exists.");
+            result.Content.Should().Be("The request failed because a sales order with transaction 0047355 from source system OPS already exists.");
         }
 
     }
