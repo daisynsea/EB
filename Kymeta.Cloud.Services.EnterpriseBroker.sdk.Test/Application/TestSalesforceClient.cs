@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients;
-using Kymeta.Cloud.Services.Toolbox.Rest;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Test.Application;
 
@@ -13,6 +8,9 @@ internal class TestSalesforceClient : ISalesforceClient2
     public Queue<object> Queue { get; } = new Queue<object>();
 
     public ISalesforceEventApi Events => throw new NotImplementedException();
+
+    public ISalesforceRestApi Rest => throw new NotImplementedException();
+
 }
 
 

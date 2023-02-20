@@ -11,6 +11,7 @@ public record ServiceOption
 {
     public ConnectionString ConnectionStrings { get; init; } = null!;
     public SalesforceOption Salesforce { get; init; } = null!;
+    public OracleOption Oracle { get; init; } = null!;
     public bool UseDurableTaskEmulator { get; init; } = false;
 }
 
@@ -29,6 +30,13 @@ public record SalesforceOption
     public string Password { get; init; } = "defaultpassword";
     public string LoginEndpoint { get; init; } = null!;
     public PlatformEventsOption PlatformEvents { get; init; } = null!;
+}
+
+public record OracleOption
+{
+    public string Username { get; init; } = "defaultusername";
+    public string Password { get; init; } = "defaultpassword";
+    public string Endpoint { get; init; } = null!;
 }
 
 public record ConnectedAppOption

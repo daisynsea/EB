@@ -1,14 +1,12 @@
-﻿using Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.Orders;
-using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders;
-
-namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce.Orders
+﻿
+namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders
 {
-    public class Order
+    public class SalesForceOrder
     {
         OrderProduct[] Products { get; set; } = Array.Empty<OrderProduct>();
     }
 
-    public class OrderProduct 
+    public class OrderProduct
     {
         public string? OrderId { get; set; }
         public string? BillingFrequency { get; set; }

@@ -1,16 +1,16 @@
 using FluentAssertions;
-using Kymeta.Cloud.Services.EnterpriseBroker.HttpClients;
 using Kymeta.Cloud.Services.EnterpriseBroker.IntegrationTests;
-using Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.Orders;
+using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients;
+using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders;
 
 namespace IntegrationTests
 {
     public class OracleClientTests: TestApplicationFixture
     {
-        private readonly IOracleClient _client;
+        private readonly IOracleRestClient _client;
         public OracleClientTests(EnterpriseBrokerFactory factory) : base(factory)
         {
-            _client = Resolve<IOracleClient>();
+            _client = Resolve<IOracleRestClient>();
         }
 
         [Fact]
@@ -18,7 +18,7 @@ namespace IntegrationTests
         {
             Random random = new Random();
 
-            var order = new CreateOrderBuilder()
+            var order = new OracleCreateOrderBuilder()
                  .WithSourceTransactionNumber(random.Next(1000000, 9999999).ToString())
                  .WithSourceTransactionId(random.Next(1000,9999).ToString())
                  .WithOrderKey("OPS:0047355")
@@ -49,7 +49,7 @@ namespace IntegrationTests
         {
             Random random = new Random();
 
-            var order = new CreateOrderBuilder()
+            var order = new OracleCreateOrderBuilder()
                  .WithSourceTransactionNumber(random.Next(1000000, 9999999).ToString())
                  .WithSourceTransactionId(random.Next(1000, 9999).ToString())
                  .WithOrderKey("OPS:0047355")
@@ -93,7 +93,7 @@ namespace IntegrationTests
         [Fact]
         public async Task CreateOrder_AlredyExistingOrder_RetrunsBadRequest()
         {
-            var order = new CreateOrderBuilder()
+            var order = new OracleCreateOrderBuilder()
                 .WithSourceTransactionNumber("0047355")
                 .WithSourceTransactionId("0047355")
                 .WithOrderKey("OPS:0047355")

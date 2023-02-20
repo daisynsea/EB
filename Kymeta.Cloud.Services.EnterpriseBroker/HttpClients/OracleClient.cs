@@ -2,9 +2,6 @@
 using System.Text.Json;
 using System.Text;
 using Kymeta.Cloud.Services.EnterpriseBroker.Models;
-using System.Configuration;
-using Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.Orders;
-using Microsoft.VisualBasic;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.HttpClients
 {
@@ -13,7 +10,6 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.HttpClients
         Task<Tuple<OracleAddressObject, string>> CreateAddress(string accountNumber, CreateOracleAddressViewModel model);
         Task<Tuple<OracleOrganizationResponse, string>> CreateOrganization(CreateOracleOrganizationModel model);
         Task<Tuple<OracleAddressObject, string>> UpdateAddress(string accountNumber, CreateOracleAddressViewModel model, string partyNumber);
-        Task<OracleResponse> CreateOrder(CreateOrder newOrder, CancellationToken cancellationToken);
     }
 
     public class OracleClient : IOracleClient
@@ -80,16 +76,6 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.HttpClients
 
             var deserializedObject = JsonSerializer.Deserialize<OracleAddressObject>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             return new Tuple<OracleAddressObject, string>(deserializedObject, null);
-        }
-
-        public async Task<OracleResponse> CreateOrder(CreateOrder newOrder, CancellationToken cancellationToken)
-        {
-            var serialized = JsonSerializer.Serialize(newOrder, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            var content = new StringContent(serialized, Encoding.UTF8, "application/json");
-
-            HttpResponseMessage response = await _client.PostAsync("fscmRestApi/resources/11.13.18.05/salesOrdersForOrderHub", content, cancellationToken);
-           
-            return  await response.ProcessResponseFromOracle(cancellationToken);
         }
     }
 }

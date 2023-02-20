@@ -1,114 +1,115 @@
-﻿using Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.Orders;
+﻿
+using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.IntegrationTests
 {
-    public class CreateOrderBuilder
+    public class OracleCreateOrderBuilder
     {
-        private CreateOrder order = new CreateOrder();
+        private OracleCreateOrder order = new OracleCreateOrder();
 
-        public CreateOrderBuilder WithSourceTransactionNumber(string sourceTransactionNumber)
+        public OracleCreateOrderBuilder WithSourceTransactionNumber(string sourceTransactionNumber)
         {
             order.SourceTransactionNumber = sourceTransactionNumber;
             return this;
         }
 
-        public CreateOrderBuilder WithSourceTransactionId(string sourceTransactionId)
+        public OracleCreateOrderBuilder WithSourceTransactionId(string sourceTransactionId)
         {
             order.SourceTransactionId = sourceTransactionId;
             return this;
         }
 
-        public CreateOrderBuilder WithOrderKey(string orderKey)
+        public OracleCreateOrderBuilder WithOrderKey(string orderKey)
         {
             order.OrderKey = orderKey;
             return this;
         }
 
-        public CreateOrderBuilder WithSourceTransactionSystem(string sourceTransactionSystem)
+        public OracleCreateOrderBuilder WithSourceTransactionSystem(string sourceTransactionSystem)
         {
             order.SourceTransactionSystem = sourceTransactionSystem;
             return this;
         }
 
-        public CreateOrderBuilder WithBusinessUnitName(string businessUnitName)
+        public OracleCreateOrderBuilder WithBusinessUnitName(string businessUnitName)
         {
             order.BusinessUnitName = businessUnitName;
             return this;
         }
 
-        public CreateOrderBuilder WithBuyingPartyNumber(string buyingPartyNumber)
+        public OracleCreateOrderBuilder WithBuyingPartyNumber(string buyingPartyNumber)
         {
             order.BuyingPartyNumber = buyingPartyNumber;
             return this;
         }
 
-        public CreateOrderBuilder WithBuyingPartyContactNumber(string buyingPartyContactNumber)
+        public OracleCreateOrderBuilder WithBuyingPartyContactNumber(string buyingPartyContactNumber)
         {
             order.BuyingPartyContactNumber = buyingPartyContactNumber;
             return this;
         }
 
-        public CreateOrderBuilder WithTransactionType(string transactionType)
+        public OracleCreateOrderBuilder WithTransactionType(string transactionType)
         {
             order.TransactionType = transactionType;
             return this;
         }
 
-        public CreateOrderBuilder WithRequestedShipDate(string requestedShipDate)
+        public OracleCreateOrderBuilder WithRequestedShipDate(string requestedShipDate)
         {
             order.RequestedShipDate = requestedShipDate;
             return this;
         }
 
-        public CreateOrderBuilder WithPaymentTerms(string paymentTerms)
+        public OracleCreateOrderBuilder WithPaymentTerms(string paymentTerms)
         {
             order.PaymentTerms = paymentTerms;
             return this;
         }
 
-        public CreateOrderBuilder WithTransactionalCurrencyCode(string transactionalCurrencyCode)
+        public OracleCreateOrderBuilder WithTransactionalCurrencyCode(string transactionalCurrencyCode)
         {
             order.TransactionalCurrencyCode = transactionalCurrencyCode;
             return this;
         }
 
-        public CreateOrderBuilder WithRequestingBusinessUnitName(string requestingBusinessUnitName)
+        public OracleCreateOrderBuilder WithRequestingBusinessUnitName(string requestingBusinessUnitName)
         {
             order.RequestingBusinessUnitName = requestingBusinessUnitName;
             return this;
         }
 
-        public CreateOrderBuilder WithFreezePriceFlag(bool freezePriceFlag)
+        public OracleCreateOrderBuilder WithFreezePriceFlag(bool freezePriceFlag)
         {
             order.FreezePriceFlag = freezePriceFlag;
             return this;
         }
 
-        public CreateOrderBuilder WithFreezeShippingChargeFlag(bool freezeShippingChargeFlag)
+        public OracleCreateOrderBuilder WithFreezeShippingChargeFlag(bool freezeShippingChargeFlag)
         {
             order.FreezeShippingChargeFlag = freezeShippingChargeFlag;
             return this;
         }
 
-        public CreateOrderBuilder WithFreezeTaxFlag(bool freezeTaxFlag)
+        public OracleCreateOrderBuilder WithFreezeTaxFlag(bool freezeTaxFlag)
         {
             order.FreezeTaxFlag = freezeTaxFlag;
             return this;
         }
 
-        public CreateOrderBuilder WithSubmittedFlag(bool submittedFlag)
+        public OracleCreateOrderBuilder WithSubmittedFlag(bool submittedFlag)
         {
             order.SubmittedFlag = submittedFlag;
             return this;
         }
 
-        public CreateOrderBuilder WithSourceTransactionRevisionNumber(string sourceTransactionRevisionNumber)
+        public OracleCreateOrderBuilder WithSourceTransactionRevisionNumber(string sourceTransactionRevisionNumber)
         {
             order.SourceTransactionRevisionNumber = sourceTransactionRevisionNumber;
             return this;
         }
 
-        public CreateOrderBuilder WithBillToCustomer(string accountNumber)
+        public OracleCreateOrderBuilder WithBillToCustomer(string accountNumber)
         {
             order.BillToCustomer = new[] { new CustomerBill
             {
@@ -117,7 +118,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.IntegrationTests
             return this;
         }
 
-        public CreateOrderBuilder WithShipToCustomer(string partyNumber)
+        public OracleCreateOrderBuilder WithShipToCustomer(string partyNumber)
         {
             order.ShipToCustomer = new[] { new CustomerShip
             {
@@ -126,30 +127,30 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.IntegrationTests
             return this;
         }
 
-        public CreateOrderBuilder WithShipToCustomer(CustomerShip customerShip)
+        public OracleCreateOrderBuilder WithShipToCustomer(CustomerShip customerShip)
         {
             order.ShipToCustomer = new[] { customerShip };
             return this;
         }
 
-        public CreateOrderBuilder WithOrderLines(IEnumerable<OrderLines> orderLines)
+        public OracleCreateOrderBuilder WithOrderLines(IEnumerable<OrderLines> orderLines)
         {
             order.Lines = orderLines.ToArray();
             return this;
         }
 
-        public CreateOrder Build()
+        public OracleCreateOrder Build()
         {
             return order;
         }
 
-        public CreateOrderBuilder WithBillToCustomer(CustomerBill customerBill)
+        public OracleCreateOrderBuilder WithBillToCustomer(CustomerBill customerBill)
         {
             order.BillToCustomer = new[] { customerBill };
             return this;
         }
 
-        internal CreateOrderBuilder WithLines(List<OrderLines> orderLines)
+        internal OracleCreateOrderBuilder WithLines(List<OrderLines> orderLines)
         {
             order.Lines = orderLines.ToArray();
             return this;

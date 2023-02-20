@@ -6,6 +6,8 @@ using Kymeta.Cloud.Services.Toolbox.Tools;
 using Microsoft.Extensions.DependencyInjection;
 using Polly;
 using Polly.Extensions.Http;
+using System.Net.Http.Headers;
+using System.Security.Cryptography;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk;
 
@@ -28,7 +30,7 @@ public static class Startup
         services.AddSingleton<MessageEventService>();
         services.AddSingleton<ReplayIdStoreService>();
         services.AddSingleton<SalesforceClient2>();
-
+     
         services.AddSingleton<EventOrchestrationService>();
         services.AddSingleton<GetSalesOrderLinesActivity>();
         services.AddSingleton<SetSalesOrderWithOracleActivity>();
@@ -42,6 +44,15 @@ public static class Startup
             httpClient.BaseAddress = new Uri(option.Salesforce.LoginEndpoint);
         })
         .AddPolicyHandler(_retryPolicy);
+
+        services.AddHttpClient<IOracleRestClient,OracleRestClient>((services, httpClient) =>
+        {
+            var option = services.GetRequiredService<ServiceOption>();
+            httpClient.BaseAddress = new Uri(option.Oracle.Endpoint);
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            string basicAuth = Convert.ToBase64String($"{option.Oracle.Username}:{option.Oracle.Password}".ToBytes(),  Base64FormattingOptions.None);
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", basicAuth);
+        });
 
         services.AddHttpClient<ISalesforceClient2, SalesforceClient2>((services, httpClient) =>
         {

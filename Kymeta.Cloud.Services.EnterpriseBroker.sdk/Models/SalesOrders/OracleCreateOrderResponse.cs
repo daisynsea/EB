@@ -1,6 +1,8 @@
-﻿namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.REST
+﻿using Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.REST;
+
+namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders
 {
-    public class CreateOrderResponse: IOracleResponsePayload
+    public class CreateOrderResponse : IOracleResponsePayload
     {
         private const string SucecssfulMessageText = "The application successfully imported the sales order.";
 
@@ -15,7 +17,7 @@
 
         public bool IsSuccessfulResponse()
         {
-            return MessageText.Equals(SucecssfulMessageText,StringComparison.InvariantCulture);
+            return MessageText.Equals(SucecssfulMessageText, StringComparison.InvariantCulture);
         }
     }
 }

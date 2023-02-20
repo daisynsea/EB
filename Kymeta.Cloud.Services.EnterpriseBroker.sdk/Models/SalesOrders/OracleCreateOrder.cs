@@ -1,8 +1,8 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.Orders
+namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders
 {
-    public record CreateOrder
+    public record OracleCreateOrder
     {
         public string? SourceTransactionNumber { get; set; }
         public string? SourceTransactionId { get; set; }
