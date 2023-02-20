@@ -1,7 +1,7 @@
 ﻿
 namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders
 {
-    public class SalesForceOrder
+    public class SalesforceOrder
     {
         OrderProduct[] Products { get; set; } = Array.Empty<OrderProduct>();
     }

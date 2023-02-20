@@ -9,7 +9,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients
 {
     public interface IOracleRestClient
     {
-        Task<OracleResponse> CreateOrder(OracleCreateOrder newOrder, CancellationToken cancellationToken);
+        Task<OracleResponse<CreateOrderResponse>> CreateOrder(OracleCreateOrder newOrder, CancellationToken cancellationToken);
     }
     public class OracleRestClient: IOracleRestClient
     {
@@ -21,7 +21,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients
             _logger = logger;   
         }
 
-        public async Task<OracleResponse> CreateOrder(OracleCreateOrder newOrder, CancellationToken cancellationToken)
+        public async Task<OracleResponse<CreateOrderResponse>> CreateOrder(OracleCreateOrder newOrder, CancellationToken cancellationToken)
         {
             var serialized = JsonSerializer.Serialize(newOrder, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             var content = new StringContent(serialized, Encoding.UTF8, "application/json");
