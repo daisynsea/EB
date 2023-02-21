@@ -30,7 +30,8 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Workflows
 
         private OracleCreateOrder MapToOracle(SalesforceOrder input)
         {
-            throw new NotImplementedException();
+            var oracleOrder = new OracleCreateOrderBuilder().Build();
+            return oracleOrder;
         }
     }
 }

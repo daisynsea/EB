@@ -1,6 +1,4 @@
-﻿using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders;
-
-namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
+﻿namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders
 {
     public class OracleCreateOrderBuilder
     {
@@ -149,7 +147,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
             return this;
         }
 
-        internal OracleCreateOrderBuilder WithLines(List<OrderLines> orderLines)
+        public OracleCreateOrderBuilder WithLines(List<OrderLines> orderLines)
         {
             order.Lines = orderLines.ToArray();
             return this;
