@@ -13,22 +13,25 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients
 
     public class OracleRestClient : IOracleRestClient
     {
+        private const string RequestUri = "fscmRestApi/resources/11.13.18.05/salesOrdersForOrderHub";
         private readonly HttpClient _client;
-        private readonly ILogger<IOracleRestClient> _logger;
-        public OracleRestClient(HttpClient client, ILogger<IOracleRestClient> logger)
+        public OracleRestClient(HttpClient client)
         {
             _client = client;
-            _logger = logger;
         }
 
         public async Task<OracleResponse<CreateOrderResponse>> CreateOrder(OracleCreateOrder newOrder, CancellationToken cancellationToken)
         {
-            var serialized = JsonSerializer.Serialize(newOrder, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            var content = new StringContent(serialized, Encoding.UTF8, "application/json");
 
-            HttpResponseMessage response = await _client.PostAsync("fscmRestApi/resources/11.13.18.05/salesOrdersForOrderHub", content, cancellationToken);
+            HttpResponseMessage response = await _client.PostAsync(RequestUri, SerializeToJsonString(newOrder), cancellationToken);
 
             return await response.ProcessResponseFromOracle<CreateOrderResponse>(cancellationToken);
+        }
+
+        private static StringContent SerializeToJsonString(OracleCreateOrder newOrder)
+        {
+            var serialized = JsonSerializer.Serialize(newOrder, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            return new StringContent(serialized, Encoding.UTF8, "application/json");
         }
     }
 }
