@@ -22,12 +22,13 @@ public class UpdateOracleSalesOrderActivity : AsyncTaskActivity<SalesOrderModel,
         {
             throw new InvalidOperationException("Please provide valid sales order!");
         }
-        OracleCreateOrder oracleOrder = MapToOracleOrder(input);
+        OracleResponse<Models.SalesOrders.GetOrderResponse> found  = await _oracleRestClient.GetOrder(input.OrderKey, default);
+        OracleUpdateOrder oracleOrder = MapToOracleOrder(input, found);
         await _oracleRestClient.UpdateOrder(oracleOrder, default);
         return new OracleSalesOrderResponseModel();
     }
 
-    private OracleCreateOrder MapToOracleOrder(SalesOrderModel orders)
+    private OracleUpdateOrder MapToOracleOrder(SalesOrderModel order, GetOrderResponse found)
     {
         throw new NotImplementedException();
     }
