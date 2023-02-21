@@ -41,9 +41,10 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients
             throw new NotImplementedException();
         }
 
-        public Task<OracleResponse<GetOrderResponse>> GetOrder(string? orderKey, CancellationToken cancellationToken)
+        public async Task<OracleResponse<GetOrderResponse>> GetOrder(string? orderKey, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            HttpResponseMessage response = await _client.GetAsync($"{RequestUri}?q=OrderNumber={orderKey}", cancellationToken);
+            return await response.ProcessResponseFromOracle<GetOrderResponse>(cancellationToken);
         }
     }
 }
