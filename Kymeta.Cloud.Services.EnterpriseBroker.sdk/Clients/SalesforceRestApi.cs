@@ -21,10 +21,10 @@ public class SalesforceRestApi : ISalesforceRestApi
         _logger = logger.NotNull();
     }
 
-    public async Task<IEnumerable<OrderProduct>> GetOrderProducts(string orderNumber, CancellationToken cancellationToken)
+    public async Task<IEnumerable<OrderProduct>> GetOrderProducts(string orderKey, CancellationToken cancellationToken)
     {
 
-        HttpResponseMessage response = await _client.GetAsync($"/services/data/v56.0/query?q=select FIELDS(ALL) from OrderItem where orderId=’{orderNumber}’ and sync_to_oracle__c=false LIMIT 200", cancellationToken);
+        HttpResponseMessage response = await _client.GetAsync($"/services/data/v56.0/query?q=select FIELDS(ALL) from OrderItem where orderId=’{orderKey}’ and sync_to_oracle__c=false LIMIT 200", cancellationToken);
 
         return new[] { new OrderProduct() };
     }
