@@ -11,7 +11,6 @@ public interface ISalesforceClient2
 
 public class SalesforceClient2 : ISalesforceClient2
 {
-
     public SalesforceClient2(HttpClient client, ILoggerFactory loggerFactory)
     {
         client.NotNull();
@@ -22,6 +21,5 @@ public class SalesforceClient2 : ISalesforceClient2
     }
 
     public ISalesforceEventApi Events { get; }
-
     public ISalesforceRestApi Rest { get; }
 }

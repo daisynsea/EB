@@ -1,7 +1,6 @@
 ﻿using Kymeta.Cloud.Commons.Databases.Redis;
 using Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce.External;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models;
-using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders;
 using Newtonsoft.Json;
 using System.Text;
 
