@@ -21,13 +21,17 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
             var payload = found.Payload;
             payload.Should().NotBeNull();
             payload.IsSuccessfulResponse().Should().BeTrue();
-            payload.HeaderId.Should().Be(300000113543461);
-            payload.OrderNumber.Should().Be("3472712");
-            payload.SourceTransactionNumber.Should().Be("3472712");
-            payload.SourceTransactionSystem.Should().Be("OPS");
-            payload.SourceTransactionId.Should().Be("4937");
-            payload.BusinessUnitId.Should().Be(300000001130195);
-            payload.BusinessUnitName.Should().Be("Kymeta Corporation BU");
+            payload.Items.Should().HaveCount(5);
+           
+            var item = payload.Items.First();
+            // item.HeaderId is unique and different
+            item.HeaderId.Should().NotBe(0);
+            item.OrderNumber.Should().Be(OrderNumberExistsInOracle);
+            item.SourceTransactionNumber.Should().Be(OrderNumberExistsInOracle);
+            item.SourceTransactionSystem.Should().Be("OPS");
+            item.SourceTransactionId.Should().Be("300000108921817");
+            item.BusinessUnitId.Should().Be(300000001130195);
+            item.BusinessUnitName.Should().Be("Kymeta Corporation BU");
         }
 
         [Fact]
