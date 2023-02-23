@@ -7,9 +7,16 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
     public class OracleClientTests : TestApplicationFixture
     {
         private readonly IOracleRestClient _client;
+        private string OrderNumberExistsInOracle = "280120";
         public OracleClientTests(EnterpriseBrokerFactory factory) : base(factory)
         {
             _client = Resolve<IOracleRestClient>();
+        }
+
+        [Fact]
+        public async Task GetOrder_OrderExistsInOracle_ReturnsOrder()
+        {
+            var found = await _client.GetOrder(OrderNumberExistsInOracle, default);
         }
 
         [Fact]
