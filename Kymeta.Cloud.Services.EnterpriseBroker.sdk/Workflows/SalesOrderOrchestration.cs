@@ -45,8 +45,17 @@ public class SalesOrderOrchestration : TaskOrchestration<bool, string>
             SalesforceNeoApproveOrderModel eventData = input.ToObject<SalesforceNeoApproveOrderModel>().NotNull();
 
             SalesOrderModel salesOrderModel = await context.ScheduleTask<SalesOrderModel>(typeof(GetSalesOrderLinesActivity), options, eventData);
+            OracleOrder? oracleOrder = await context.ScheduleTask<OracleOrder?>(typeof(GetOracleSalesOrderActivity), options, salesOrderModel.OrderKey);
 
-            OracleSalesOrderResponseModel oracleResponse = await context.ScheduleTask<OracleSalesOrderResponseModel>(typeof(UpdateOracleSalesOrderActivity), options, salesOrderModel);
+            if(oracleOrder is null)
+            {
+                //create activity
+            }
+            else
+            {
+                OracleSalesOrderResponseModel oracleResponse = await context.ScheduleTask<OracleSalesOrderResponseModel>(typeof(UpdateOracleSalesOrderActivity), options, salesOrderModel);
+            }
+
 
             bool success = await context.ScheduleTask<bool>(typeof(SetSalesOrderWithOracleActivity), options, salesOrderModel);
 
