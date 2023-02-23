@@ -1,16 +1,25 @@
 ﻿using DurableTask.Core;
+using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders;
 using Microsoft.Extensions.Logging;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Workflows;
 
-public class GetOracleSalesOrderActivity : TaskActivity<string, OracleOrder>
+public class GetOracleSalesOrderActivity : AsyncTaskActivity<string, OracleOrder>
 {
     private readonly ILogger<GetSalesOrderLinesActivity> _logger;
-    public GetOracleSalesOrderActivity(ILogger<GetSalesOrderLinesActivity> logger) => _logger = logger;
+    private readonly IOracleRestClient _oracleRestClient;
 
-    protected override OracleOrder Execute(TaskContext context, string input)
+    public GetOracleSalesOrderActivity(ILogger<GetSalesOrderLinesActivity> logger, IOracleRestClient oracleRestClient)
     {
-        throw new NotImplementedException();
+        _logger = logger;
+        _oracleRestClient = oracleRestClient;
     }
+
+    protected override async Task<OracleOrder> ExecuteAsync(TaskContext context, string input)
+    {
+        var order = await _oracleRestClient.GetOrder(input, default);
+        return new OracleOrder(); 
+    }
+
 }
