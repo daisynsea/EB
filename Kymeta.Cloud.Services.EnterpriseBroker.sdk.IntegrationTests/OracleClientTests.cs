@@ -8,6 +8,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
     {
         private readonly IOracleRestClient _client;
         private string OrderNumberExistsInOracle = "280120";
+        private string OrderNumberNotInOracle = "999999";
         public OracleClientTests(EnterpriseBrokerFactory factory) : base(factory)
         {
             _client = Resolve<IOracleRestClient>();
@@ -17,6 +18,23 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
         public async Task GetOrder_OrderExistsInOracle_ReturnsOrder()
         {
             var found = await _client.GetOrder(OrderNumberExistsInOracle, default);
+            var payload = found.Payload;
+            payload.Should().NotBeNull();
+            payload.IsSuccessfulResponse().Should().BeTrue();
+            payload.HeaderId.Should().Be(300000113543461);
+            payload.OrderNumber.Should().Be("3472712");
+            payload.SourceTransactionNumber.Should().Be("3472712");
+            payload.SourceTransactionSystem.Should().Be("OPS");
+            payload.SourceTransactionId.Should().Be("4937");
+            payload.BusinessUnitId.Should().Be(300000001130195);
+            payload.BusinessUnitName.Should().Be("Kymeta Corporation BU");
+        }
+
+        [Fact]
+        public async Task GetOrder_OrderNotInOracle_ReturnsOrder()
+        {
+            OracleResponse<GetOrderResponse> found = await _client.GetOrder(OrderNumberNotInOracle, default);
+            found.Payload.IsSuccessfulResponse().Should().BeFalse();
         }
 
         [Fact]

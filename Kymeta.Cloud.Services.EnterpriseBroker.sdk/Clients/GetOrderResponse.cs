@@ -11,9 +11,11 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients
         public string SourceTransactionId { get; set; }
         public long BusinessUnitId { get; set; }
         public string BusinessUnitName { get; set; }
+
         public bool IsSuccessfulResponse()
         {
-            return true;
+            return !(HeaderId == 0 && OrderNumber is null && SourceTransactionNumber is null && SourceTransactionSystem is null && SourceTransactionId is null
+                && BusinessUnitId == 0 && BusinessUnitName is null);
         }
     }
 
