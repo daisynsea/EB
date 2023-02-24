@@ -22,7 +22,6 @@ public class SalesOrderOrchestration : TaskOrchestration<bool, string>
     public override async Task<bool> RunTask(OrchestrationContext context, string input)
     {
         using var ls = _logger.LogEntryExit();
-        string prefix = context.IsReplaying ? "**" : string.Empty;
 
         _logger.LogInformation(
             "Starting orchestration, replaying={replaying}, InstanceId={instanceId}, ExceutionId={executionId}",
@@ -30,16 +29,8 @@ public class SalesOrderOrchestration : TaskOrchestration<bool, string>
             context.OrchestrationInstance.InstanceId,
             context.OrchestrationInstance.ExecutionId
             );
-
-        var firstRetryInterval = TimeSpan.FromSeconds(1);
-        var maxNumberOfAttempts = 5;
-        var backoffCoefficient = 1.1;
-
-        var options = new RetryOptions(firstRetryInterval, maxNumberOfAttempts)
-        {
-            BackoffCoefficient = backoffCoefficient,
-            Handle = HandleError
-        };
+        
+        RetryOptions options = GetRetryOptions();
 
         try
         {
@@ -48,7 +39,7 @@ public class SalesOrderOrchestration : TaskOrchestration<bool, string>
             SalesOrderModel salesOrderModel = await context.ScheduleTask<SalesOrderModel>(typeof(GetSalesOrderLinesActivity), options, eventData);
             OracleResponse<GetOrderResponse> foundOrder = await context.ScheduleTask<OracleResponse<GetOrderResponse>>(typeof(GetOracleSalesOrderActivity), options, salesOrderModel.OrderKey);
 
-            if(!foundOrder.IsSuccessStatusCode())
+            if (!foundOrder.IsSuccessStatusCode())
             {
                 OracleResponse<CreateOrderResponse>? createdOrder = await context.ScheduleTask<OracleResponse<CreateOrderResponse>?>(typeof(OracleCreateOrderActivity), options, salesOrderModel);
             }
@@ -68,6 +59,20 @@ public class SalesOrderOrchestration : TaskOrchestration<bool, string>
         }
 
         return true;
+    }
+
+    private RetryOptions GetRetryOptions()
+    {
+        var firstRetryInterval = TimeSpan.FromSeconds(1);
+        var maxNumberOfAttempts = 5;
+        var backoffCoefficient = 1.1;
+
+        var options = new RetryOptions(firstRetryInterval, maxNumberOfAttempts)
+        {
+            BackoffCoefficient = backoffCoefficient,
+            Handle = HandleError
+        };
+        return options;
     }
 
     private bool HandleError(Exception ex)
