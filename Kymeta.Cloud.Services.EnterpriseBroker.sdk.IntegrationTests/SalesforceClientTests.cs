@@ -15,8 +15,8 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
         [Fact]
         public async Task CreateOrder_AlredyExistingOrder_RetrunsBadRequest()
         {
-            var result = await _client.GetOrderProducts("0047355", CancellationToken.None);
-            result.Should().NotBeEmpty();
+            var result = await _client.GetOrderProducts("80163000002nGzAAAU", CancellationToken.None);
+            result.Should().NotBeNullOrEmpty();
         }
 
     }

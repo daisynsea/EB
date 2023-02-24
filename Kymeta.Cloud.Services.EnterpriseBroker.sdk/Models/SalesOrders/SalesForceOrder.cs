@@ -1,25 +1,42 @@
 ﻿
+using System.Text.Json.Serialization;
+using JsonIgnoreAttribute = System.Text.Json.Serialization.JsonIgnoreAttribute;
 using Kymeta.Cloud.Services.Toolbox.Extensions;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders
 {
     public class SalesforceOrder
     {
+        [JsonIgnore]
         public string? Id { get; set; }
+        [JsonIgnore]
         public string? OrderNumber { get; set; }
+        [JsonIgnore]
         public string? BusinessUnit { get; set; }
+        [JsonIgnore]
         public string? OrderType { get; set; }
+        [JsonIgnore]
         public string? AccountName { get; set; }
+        [JsonIgnore]
         public string? PrimaryContact { get; set; }
+        [JsonIgnore]
         public string? PreferredContactMethod { get; set; }
+        [JsonIgnore]
         public DateOnly? PoDate { get; set; }
+        [JsonIgnore]
         public string? PoNumber { get; set; }
+        [JsonIgnore]
         public string? BillToName { get; set; }
+        [JsonIgnore]
         public string? OracleAccountId { get; set; }
+        [JsonIgnore]
         public string? ShipToName { get; set; }
+        [JsonIgnore]
         public string? ShippingAddress { get; set; }
+        [JsonIgnore]
         public string? SalesRepresentative { get; set; }
-        public OrderProduct[] OrderProducts { get; set; }   = Array.Empty<OrderProduct>();
+        [JsonPropertyName("records")]
+        public OrderProduct[] OrderProducts { get; set; } = Array.Empty<OrderProduct>();
 
         public bool IsValid()
         {
@@ -33,9 +50,6 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders
     {
         public string Id { get; set; }
         public string? OrderId { get; set; }
-        public string? BillingFrequency { get; set; }
-        public string? NumberOfBillingPeriods { get; set; }
-        public string? LineType { get; set; }
         public string? Product_Code__c { get; set; }
         public string Product2Id { get; set; }
         public bool IsDeleted { get; set; }
