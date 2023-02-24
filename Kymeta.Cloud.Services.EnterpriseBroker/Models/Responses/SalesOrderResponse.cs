@@ -37,8 +37,8 @@ public class SalesOrderTerminal
     public string? HybridRouterMAC { get; set; }
     public string? KrcmPart { get; set; }
     public string? KrcmSerial { get; set; }
-    public string? MrcrmPart { get; set; }
-    public string? MrcrmSerial { get; set; }
+    public string? McrcmPart { get; set; }
+    public string? McrcmSerial { get; set; }
     public string? EgrPart { get; set; }
     public string? EgrMfr { get; set; }
     public string? EgrSerial { get; set; }
