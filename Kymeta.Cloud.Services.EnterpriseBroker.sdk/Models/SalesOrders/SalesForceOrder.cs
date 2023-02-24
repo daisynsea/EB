@@ -19,6 +19,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders
         public string? ShipToName { get; set; }
         public string? ShippingAddress { get; set; }
         public string? SalesRepresentative { get; set; }
+        public OrderProduct[] OrderProducts { get; set; }   = Array.Empty<OrderProduct>();
 
         public bool IsValid()
         {
