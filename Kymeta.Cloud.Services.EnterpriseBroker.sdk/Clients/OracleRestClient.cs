@@ -10,7 +10,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients
     {
         Task<OracleResponse<CreateOrderResponse>> CreateOrder(OracleCreateOrder newOrder, CancellationToken cancellationToken);
         Task<OracleResponse<GetOrderResponse>> GetOrder(string? orderKey, CancellationToken cancellationToken);
-        Task<OracleResponse<UpdateOrderResponse>> UpdateOrder(OracleUpdateOrder newOrder, CancellationToken cancellationToken);
+        Task<OracleResponse<UpdateOrderResponse>> UpdateOrder(string? orderKey, OracleUpdateOrder newOrder, CancellationToken cancellationToken);
     }
 
     public class OracleRestClient : IOracleRestClient
@@ -30,21 +30,22 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients
             return await response.ProcessResponseFromOracle<CreateOrderResponse>(cancellationToken);
         }
 
-        private static StringContent SerializeToJsonString(OracleCreateOrder newOrder)
+        public async Task<OracleResponse<UpdateOrderResponse>> UpdateOrder(string? orderKey, OracleUpdateOrder newOrder, CancellationToken cancellationToken)
         {
-            var serialized = JsonSerializer.Serialize(newOrder, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            return new StringContent(serialized, Encoding.UTF8, "application/json");
-        }
-
-        public Task<OracleResponse<UpdateOrderResponse>> UpdateOrder(OracleUpdateOrder newOrder, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
+            HttpResponseMessage response = await _client.PatchAsync($"{RequestUri}/{orderKey}", SerializeToJsonString(newOrder) ,cancellationToken);
+            return await response.ProcessResponseFromOracle<UpdateOrderResponse>(cancellationToken);
         }
 
         public async Task<OracleResponse<GetOrderResponse>> GetOrder(string? orderKey, CancellationToken cancellationToken)
         {
             HttpResponseMessage response = await _client.GetAsync($"{RequestUri}?q=OrderNumber={orderKey}", cancellationToken);
             return await response.ProcessResponseFromOracle<GetOrderResponse>(cancellationToken);
+        }
+
+        private static StringContent SerializeToJsonString<T>(T instance)
+        {
+            var serialized = JsonSerializer.Serialize(instance, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            return new StringContent(serialized, Encoding.UTF8, "application/json");
         }
     }
 }
