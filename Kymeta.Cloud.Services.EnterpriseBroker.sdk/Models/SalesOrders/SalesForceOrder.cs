@@ -1,7 +1,6 @@
 ﻿
-using System.Text.Json.Serialization;
-using JsonIgnoreAttribute = System.Text.Json.Serialization.JsonIgnoreAttribute;
 using Kymeta.Cloud.Services.Toolbox.Extensions;
+using Newtonsoft.Json;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders
 {
@@ -35,15 +34,15 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders
         public string? ShippingAddress { get; set; }
         [JsonIgnore]
         public string? SalesRepresentative { get; set; }
-        [JsonPropertyName("records")]
-        public OrderProduct[] OrderProducts { get; set; } = Array.Empty<OrderProduct>();
+
+        [JsonProperty("records")]
+        public List<OrderProduct> OrderProducts { get; set; } = new List<OrderProduct>();
 
         public bool IsValid()
         {
             return Id.IsNotEmpty();
               
         }
-
     }
 
     public class OrderProduct
