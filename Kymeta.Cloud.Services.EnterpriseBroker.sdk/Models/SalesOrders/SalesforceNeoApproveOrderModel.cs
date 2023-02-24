@@ -11,6 +11,11 @@ public record SalesforceNeoApproveOrderModel
 {
     public SalesforceNeoApproveOrderData Data { get; init; } = null!;
     public string Channel { get; init; } = null!;
+
+    public SalesforceOrder MapToSalesOrder()
+    {
+        return Data.Payload.MapToSalesOrder();
+    }
 }
 
 public record SalesforceNeoApproveOrderData
@@ -39,7 +44,7 @@ public record SalesforceNeoApproveOrderPayload
     public string? Neo_Oracle_Sync_Status__c { get; init; }
     public string? NEO_PO_Number__c { get; init; }
     public string? NEO_Primary_Contract__c { get; init; }
-    public string? NEO_PO_Date__c { get; init; }
+    public DateOnly? NEO_PO_Date__c { get; init; }
     public string? NEO_Order_Type_Oracle_Sync__c { get; init; }
     public string? NEO_Oracle_SO__c { get; init; }
     public string? NEO_ApprovalStatus__c { get; init; }
@@ -49,6 +54,27 @@ public record SalesforceNeoApproveOrderPayload
     public string? CreatedDate { get; init; }
     public string? NEO_Oracle_Bill_to_Contact_ID__c { get; init; }
     public string? NEO_Bill_To_Name__c { get; init; }
+
+    public SalesforceOrder MapToSalesOrder()
+    {
+        return new SalesforceOrder
+        {
+            Id = NEO_Id__c,
+            AccountName = NEO_Account_Name__c,
+            BusinessUnit = null, // see about this
+            OrderNumber = NEO_OrderNumbrer__c,
+            OrderType = NEO_Order_Type_Oracle_Sync__c,
+            PoDate = NEO_PO_Date__c,
+            PoNumber = NEO_PO_Number__c,
+            PrimaryContact = NEO_Primary_Contract__c,
+            SalesRepresentative = NEO_Sales_Representative__c,
+            ShippingAddress = NEO_Oracle_Bill_to_Address_ID__c,
+            BillToName = NEO_Bill_To_Name__c,
+            OracleAccountId = NEO_Oracle_Account_ID__c,
+            PreferredContactMethod = NEO_Preferred_Contract_Method__c,
+            ShipToName = NEO_Ship_to_Name__c
+        };
+    }
 }
 
 

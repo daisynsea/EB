@@ -1,4 +1,6 @@
 ﻿
+using Kymeta.Cloud.Services.Toolbox.Extensions;
+
 namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders
 {
     public class SalesforceOrder
@@ -17,6 +19,12 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders
         public string? ShipToName { get; set; }
         public string? ShippingAddress { get; set; }
         public string? SalesRepresentative { get; set; }
+
+        public bool IsValid()
+        {
+            return Id.IsNotEmpty();
+              
+        }
 
     }
 
