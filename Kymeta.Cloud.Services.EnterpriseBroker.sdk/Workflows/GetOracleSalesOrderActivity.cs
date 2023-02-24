@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Workflows;
 
-public class GetOracleSalesOrderActivity : AsyncTaskActivity<string, OracleOrder>
+public class GetOracleSalesOrderActivity : AsyncTaskActivity<string,  OracleResponse<GetOrderResponse>>
 {
     private readonly ILogger<GetSalesOrderLinesActivity> _logger;
     private readonly IOracleRestClient _oracleRestClient;
@@ -16,10 +16,8 @@ public class GetOracleSalesOrderActivity : AsyncTaskActivity<string, OracleOrder
         _oracleRestClient = oracleRestClient;
     }
 
-    protected override async Task<OracleOrder> ExecuteAsync(TaskContext context, string input)
+    protected override async Task< OracleResponse<GetOrderResponse>> ExecuteAsync(TaskContext context, string input)
     {
-        var order = await _oracleRestClient.GetOrder(input, default);
-        return new OracleOrder(); 
+        return await _oracleRestClient.GetOrder(input, default);
     }
-
 }

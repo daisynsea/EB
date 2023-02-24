@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Castle.Core.Logging;
 using DurableTask.Core;
+using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders;
 using Kymeta.Cloud.Services.Toolbox.Extensions;
 using Kymeta.Cloud.Services.Toolbox.Tools;
@@ -45,9 +46,9 @@ public class SalesOrderOrchestration : TaskOrchestration<bool, string>
             SalesforceNeoApproveOrderModel eventData = input.ToObject<SalesforceNeoApproveOrderModel>().NotNull();
 
             SalesOrderModel salesOrderModel = await context.ScheduleTask<SalesOrderModel>(typeof(GetSalesOrderLinesActivity), options, eventData);
-            OracleOrder? oracleOrder = await context.ScheduleTask<OracleOrder?>(typeof(GetOracleSalesOrderActivity), options, salesOrderModel.OrderKey);
+            OracleResponse<GetOrderResponse> foundOrder = await context.ScheduleTask<OracleResponse<GetOrderResponse>>(typeof(GetOracleSalesOrderActivity), options, salesOrderModel.OrderKey);
 
-            if(oracleOrder is null)
+            if(!foundOrder.IsSuccessStatusCode())
             {
                 OracleResponse<CreateOrderResponse>? createdOrder = await context.ScheduleTask<OracleResponse<CreateOrderResponse>?>(typeof(OracleCreateOrderActivity), options, salesOrderModel);
             }
@@ -55,7 +56,6 @@ public class SalesOrderOrchestration : TaskOrchestration<bool, string>
             {
                 OracleSalesOrderResponseModel oracleResponse = await context.ScheduleTask<OracleSalesOrderResponseModel>(typeof(UpdateOracleSalesOrderActivity), options, salesOrderModel);
             }
-
 
             bool success = await context.ScheduleTask<bool>(typeof(SetSalesOrderWithOracleActivity), options, salesOrderModel);
 
