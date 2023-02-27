@@ -1,32 +1,47 @@
 ﻿using Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.REST;
+using Kymeta.Cloud.Services.Toolbox.Rest;
 using Newtonsoft.Json;
 using System.Net;
 
 public class OracleResponse<T> where T : IOracleResponsePayload
 {
-    public OracleResponse(HttpStatusCode status, string? message, string? conent)
+    public OracleResponse(HttpStatusCode status, string? reasonPhase, string? conent)
     {
         StatusCode = status;
-        Message = message;
+        ReasonPhrase = reasonPhase;
         Content = conent;
-        Payload = GetPayload();
+        SetPayload();
     }
 
-    public string? Message { get; init; }
-    public string? Content { get; init; }
-    public T? Payload { get; init; }
-    public HttpStatusCode StatusCode { get; init; }
+    public string? ReasonPhrase { get; private set; }
+    public string? Content { get; private set; }
+    public T? Payload { get; private set; }
 
-    public bool IsSuccessStatusCode() => Payload switch
-    {
-        null => false,
-        _ => Payload.IsSuccessfulResponse()
-    };
+    public string? ErrorMessage { get; private set; }
+    public HttpStatusCode StatusCode { get; private set; }
 
-    private T? GetPayload()
+    public bool IsSuccessStatusCode()
     {
-        if (string.IsNullOrEmpty(Content)) { return default; }
-        return JsonConvert.DeserializeObject<T>(Content);
+        if (StatusCode.IsSuccess())
+        {
+            return Payload != null;
+        }
+        return StatusCode.IsSuccess();
+    }
+
+    private void SetPayload()
+    {
+        if (!StatusCode.IsSuccess() || string.IsNullOrEmpty(Content))
+        {
+            ErrorMessage = Content;
+            Payload = default(T);
+        }
+        else
+        {
+            ErrorMessage = "";
+            Payload = JsonConvert.DeserializeObject<T>(Content);
+        }
+       
     }
 
 }
