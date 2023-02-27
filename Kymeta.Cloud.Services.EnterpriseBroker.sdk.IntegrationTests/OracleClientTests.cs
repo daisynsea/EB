@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders;
+using Kymeta.Cloud.Services.Toolbox.Extensions;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
 {
@@ -45,7 +46,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
         [Fact]
         public async Task UpdateOrder_OrderExistsInOracle_ReturnsSuccessfulUpdate()
         {
-            var orderToUpdate = new OracleUpdateOrder()
+            var orderToUpdate = new OracleUpdateOrderThatWorks()
             {
                 OrderKey = $"OPS:{OrderUpdateExistsInOracle}",
                 PackingInstructions = "Packing instructions updated rada",
@@ -56,7 +57,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
             OracleResponse<UpdateOrderResponse> updated = await _client.UpdateOrder(orderToUpdate, default);
             Assert(orderToUpdate, updated);
 
-            var orderBackToOriginal = new OracleUpdateOrder()
+            var orderBackToOriginal = new OracleUpdateOrderThatWorks()
             {
                 OrderKey = $"OPS:{OrderUpdateExistsInOracle}",
                 PackingInstructions = "Packing instructions",
@@ -66,6 +67,39 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
 
             OracleResponse<UpdateOrderResponse> updatedToOriginal = await _client.UpdateOrder(orderBackToOriginal, default);
             Assert(orderBackToOriginal, updatedToOriginal);
+        }
+
+        [Fact]
+        public async Task UpdateOrderDoesnotwork_OrderExistsInOracle_ReturnsSuccessfulUpdate()
+        {
+            OracleResponse<GetOrderResponse> found = await _client.GetOrder(OrderUpdateExistsInOracle, default);
+            Item foundPayload = found.Payload.Items.First();
+            var orderToUpdate = new OracleUpdateOrder()
+            {
+                OrderKey = $"OPS:{OrderUpdateExistsInOracle}",
+                BusinessUnitName = foundPayload.BusinessUnitName,
+                BuyingPartyContactNumber = foundPayload.BuyingPartyContactNumber,
+                BuyingPartyName= foundPayload.BuyingPartyName,
+                BuyingPartyNumber= foundPayload.BuyingPartyNumber,
+                FreezePriceFlag = foundPayload.FreezePriceFlag,
+                FreezeShippingChargeFlag= foundPayload.FreezeShippingChargeFlag,
+                FreezeTaxFlag= foundPayload.FreezeTaxFlag,
+                PaymentTerms=foundPayload.PaymentTerms,
+                RequestedShipDate=foundPayload.RequestedShipDate,
+                RequestingBusinessUnitName=foundPayload.RequestingBusinessUnitName,
+                SourceTransactionId=foundPayload.SourceTransactionId,
+                SourceTransactionNumber=foundPayload.SourceTransactionNumber,
+                SourceTransactionSystem=foundPayload.SourceTransactionSystem,
+                SubmittedFlag=foundPayload.SubmittedFlag,
+                TransactionalCurrencyCode=foundPayload.TransactionalCurrencyCode,
+                TransactionType=foundPayload.TransactionType,
+                SourceTransactionRevisionNumber = "1"
+            };
+            OracleResponse<UpdateOrderResponse> updated = await _client.UpdateOrder(orderToUpdate, default);
+            updated.IsSuccessStatusCode().Should().BeTrue();
+            var payload = updated.Payload;
+            payload.IsSuccessfulResponse().Should().BeTrue();
+
         }
 
         [Fact]
@@ -204,7 +238,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
             result.Content.Should().Be("The request failed because a sales order with transaction 0047355 from source system OPS already exists.");
         }
 
-        private static void Assert(OracleUpdateOrder orderToUpdate, OracleResponse<UpdateOrderResponse> updated)
+        private static void Assert(OracleUpdateOrderThatWorks orderToUpdate, OracleResponse<UpdateOrderResponse> updated)
         {
             updated.IsSuccessStatusCode().Should().BeTrue();
             var payload = updated.Payload;
