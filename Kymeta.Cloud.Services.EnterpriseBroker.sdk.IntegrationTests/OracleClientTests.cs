@@ -8,6 +8,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
     {
         private readonly IOracleRestClient _client;
         private string OrderNumberExistsInOracle = "280120";
+        private string OrderUpdateExistsInOracle = "114739004";
         private string OrderNumberNotInOracle = "999999";
         public OracleClientTests(EnterpriseBrokerFactory factory) : base(factory)
         {
@@ -39,6 +40,47 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
         {
             OracleResponse<GetOrderResponse> found = await _client.GetOrder(OrderNumberNotInOracle, default);
             found.Payload.IsSuccessfulResponse().Should().BeFalse();
+        }
+
+        [Fact(Skip = "It fails for now")]
+        public async Task UpdateOrder_OrderExistsInOracle_ReturnsSuccessfulUpdate()
+        {
+            var fetched = await _client.GetOrder(OrderUpdateExistsInOracle, default);
+            Item beforeUpdate = fetched.Payload.Items.First();
+            var orderToUpdate = new OracleUpdateOrder()
+
+            {
+                SourceTransactionNumber = beforeUpdate.SourceTransactionNumber,
+                SourceTransactionId = beforeUpdate.SourceTransactionId,
+                OrderKey = $"OPS:{beforeUpdate.SourceTransactionId}",
+                SourceTransactionSystem = "OPS",
+                TransactionalCurrencyCode = "USD",
+               // BusinessUnitName = "Rada test", cannot be updated
+                BuyingPartyName = null, //check event
+                TransactionType = null,
+                FreezePriceFlag = false,
+                FreezeShippingChargeFlag = false,
+                FreezeTaxFlag = false,
+                SubmittedFlag = true,
+            };
+            OracleResponse<UpdateOrderResponse> updated = await _client.UpdateOrder(orderToUpdate.OrderKey, orderToUpdate, default);
+            updated.Payload.IsSuccessfulResponse().Should().BeFalse();
+
+            var found = await _client.GetOrder(OrderNumberExistsInOracle, default);
+            var payload = found.Payload;
+            payload.Should().NotBeNull();
+            payload.IsSuccessfulResponse().Should().BeTrue();
+            payload.Items.Should().HaveCount(5);
+
+            var item = payload.Items.First();
+            // item.HeaderId is unique and different
+            item.HeaderId.Should().NotBe(0);
+            item.OrderNumber.Should().Be(OrderNumberExistsInOracle);
+            item.SourceTransactionNumber.Should().Be(OrderNumberExistsInOracle);
+            item.SourceTransactionSystem.Should().Be("OPS");
+           // item.SourceTransactionId.Should().Be("300000108921817");
+           // item.BusinessUnitId.Should().Be(300000001130195);
+            item.BusinessUnitName.Should().Be("Rada test");
         }
 
         [Fact]

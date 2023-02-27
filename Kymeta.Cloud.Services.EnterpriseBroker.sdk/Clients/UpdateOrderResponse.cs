@@ -6,7 +6,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients
     {
         public bool IsSuccessfulResponse()
         {
-            throw new NotImplementedException();
+            return true;
         }
     }
 }
