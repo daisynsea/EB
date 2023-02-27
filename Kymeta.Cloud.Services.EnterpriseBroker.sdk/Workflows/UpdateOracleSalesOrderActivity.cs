@@ -24,7 +24,7 @@ public class UpdateOracleSalesOrderActivity : AsyncTaskActivity<SalesforceNeoApp
         }
       
         OracleUpdateOrder oracleOrder = input.MapToOracleUpdate();
-        await _oracleRestClient.UpdateOrder(racleOrder, default);
+        await _oracleRestClient.UpdateOrder(oracleOrder, default);
         return new OracleSalesOrderResponseModel();
     }
 
