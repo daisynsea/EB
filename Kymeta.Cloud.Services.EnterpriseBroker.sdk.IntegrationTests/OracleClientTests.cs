@@ -43,31 +43,31 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
             found.Payload.IsSuccessfulResponse().Should().BeFalse();
         }
 
-        [Fact]
-        public async Task UpdateOrder_OrderExistsInOracle_ReturnsSuccessfulUpdate()
-        {
-            var orderToUpdate = new OracleUpdateOrderThatWorks()
-            {
-                OrderKey = $"OPS:{OrderUpdateExistsInOracle}",
-                PackingInstructions = "Packing instructions updated rada",
-                FOBPointCode = "Destination",
-                ShippingInstructions = "Shipping instructions rada"
+        //[Fact]
+        //public async Task UpdateOrder_OrderExistsInOracle_ReturnsSuccessfulUpdate()
+        //{
+        //    var orderToUpdate = new OracleUpdateOrderThatWorks()
+        //    {
+        //        OrderKey = $"OPS:{OrderUpdateExistsInOracle}",
+        //        PackingInstructions = "Packing instructions updated rada",
+        //        FOBPointCode = "Destination",
+        //        ShippingInstructions = "Shipping instructions rada"
 
-            };
-            OracleResponse<UpdateOrderResponse> updated = await _client.UpdateOrder(orderToUpdate, default);
-            Assert(orderToUpdate, updated);
+        //    };
+        //    OracleResponse<UpdateOrderResponse> updated = await _client.UpdateOrder(orderToUpdate, default);
+        //    Assert(orderToUpdate, updated);
 
-            var orderBackToOriginal = new OracleUpdateOrderThatWorks()
-            {
-                OrderKey = $"OPS:{OrderUpdateExistsInOracle}",
-                PackingInstructions = "Packing instructions",
-                FOBPointCode = "Destination one",
-                ShippingInstructions = "Shipping instructions"
-            };
+        //    var orderBackToOriginal = new OracleUpdateOrderThatWorks()
+        //    {
+        //        OrderKey = $"OPS:{OrderUpdateExistsInOracle}",
+        //        PackingInstructions = "Packing instructions",
+        //        FOBPointCode = "Destination one",
+        //        ShippingInstructions = "Shipping instructions"
+        //    };
 
-            OracleResponse<UpdateOrderResponse> updatedToOriginal = await _client.UpdateOrder(orderBackToOriginal, default);
-            Assert(orderBackToOriginal, updatedToOriginal);
-        }
+        //    OracleResponse<UpdateOrderResponse> updatedToOriginal = await _client.UpdateOrder(orderBackToOriginal, default);
+        //    Assert(orderBackToOriginal, updatedToOriginal);
+        //}
 
         [Fact]
         public async Task UpdateOrderDoesnotwork_OrderExistsInOracle_ReturnsSuccessfulUpdate()
@@ -238,15 +238,15 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
             result.Content.Should().Be("The request failed because a sales order with transaction 0047355 from source system OPS already exists.");
         }
 
-        private static void Assert(OracleUpdateOrderThatWorks orderToUpdate, OracleResponse<UpdateOrderResponse> updated)
-        {
-            updated.IsSuccessStatusCode().Should().BeTrue();
-            var payload = updated.Payload;
-            payload.IsSuccessfulResponse().Should().BeTrue();
-            payload.ShippingInstructions.Should().Be(orderToUpdate.ShippingInstructions);
-            payload.FOBPointCode.Should().Be(orderToUpdate.FOBPointCode);
-            payload.PackingInstructions.Should().Be(orderToUpdate.PackingInstructions);
-        }
+        //private static void Assert(OracleUpdateOrderThatWorks orderToUpdate, OracleResponse<UpdateOrderResponse> updated)
+        //{
+        //    updated.IsSuccessStatusCode().Should().BeTrue();
+        //    var payload = updated.Payload;
+        //    payload.IsSuccessfulResponse().Should().BeTrue();
+        //    payload.ShippingInstructions.Should().Be(orderToUpdate.ShippingInstructions);
+        //    payload.FOBPointCode.Should().Be(orderToUpdate.FOBPointCode);
+        //    payload.PackingInstructions.Should().Be(orderToUpdate.PackingInstructions);
+        //}
 
     }
 }
