@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Workflows;
 
-public class UpdateOracleSalesOrderActivity : AsyncTaskActivity<SalesforceOrder, OracleSalesOrderResponseModel>
+public class UpdateOracleSalesOrderActivity : AsyncTaskActivity<SalesforceNeoApproveOrderPayload, OracleSalesOrderResponseModel>
 {
     private readonly ILogger<UpdateOracleSalesOrderActivity> _logger;
     private readonly IOracleRestClient _oracleRestClient;
@@ -16,20 +16,16 @@ public class UpdateOracleSalesOrderActivity : AsyncTaskActivity<SalesforceOrder,
         _oracleRestClient = oracleRestClient;
     }
 
-    protected override async Task<OracleSalesOrderResponseModel> ExecuteAsync(TaskContext context, SalesforceOrder input)
+    protected override async Task<OracleSalesOrderResponseModel> ExecuteAsync(TaskContext context, SalesforceNeoApproveOrderPayload input)
     {
         if (!input.IsValid())
         {
             throw new InvalidOperationException("Please provide valid sales order!");
         }
       
-        OracleUpdateOrder oracleOrder = MapToOracleOrder(input);
-        await _oracleRestClient.UpdateOrder(input.Id,oracleOrder, default);
+        OracleUpdateOrder oracleOrder = input.MapToOracleUpdate();
+        await _oracleRestClient.UpdateOrder(input.NEO_Id__c,oracleOrder, default);
         return new OracleSalesOrderResponseModel();
     }
 
-    private OracleUpdateOrder MapToOracleOrder(SalesforceOrder order)
-    {
-        throw new NotImplementedException();
-    }
 }

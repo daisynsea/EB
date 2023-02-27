@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Kymeta.Cloud.Services.Toolbox.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,10 +13,16 @@ public record SalesforceNeoApproveOrderModel
     public SalesforceNeoApproveOrderData Data { get; init; } = null!;
     public string Channel { get; init; } = null!;
 
+    public SalesforceNeoApproveOrderPayload GetEventPayload()
+    {
+        return Data.Payload;
+    }
+
     public SalesforceOrder MapToSalesOrder()
     {
-        return Data.Payload.MapToSalesOrder();
+        return GetEventPayload().MapToSalesOrder();
     }
+
 }
 
 public record SalesforceNeoApproveOrderData
@@ -26,6 +33,8 @@ public record SalesforceNeoApproveOrderData
 
 }
 
+
+
 public record SalesforceNeoApproveOrderPayload
 {
     public string? NEO_Oracle_Bill_to_Address_ID__c { get; init; }
@@ -34,7 +43,7 @@ public record SalesforceNeoApproveOrderPayload
     public string? NEO_Account_Name__c { get; init; }
     public string? NEO_Ship_to_Name__c { get; init; }
     public string? NEO_Deleted_Item_Id__c { get; init; }
-    public string? CreatedById { get; init; }
+    public string? CreatedById { get; init; }   
     public string? NEO_Internal_Company__c { get; init; }
     public string? NEO_Event_Type__c { get; init; }
     public string? NEO_Sales_Representative__c { get; init; }
@@ -55,6 +64,12 @@ public record SalesforceNeoApproveOrderPayload
     public string? NEO_Oracle_Bill_to_Contact_ID__c { get; init; }
     public string? NEO_Bill_To_Name__c { get; init; }
 
+    public bool IsValid()
+    {
+        return NEO_Id__c.IsNotEmpty();
+
+    }
+
     public SalesforceOrder MapToSalesOrder()
     {
         return new SalesforceOrder
@@ -73,6 +88,27 @@ public record SalesforceNeoApproveOrderPayload
             OracleAccountId = NEO_Oracle_Account_ID__c,
             PreferredContactMethod = NEO_Preferred_Contract_Method__c,
             ShipToName = NEO_Ship_to_Name__c
+        };
+    }
+
+    public OracleUpdateOrder MapToOracleUpdate()
+    {
+        return new OracleUpdateOrder()
+
+        {
+            SourceTransactionNumber = NEO_Id__c,
+            SourceTransactionId = NEO_OrderNumbrer__c,
+            OrderKey = $"OPS:{NEO_OrderNumbrer__c}",
+            SourceTransactionSystem = "OPS",
+            BusinessUnitName = NEO_Internal_Company__c,
+            BuyingPartyName = null, //check event
+            TransactionType = null,
+            FreezePriceFlag = false,
+            FreezeShippingChargeFlag = false,
+            FreezeTaxFlag = false,
+            SubmittedFlag = true,
+            //OrderType = NEO_Order_Type_Oracle_Sync__c,
+            //Customer = NEO_Account_Name__c,
         };
     }
 }

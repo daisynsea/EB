@@ -3,6 +3,9 @@ using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using System.Text;
 using Newtonsoft.Json.Linq;
+using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Application;
+using System.Net.Http.Headers;
+using System.Net.Http;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients
 {
@@ -17,14 +20,17 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients
     {
         private const string RequestUri = "fscmRestApi/resources/11.13.18.05/salesOrdersForOrderHub";
         private readonly HttpClient _client;
-        public OracleRestClient(HttpClient client)
+        public OracleRestClient(HttpClient client, ServiceOption option)
         {
             _client = client;
+            SetupClient(option);
         }
+
+       
 
         public async Task<OracleResponse<CreateOrderResponse>> CreateOrder(OracleCreateOrder newOrder, CancellationToken cancellationToken)
         {
-
+           
             HttpResponseMessage response = await _client.PostAsync(RequestUri, SerializeToJsonString(newOrder), cancellationToken);
 
             return await response.ProcessResponseFromOracle<CreateOrderResponse>(cancellationToken);
@@ -32,7 +38,9 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients
 
         public async Task<OracleResponse<UpdateOrderResponse>> UpdateOrder(string? orderKey, OracleUpdateOrder newOrder, CancellationToken cancellationToken)
         {
+            ActivateUpsertMode();
             HttpResponseMessage response = await _client.PatchAsync($"{RequestUri}/{orderKey}", SerializeToJsonString(newOrder) ,cancellationToken);
+            DeactivateUpsertMode(); //check about this
             return await response.ProcessResponseFromOracle<UpdateOrderResponse>(cancellationToken);
         }
 
@@ -46,6 +54,23 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients
         {
             var serialized = JsonSerializer.Serialize(instance, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             return new StringContent(serialized, Encoding.UTF8, "application/json");
+        }
+
+        private void SetupClient(ServiceOption option)
+        {
+            _client.BaseAddress = new Uri(option.Oracle.Endpoint);
+            _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            string basicAuth = Convert.ToBase64String($"{option.Oracle.Username}:{option.Oracle.Password}".ToBytes(), Base64FormattingOptions.None);
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", basicAuth);
+        }
+
+        private void ActivateUpsertMode()
+        {
+            _client.DefaultRequestHeaders.Add("Upsert-Mode", "true");
+        }
+        private void DeactivateUpsertMode()
+        {
+            _client.DefaultRequestHeaders.Remove("Upsert-Mode");
         }
     }
 }

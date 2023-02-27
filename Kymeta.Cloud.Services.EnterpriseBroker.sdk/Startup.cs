@@ -45,14 +45,7 @@ public static class Startup
         })
         .AddPolicyHandler(_retryPolicy);
 
-        services.AddHttpClient<IOracleRestClient,OracleRestClient>((services, httpClient) =>
-        {
-            var option = services.GetRequiredService<ServiceOption>();
-            httpClient.BaseAddress = new Uri(option.Oracle.Endpoint);
-            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            string basicAuth = Convert.ToBase64String($"{option.Oracle.Username}:{option.Oracle.Password}".ToBytes(),  Base64FormattingOptions.None);
-            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", basicAuth);
-        });
+        services.AddHttpClient<IOracleRestClient,OracleRestClient>();
 
         services.AddHttpClient<ISalesforceClient2, SalesforceClient2>((services, httpClient) =>
         {
