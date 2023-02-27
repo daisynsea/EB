@@ -13,7 +13,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients
     {
         Task<OracleResponse<CreateOrderResponse>> CreateOrder(OracleCreateOrder newOrder, CancellationToken cancellationToken);
         Task<OracleResponse<GetOrderResponse>> GetOrder(string? orderKey, CancellationToken cancellationToken);
-        Task<OracleResponse<UpdateOrderResponse>> UpdateOrder(string? orderKey, OracleUpdateOrder newOrder, CancellationToken cancellationToken);
+        Task<OracleResponse<UpdateOrderResponse>> UpdateOrder(OracleUpdateOrder newOrder, CancellationToken cancellationToken);
     }
 
     public class OracleRestClient : IOracleRestClient
@@ -36,10 +36,10 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients
             return await response.ProcessResponseFromOracle<CreateOrderResponse>(cancellationToken);
         }
 
-        public async Task<OracleResponse<UpdateOrderResponse>> UpdateOrder(string? orderKey, OracleUpdateOrder newOrder, CancellationToken cancellationToken)
+        public async Task<OracleResponse<UpdateOrderResponse>> UpdateOrder(OracleUpdateOrder newOrder, CancellationToken cancellationToken)
         {
             ActivateUpsertMode();
-            HttpResponseMessage response = await _client.PatchAsync($"{RequestUri}/{orderKey}", SerializeToJsonString(newOrder) ,cancellationToken);
+            HttpResponseMessage response = await _client.PatchAsync($"{RequestUri}/{newOrder.OrderKey}", SerializeToJsonString(newOrder) ,cancellationToken);
             DeactivateUpsertMode(); //check about this
             return await response.ProcessResponseFromOracle<UpdateOrderResponse>(cancellationToken);
         }

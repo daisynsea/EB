@@ -63,7 +63,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
                 FreezeTaxFlag = false,
                 SubmittedFlag = true,
             };
-            OracleResponse<UpdateOrderResponse> updated = await _client.UpdateOrder(orderToUpdate.OrderKey, orderToUpdate, default);
+            OracleResponse<UpdateOrderResponse> updated = await _client.UpdateOrder(orderToUpdate, default);
             updated.Payload.IsSuccessfulResponse().Should().BeFalse();
 
             var found = await _client.GetOrder(OrderNumberExistsInOracle, default);
