@@ -22,8 +22,8 @@ public class UpdateOracleSalesOrderActivity : AsyncTaskActivity<SalesforceNeoApp
         {
             throw new InvalidOperationException("Please provide valid sales order!");
         }
-      
-        OracleUpdateOrder oracleOrder = input.MapToOracleUpdate();
+
+        OracleUpdateOrder oracleOrder = input.MapToOracleUpdateOrder();
         await _oracleRestClient.UpdateOrder(oracleOrder, default);
         return new OracleSalesOrderResponseModel();
     }

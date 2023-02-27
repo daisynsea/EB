@@ -26,8 +26,6 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients
             SetupClient(option);
         }
 
-       
-
         public async Task<OracleResponse<CreateOrderResponse>> CreateOrder(OracleCreateOrder newOrder, CancellationToken cancellationToken)
         {
            
@@ -36,18 +34,19 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients
             return await response.ProcessResponseFromOracle<CreateOrderResponse>(cancellationToken);
         }
 
-        public async Task<OracleResponse<UpdateOrderResponse>> UpdateOrder(OracleUpdateOrder newOrder, CancellationToken cancellationToken)
-        {
-            ActivateUpsertMode();
-            HttpResponseMessage response = await _client.PatchAsync($"{RequestUri}/{newOrder.OrderKey}", SerializeToJsonString(newOrder) ,cancellationToken);
-            DeactivateUpsertMode(); //check about this
-            return await response.ProcessResponseFromOracle<UpdateOrderResponse>(cancellationToken);
-        }
 
         public async Task<OracleResponse<GetOrderResponse>> GetOrder(string? orderKey, CancellationToken cancellationToken)
         {
             HttpResponseMessage response = await _client.GetAsync($"{RequestUri}?q=OrderNumber={orderKey}", cancellationToken);
             return await response.ProcessResponseFromOracle<GetOrderResponse>(cancellationToken);
+        }
+
+        public async Task<OracleResponse<UpdateOrderResponse>> UpdateOrder(OracleUpdateOrder newOrder, CancellationToken cancellationToken)
+        {
+            ActivateUpsertMode();
+            HttpResponseMessage response = await _client.PatchAsync($"{RequestUri}/{newOrder.OrderKey}", SerializeToJsonString(newOrder), cancellationToken);
+            DeactivateUpsertMode(); //check about this
+            return await response.ProcessResponseFromOracle<UpdateOrderResponse>(cancellationToken);
         }
 
         private static StringContent SerializeToJsonString<T>(T instance)

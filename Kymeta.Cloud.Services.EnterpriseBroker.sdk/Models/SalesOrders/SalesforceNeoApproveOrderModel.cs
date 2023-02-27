@@ -91,15 +91,30 @@ public record SalesforceNeoApproveOrderPayload
         };
     }
 
-    public OracleUpdateOrder MapToOracleUpdate()
+
+    public OracleUpdateOrder MapToOracleUpdateOrder()
     {
         return new OracleUpdateOrder()
 
         {
+            SourceTransactionNumber = NEO_Id__c,
+            SourceTransactionId = NEO_OrderNumbrer__c,
             OrderKey = $"OPS:{NEO_OrderNumbrer__c}",
-            ShippingInstructions = "ship hard coded",
-            FOBPointCode = "hard coded",
-            PackingInstructions = "instr hard coded"
+            SourceTransactionSystem = "OPS",
+            BusinessUnitName = NEO_Internal_Company__c,
+            BuyingPartyName = NEO_Bill_To_Name__c, //check event
+            TransactionType = NEO_Order_Type_Oracle_Sync__c,
+            FreezePriceFlag = false,
+            FreezeShippingChargeFlag = false,
+            FreezeTaxFlag = false,
+            SubmittedFlag = true,
+            BuyingPartyContactNumber= NEO_Oracle_Bill_to_Contact_ID__c,
+            PaymentTerms=null,
+            BuyingPartyNumber=null,
+            RequestedShipDate=null,
+            RequestingBusinessUnitName=null,
+            SourceTransactionRevisionNumber=null,
+            TransactionalCurrencyCode=null,
         };
     }
 }
