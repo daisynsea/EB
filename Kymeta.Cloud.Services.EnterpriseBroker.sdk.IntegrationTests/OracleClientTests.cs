@@ -42,45 +42,30 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
             found.Payload.IsSuccessfulResponse().Should().BeFalse();
         }
 
-        [Fact(Skip = "It fails for now")]
+        [Fact]
         public async Task UpdateOrder_OrderExistsInOracle_ReturnsSuccessfulUpdate()
         {
-            var fetched = await _client.GetOrder(OrderUpdateExistsInOracle, default);
-            Item beforeUpdate = fetched.Payload.Items.First();
             var orderToUpdate = new OracleUpdateOrder()
-
             {
-                SourceTransactionNumber = beforeUpdate.SourceTransactionNumber,
-                SourceTransactionId = beforeUpdate.SourceTransactionId,
-                OrderKey = $"OPS:{beforeUpdate.SourceTransactionId}",
-                SourceTransactionSystem = "OPS",
-                TransactionalCurrencyCode = "USD",
-               // BusinessUnitName = "Rada test", cannot be updated
-                BuyingPartyName = null, //check event
-                TransactionType = null,
-                FreezePriceFlag = false,
-                FreezeShippingChargeFlag = false,
-                FreezeTaxFlag = false,
-                SubmittedFlag = true,
+                OrderKey = $"OPS:{OrderUpdateExistsInOracle}",
+                PackingInstructions = "Packing instructions updated rada",
+                FOBPointCode = "Destination",
+                ShippingInstructions = "Shipping instructions rada"
+
             };
             OracleResponse<UpdateOrderResponse> updated = await _client.UpdateOrder(orderToUpdate, default);
-            updated.Payload.IsSuccessfulResponse().Should().BeFalse();
+            Assert(orderToUpdate, updated);
 
-            var found = await _client.GetOrder(OrderNumberExistsInOracle, default);
-            var payload = found.Payload;
-            payload.Should().NotBeNull();
-            payload.IsSuccessfulResponse().Should().BeTrue();
-            payload.Items.Should().HaveCount(5);
+            var orderBackToOriginal = new OracleUpdateOrder()
+            {
+                OrderKey = $"OPS:{OrderUpdateExistsInOracle}",
+                PackingInstructions = "Packing instructions",
+                FOBPointCode = "Destination one",
+                ShippingInstructions = "Shipping instructions"
+            };
 
-            var item = payload.Items.First();
-            // item.HeaderId is unique and different
-            item.HeaderId.Should().NotBe(0);
-            item.OrderNumber.Should().Be(OrderNumberExistsInOracle);
-            item.SourceTransactionNumber.Should().Be(OrderNumberExistsInOracle);
-            item.SourceTransactionSystem.Should().Be("OPS");
-           // item.SourceTransactionId.Should().Be("300000108921817");
-           // item.BusinessUnitId.Should().Be(300000001130195);
-            item.BusinessUnitName.Should().Be("Rada test");
+            OracleResponse<UpdateOrderResponse> updatedToOriginal = await _client.UpdateOrder(orderBackToOriginal, default);
+            Assert(orderBackToOriginal, updatedToOriginal);
         }
 
         [Fact]
@@ -215,8 +200,18 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
 
             var result = await _client.CreateOrder(order, CancellationToken.None);
             result.StatusCode.Should().Be(System.Net.HttpStatusCode.BadRequest);
-            result.Message.Should().Be("Bad Request");
+            result.ReasonPhrase.Should().Be("Bad Request");
             result.Content.Should().Be("The request failed because a sales order with transaction 0047355 from source system OPS already exists.");
+        }
+
+        private static void Assert(OracleUpdateOrder orderToUpdate, OracleResponse<UpdateOrderResponse> updated)
+        {
+            updated.IsSuccessStatusCode().Should().BeTrue();
+            var payload = updated.Payload;
+            payload.IsSuccessfulResponse().Should().BeTrue();
+            payload.ShippingInstructions.Should().Be(orderToUpdate.ShippingInstructions);
+            payload.FOBPointCode.Should().Be(orderToUpdate.FOBPointCode);
+            payload.PackingInstructions.Should().Be(orderToUpdate.PackingInstructions);
         }
 
     }

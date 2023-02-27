@@ -4,6 +4,10 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients
 {
     public class UpdateOrderResponse : IOracleResponsePayload
     {
+        public string? OrderKey { get; set; }
+        public string PackingInstructions { get; set; }
+        public string ShippingInstructions { get; set; }
+        public string FOBPointCode { get; set; }
         public bool IsSuccessfulResponse()
         {
             return true;
