@@ -1,7 +1,6 @@
 using FluentAssertions;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders;
-using Kymeta.Cloud.Services.Toolbox.Extensions;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
 {
@@ -43,34 +42,8 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
             found.Payload.IsSuccessfulResponse().Should().BeFalse();
         }
 
-        //[Fact]
-        //public async Task UpdateOrder_OrderExistsInOracle_ReturnsSuccessfulUpdate()
-        //{
-        //    var orderToUpdate = new OracleUpdateOrderThatWorks()
-        //    {
-        //        OrderKey = $"OPS:{OrderUpdateExistsInOracle}",
-        //        PackingInstructions = "Packing instructions updated rada",
-        //        FOBPointCode = "Destination",
-        //        ShippingInstructions = "Shipping instructions rada"
-
-        //    };
-        //    OracleResponse<UpdateOrderResponse> updated = await _client.UpdateOrder(orderToUpdate, default);
-        //    Assert(orderToUpdate, updated);
-
-        //    var orderBackToOriginal = new OracleUpdateOrderThatWorks()
-        //    {
-        //        OrderKey = $"OPS:{OrderUpdateExistsInOracle}",
-        //        PackingInstructions = "Packing instructions",
-        //        FOBPointCode = "Destination one",
-        //        ShippingInstructions = "Shipping instructions"
-        //    };
-
-        //    OracleResponse<UpdateOrderResponse> updatedToOriginal = await _client.UpdateOrder(orderBackToOriginal, default);
-        //    Assert(orderBackToOriginal, updatedToOriginal);
-        //}
-
         [Fact]
-        public async Task UpdateOrderDoesnotwork_OrderExistsInOracle_ReturnsSuccessfulUpdate()
+        public async Task UpdateOrderAllFieldsSpecified_OrderExistsInOracle_ReturnsSuccessfulUpdate()
         {
             OracleResponse<GetOrderResponse> found = await _client.GetOrder(OrderUpdateExistsInOracle, default);
             Item foundPayload = found.Payload.Items.First();
@@ -100,6 +73,36 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
             var payload = updated.Payload;
             payload.IsSuccessfulResponse().Should().BeTrue();
 
+        }
+
+        [Fact]
+        public async Task UpdateOrderWithoutSourceTransactionNumber_OrderExistsInOracle_ReturnsBadRequest()
+        {
+            OracleResponse<GetOrderResponse> found = await _client.GetOrder(OrderUpdateExistsInOracle, default);
+            Item foundPayload = found.Payload.Items.First();
+            var orderToUpdate = new OracleUpdateOrder()
+            {
+                OrderKey = $"OPS:{OrderUpdateExistsInOracle}",
+                BusinessUnitName = foundPayload.BusinessUnitName,
+                BuyingPartyContactNumber = foundPayload.BuyingPartyContactNumber,
+                BuyingPartyName = foundPayload.BuyingPartyName,
+                BuyingPartyNumber = foundPayload.BuyingPartyNumber,
+                FreezePriceFlag = foundPayload.FreezePriceFlag,
+                FreezeShippingChargeFlag = foundPayload.FreezeShippingChargeFlag,
+                FreezeTaxFlag = foundPayload.FreezeTaxFlag,
+                PaymentTerms = foundPayload.PaymentTerms,
+                RequestedShipDate = foundPayload.RequestedShipDate,
+                RequestingBusinessUnitName = foundPayload.RequestingBusinessUnitName,
+                SourceTransactionId = foundPayload.SourceTransactionId,
+                SourceTransactionNumber = foundPayload.SourceTransactionNumber,
+                SourceTransactionSystem = foundPayload.SourceTransactionSystem,
+                SubmittedFlag = foundPayload.SubmittedFlag,
+                TransactionalCurrencyCode = foundPayload.TransactionalCurrencyCode,
+                TransactionType = foundPayload.TransactionType,
+            };
+            OracleResponse<UpdateOrderResponse> updated = await _client.UpdateOrder(orderToUpdate, default);
+            updated.IsSuccessStatusCode().Should().BeFalse();
+            updated.ErrorMessage.Should().Be("Attribute SourceTransactionRevisionNumber in FomSalesOrdersRestAM.SalesOrders is required.");
         }
 
         [Fact]
