@@ -9,7 +9,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients;
 public interface ISalesforceRestClient
 {
     Task<List<OrderProduct>> GetOrderProducts(string orderNumber, CancellationToken cancellationToken);
-    Task<SalesforceResponse<UpdateProductResponse>> UpdateProduct(string productId, CancellationToken cancellationToken);
+    Task<SalesforceResponse<UpdateProductResponse>> UpdateProduct(string productId, SalesforceUpdateProduct updateProduct, CancellationToken cancellationToken);
 }
 
 public class SalesforceRestClient : ISalesforceRestClient
@@ -31,7 +31,7 @@ public class SalesforceRestClient : ISalesforceRestClient
         return lines.OrderProducts;
     }
 
-    public Task<SalesforceResponse<UpdateProductResponse>> UpdateProduct(string productId, CancellationToken cancellationToken)
+    public Task<SalesforceResponse<UpdateProductResponse>> UpdateProduct(string productId, SalesforceUpdateProduct updateProduct, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }
