@@ -36,9 +36,9 @@ public class SalesOrderOrchestration : TaskOrchestration<bool, string>
             SalesforceNeoApproveOrderModel eventData = input.ToObject<SalesforceNeoApproveOrderModel>().NotNull();
 
             SalesOrderModel salesOrderModel = await context.ScheduleTask<SalesOrderModel>(typeof(GetSalesOrderLinesActivity), options, eventData);
-            OracleResponse<GetOrderResponse> foundOrder = await context.ScheduleTask<OracleResponse<GetOrderResponse>>(typeof(GetOracleSalesOrderActivity), options, salesOrderModel.OrderKey);
+            OracleResponse<GetOrderResponse> foundOracleOrder = await context.ScheduleTask<OracleResponse<GetOrderResponse>>(typeof(GetOracleSalesOrderActivity), options, salesOrderModel.OrderKey);
             
-            if (!foundOrder.IsSuccessStatusCode())
+            if (!foundOracleOrder.IsSuccessStatusCode())
             {
                 OracleResponse<CreateOrderResponse>? createdOrder = await context.ScheduleTask<OracleResponse<CreateOrderResponse>?>(typeof(OracleCreateOrderActivity), options, eventData.MapToOracleCreateOrder());
             }
