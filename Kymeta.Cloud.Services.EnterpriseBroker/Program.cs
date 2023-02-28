@@ -75,6 +75,7 @@ builder.Services.AddHttpClient<IActivityLoggerClient, ActivityLoggerClient>();
 builder.Services.AddHttpClient<IFileStorageClient, FileStorageClient>();
 builder.Services.AddHttpClient<IManufacturingProxyClient, ManufacturingProxyClient>();
 builder.Services.AddHttpClient<ISalesforceClient, SalesforceClient>();
+builder.Services.AddHttpClient<ITerminalsClient, TerminalsClient>();
 builder.Services.AddCosmosDb(builder.Configuration.GetConnectionString("AzureCosmosDB"));
 builder.Services.AddScoped<IActionsRepository, ActionsRepository>();
 builder.Services.AddScoped<IOssService, OssService>();
@@ -90,7 +91,8 @@ builder.Services.AddScoped<ITerminalSerialCacheRepository, TerminalSerialCacheRe
 
 builder.Services.AddScoped<IProductsBrokerService, ProductsBrokerService>();
 builder.Services.AddSingleton<ICacheRepository, CacheRepository>();
-builder.Services.AddSingleton<IMessageListener, AssetEventListener>();
+builder.Services.AddSingleton<IAssetEventListner, AssetEventListener>();
+builder.Services.AddSingleton<IAssetSerialUpdateEventListener, AssetSerialUpdateEventListener>();
 
 #region Background Services
 // add background operation services

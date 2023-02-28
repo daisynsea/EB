@@ -6,7 +6,8 @@ using CometD.NetCore.Salesforce.Messaging;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.Services.BackgroundOperations.PlatformEventListeners
 {
-    public class AssetEventListener : IMessageListener
+    public interface IAssetEventListner : IMessageListener { }
+    public class AssetEventListener : IAssetEventListner
     {
         private readonly IConfiguration _config;
         private readonly ILogger<AssetEventListener> _logger;

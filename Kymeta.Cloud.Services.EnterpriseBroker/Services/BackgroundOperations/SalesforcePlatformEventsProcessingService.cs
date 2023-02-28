@@ -20,15 +20,17 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Services.BackgroundOperations
         private readonly IConfiguration _config;
         private readonly ILogger _logger;
         private readonly ISalesforceClient _salesforceClient;
-        private readonly IMessageListener _assetEventListener;
+        private readonly IAssetEventListner _assetEventListener;
+        private readonly IAssetSerialUpdateEventListener _assetSerialUpdateEventListener;
         private readonly ICacheRepository _cacheRepo;
 
-        public SalesforcePlatformEventsProcessingService(IConfiguration config, ILogger<SalesforcePlatformEventsProcessingService> logger, ISalesforceClient salesforceClient, IMessageListener assetEventListener, ICacheRepository cacheRepo)
+        public SalesforcePlatformEventsProcessingService(IConfiguration config, ILogger<SalesforcePlatformEventsProcessingService> logger, ISalesforceClient salesforceClient, IAssetEventListner assetEventListener, IAssetSerialUpdateEventListener assetSerialUpdateEventListener, ICacheRepository cacheRepo)
         {
             _config = config;
             _logger = logger;
             _salesforceClient = salesforceClient;
             _assetEventListener = assetEventListener;
+            _assetSerialUpdateEventListener= assetSerialUpdateEventListener;
             _cacheRepo = cacheRepo;
         }
 
@@ -94,7 +96,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Services.BackgroundOperations
 
                 // connect to the event channel and add the event listner
                 IClientSessionChannel assetSerialUpdateEventChannel = bayeuxClient.GetChannel($"/event/{_config["Salesforce:PlatformEvents:Channels:AssetSerialUpdate"]}", assetSerialUpdateReplayId);
-                assetSerialUpdateEventChannel.Subscribe(_assetEventListener);
+                assetSerialUpdateEventChannel.Subscribe(_assetSerialUpdateEventListener);
                 _logger.LogInformation($"Listening for events from Salesforce on the '{assetSerialUpdateEventChannel}' channel...");
                 #endregion
                 #endregion

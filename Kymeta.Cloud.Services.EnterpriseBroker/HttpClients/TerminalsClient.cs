@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using Kymeta.Cloud.Services.EnterpriseBroker.Models.OSS;
+using System.Text.Json;
 using System.Web;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.HttpClients;
@@ -8,7 +9,9 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.HttpClients;
 /// </summary>
 public interface ITerminalsClient
 {
-    Task<Tuple<TerminalsResponse<dynamic>, string>> GetTerminalsByAssetSerials(IEnumerable<string> serials);
+    Task<(TerminalsResponse res, string error)> GetTerminalsBySalesforceIds(IEnumerable<string> salesforceIds);
+    Task<(Terminal updated, string error)> UpdateTerminal(Terminal terminal);
+    Task<(IEnumerable<ProductType> productTypes, string error)> GetProductTypes();
 }
 public class TerminalsClient : ITerminalsClient
 {
@@ -24,14 +27,17 @@ public class TerminalsClient : ITerminalsClient
         _logger = logger;
     }
 
-    public async Task<Tuple<TerminalsResponse<dynamic>, string>> GetTerminalsByAssetSerials(IEnumerable<string> serials)
+    public async Task<(TerminalsResponse res, string error)> GetTerminalsBySalesforceIds(IEnumerable<string> salesforceIds)
     {
+        // exit early if no serials were provided
+        if (salesforceIds == null || !salesforceIds.Any()) return new ValueTuple<TerminalsResponse, string>(null, $"No Salesforce Ids provided.");
+
         UriBuilder builder = new("v1");
         //builder.Port = -1;
         var query = HttpUtility.ParseQueryString(builder.Query);
         query["skip"] = "0";
         query["take"] = "50";
-        query["query"] = "ABS865K210813282";
+        query["query"] = string.Join('|', salesforceIds);
         builder.Query = query.ToString();
         string url = builder.ToString();
 
@@ -41,12 +47,44 @@ public class TerminalsClient : ITerminalsClient
 
         if (!response.IsSuccessStatusCode)
         {
-            _logger.LogCritical($"Failed GetTerminalsByAssetSerials HTTP call: {(int)response.StatusCode} | {data} | Serials sent: {JsonSerializer.Serialize(serials)}");
-            return new Tuple<TerminalsResponse<dynamic>, string>(null, data);
+            _logger.LogCritical($"Failed GetTerminalsBySalesforceIds HTTP call: {(int)response.StatusCode} | {data} | Salesforce Ids sent: {JsonSerializer.Serialize(salesforceIds)}");
+            return new ValueTuple<TerminalsResponse, string>(null, data);
         }
 
-        var result = JsonSerializer.Deserialize<TerminalsResponse<dynamic>>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });        
-        return new Tuple<TerminalsResponse<dynamic>, string>(result, null);
+        var result = JsonSerializer.Deserialize<TerminalsResponse>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        return new ValueTuple<TerminalsResponse, string>(result, null);
+    }
 
+    public async Task<(Terminal updated, string error)> UpdateTerminal(Terminal terminal)
+    {
+        // exit early if no serials were provided
+        if (terminal == null) return new ValueTuple<Terminal, string>(null, $"Terminal not provided.");
+
+        var response = await _client.PutAsJsonAsync($"v1/{terminal.Id}", terminal);
+        string data = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogCritical($"Failed UpdateTerminal HTTP call: {(int)response.StatusCode} | {data} | Serials sent: {JsonSerializer.Serialize(terminal)}");
+            return new ValueTuple<Terminal, string>(null, data);
+        }
+
+        var result = JsonSerializer.Deserialize<Terminal>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        return new ValueTuple<Terminal, string>(result, null);
+    }
+
+    public async Task<(IEnumerable<ProductType> productTypes, string error)> GetProductTypes()
+    {
+        var response = await _client.GetAsync($"v1/info/products/types");
+        string data = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogCritical($"Failed GetProductTypes HTTP call: {(int)response.StatusCode} | {data}");
+            return new ValueTuple<IEnumerable<ProductType>, string>(null, data);
+        }
+
+        var result = JsonSerializer.Deserialize<IEnumerable<ProductType>>(data, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        return new ValueTuple<IEnumerable<ProductType>, string>(result, null);
     }
 }
