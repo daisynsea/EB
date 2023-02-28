@@ -48,7 +48,7 @@ public class SalesforceRestClient : ISalesforceRestClient
     private string CreateQueryToGetProducts(string orderKey)
     {
         var filedsToGet = @"Id, OrderId, Product_Code__c, Product2Id, IsDeleted, OriginalOrderItemId, Quantity, SBQQ__BillingFrequency__c,
-UnitPrice, NetPrice__c, Ship_Date__c";
+UnitPrice, NetPrice__c, Ship_Date__c, Oracle_Invoice__c ";
         //Number_of_Billing_Periods__c - error
         //ShipToContactId - error
         //Preferred_Contact_Method__c - error
@@ -56,13 +56,13 @@ UnitPrice, NetPrice__c, Ship_Date__c";
         //Shipping_Details__c - error
         //BillToAddress__c - error
         // to be tested:
-        //Packing_Instructions__c,
-        //BillToContactId,
-        //Preferred_Contact_Method__c,
-        //SBQQ__PaymentTerm__c,
-        //Sync_Instructions__c ,
-        //Approved__c,
-        //OrderNumber,
+        //Packing_Instructions__c, - error
+        //BillToContactId, - error
+        //Preferred_Contact_Method__c, - error
+        //SBQQ__PaymentTerm__c,- error
+        //Sync_Instructions__c , - error
+        //Approved__c, - error
+        //OrderNumber, - error
         //Oracle_Invoice__c";
         var limitToUnsyncedOrders = " and NEO_Sync_to_Oracle__c=false";
         var query = $"select {filedsToGet} from OrderItem where orderId='{orderKey}' {limitToUnsyncedOrders}";
