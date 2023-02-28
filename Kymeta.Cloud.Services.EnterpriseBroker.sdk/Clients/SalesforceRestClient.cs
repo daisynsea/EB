@@ -9,6 +9,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients;
 public interface ISalesforceRestClient
 {
     Task<List<OrderProduct>> GetOrderProducts(string orderNumber, CancellationToken cancellationToken);
+    Task<SalesforceResponse<UpdateProductResponse>> UpdateProduct(string productId, CancellationToken cancellationToken);
 }
 
 public class SalesforceRestClient : ISalesforceRestClient
@@ -28,6 +29,11 @@ public class SalesforceRestClient : ISalesforceRestClient
         string content = await response.Content.ReadAsStringAsync(cancellationToken);
         var lines = JsonConvert.DeserializeObject<SalesforceOrder>(content);
         return lines.OrderProducts;
+    }
+
+    public Task<SalesforceResponse<UpdateProductResponse>> UpdateProduct(string productId, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
     }
 
     private string CreateQueryToGetProducts(string orderKey)
@@ -53,4 +59,7 @@ UnitPrice, NetPrice__c, Ship_Date__c";
         var query = $"select {filedsToGet} from OrderItem where orderId='{orderKey}' {limitToUnsyncedOrders}";
         return query;
     }
+
+
+   
 }
