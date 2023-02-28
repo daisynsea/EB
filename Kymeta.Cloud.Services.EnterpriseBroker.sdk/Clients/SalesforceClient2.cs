@@ -6,7 +6,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients;
 public interface ISalesforceClient2
 {
     ISalesforceEventApi Events { get; }
-    ISalesforceRestApi Rest { get; }
+    ISalesforceRestClient Rest { get; }
 }
 
 public class SalesforceClient2 : ISalesforceClient2
@@ -18,10 +18,10 @@ public class SalesforceClient2 : ISalesforceClient2
         loggerFactory.NotNull();
 
         Events = new SalesforceEventApi(client, loggerFactory.CreateLogger<SalesforceEventApi>());
-        Rest = new SalesforceRestApi(client, loggerFactory.CreateLogger<SalesforceRestApi>());
+        Rest = new SalesforceRestClient(client, loggerFactory.CreateLogger<SalesforceRestClient>());
     }
 
     public ISalesforceEventApi Events { get; }
 
-    public ISalesforceRestApi Rest { get; }
+    public ISalesforceRestClient Rest { get; }
 }

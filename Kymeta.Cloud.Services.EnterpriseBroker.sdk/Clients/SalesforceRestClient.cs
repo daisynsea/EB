@@ -6,17 +6,17 @@ using Newtonsoft.Json;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients;
 
-public interface ISalesforceRestApi
+public interface ISalesforceRestClient
 {
     Task<List<OrderProduct>> GetOrderProducts(string orderNumber, CancellationToken cancellationToken);
 }
 
-public class SalesforceRestApi : ISalesforceRestApi
+public class SalesforceRestClient : ISalesforceRestClient
 {
     private readonly HttpClient _client;
-    private readonly ILogger<ISalesforceRestApi> _logger;
+    private readonly ILogger<ISalesforceRestClient> _logger;
 
-    public SalesforceRestApi(HttpClient client, ILogger<ISalesforceRestApi> logger)
+    public SalesforceRestClient(HttpClient client, ILogger<ISalesforceRestClient> logger)
     {
         _client = client.NotNull();
         _logger = logger.NotNull();

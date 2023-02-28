@@ -8,7 +8,7 @@ internal class TestSalesforceClient : ISalesforceClient2
 
     public ISalesforceEventApi Events => throw new NotImplementedException();
 
-    public ISalesforceRestApi Rest => throw new NotImplementedException();
+    public ISalesforceRestClient Rest => throw new NotImplementedException();
 
 }
 
