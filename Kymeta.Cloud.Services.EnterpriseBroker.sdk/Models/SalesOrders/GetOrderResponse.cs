@@ -1,6 +1,6 @@
 ﻿using Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.REST;
 
-namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients
+namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders
 {
     public class GetOrderResponse : IOracleResponsePayload
     {
@@ -117,7 +117,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients
         public bool SubmittedFlag { get; set; }
         public string? SubmittedBy { get; set; }
         public DateTime? SubmittedDate { get; set; }
-     
+
         public Link[] links { get; set; }
     }
 

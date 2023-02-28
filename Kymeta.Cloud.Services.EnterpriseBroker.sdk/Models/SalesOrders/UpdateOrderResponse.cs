@@ -1,6 +1,6 @@
 ﻿using Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.REST;
 
-namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients
+namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders
 {
     public class UpdateOrderResponse : IOracleResponsePayload
     {
