@@ -18,9 +18,9 @@ public record SalesforceNeoApproveOrderModel
         return Data.Payload;
     }
 
-    public SalesforceOrder MapToSalesOrder()
+    public OracleCreateOrder MapToOracleCreateOrder()
     {
-        return GetEventPayload().MapToSalesOrder();
+        return GetEventPayload().MapToOracleCreateOrder();
     }
 
 }
@@ -74,24 +74,27 @@ public record SalesforceNeoApproveOrderPayload
 
     }
 
-    public SalesforceOrder MapToSalesOrder()
+    public OracleCreateOrder MapToOracleCreateOrder()
     {
-        return new SalesforceOrder
+        return new OracleCreateOrder
         {
-            Id = NEO_Id__c,
-            AccountName = NEO_Account_Name__c,
-            BusinessUnit = null, // see about this
-            OrderNumber = NEO_OrderNumbrer__c,
-            OrderType = NEO_Order_Type_Oracle_Sync__c,  
-            PoDate = NEO_PO_Date__c,
-            PoNumber = NEO_PO_Number__c,
-            PrimaryContact = NEO_Primary_Contract__c,
-            SalesRepresentative = NEO_Sales_Representative__c,
-            ShippingAddress = NEO_Oracle_Bill_to_Address_ID__c,
-            BillToName = NEO_Bill_To_Name__c,
-            OracleAccountId = NEO_Oracle_Account_ID__c,
-            PreferredContactMethod = NEO_Preferred_Contract_Method__c,
-            ShipToName = NEO_Ship_to_Name__c
+            SourceTransactionNumber = NEO_Id__c,
+            SourceTransactionId = NEO_OrderNumbrer__c,
+            OrderKey = $"OPS:{NEO_OrderNumbrer__c}",
+            SourceTransactionSystem = "OPS",
+            BusinessUnitName = NEO_Internal_Company__c,
+            BuyingPartyName = NEO_Bill_To_Name__c,
+            TransactionType = NEO_Order_Type_Oracle_Sync__c,
+            FreezePriceFlag = false,
+            FreezeShippingChargeFlag = false,
+            FreezeTaxFlag = false,
+            SubmittedFlag = true,
+            BuyingPartyContactNumber = NEO_Oracle_Bill_to_Contact_ID__c,
+            PaymentTerms = NEO_Payment_Term__c,
+            BuyingPartyNumber = NEO_Oracle_Account_ID__c,
+            RequestedShipDate = NEO_Requested_Ship_Date__c,
+            RequestingBusinessUnitName = NEO_Internal_Company__c,
+            TransactionalCurrencyCode = NEO_Currency__c,
         };
     }
 

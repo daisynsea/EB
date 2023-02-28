@@ -39,10 +39,9 @@ public class SalesOrderOrchestration : TaskOrchestration<bool, string>
             SalesOrderModel salesOrderModel = await context.ScheduleTask<SalesOrderModel>(typeof(GetSalesOrderLinesActivity), options, eventData);
             OracleResponse<GetOrderResponse> foundOrder = await context.ScheduleTask<OracleResponse<GetOrderResponse>>(typeof(GetOracleSalesOrderActivity), options, salesOrderModel.OrderKey);
             
-            SalesforceOrder salseforceOrder = eventData.MapToSalesOrder();
             if (!foundOrder.IsSuccessStatusCode())
             {
-                OracleResponse<CreateOrderResponse>? createdOrder = await context.ScheduleTask<OracleResponse<CreateOrderResponse>?>(typeof(OracleCreateOrderActivity), options, salseforceOrder);
+                OracleResponse<CreateOrderResponse>? createdOrder = await context.ScheduleTask<OracleResponse<CreateOrderResponse>?>(typeof(OracleCreateOrderActivity), options, eventData.MapToOracleCreateOrder());
             }
             else
             {

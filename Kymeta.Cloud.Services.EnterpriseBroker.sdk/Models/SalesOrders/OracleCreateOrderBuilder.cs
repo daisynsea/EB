@@ -52,7 +52,7 @@
             return this;
         }
 
-        public OracleCreateOrderBuilder WithRequestedShipDate(string requestedShipDate)
+        public OracleCreateOrderBuilder WithRequestedShipDate(DateTime? requestedShipDate)
         {
             order.RequestedShipDate = requestedShipDate;
             return this;

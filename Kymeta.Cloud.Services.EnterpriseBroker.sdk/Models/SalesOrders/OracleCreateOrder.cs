@@ -12,7 +12,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders
         public string? BuyingPartyNumber { get; set; }
         public string? BuyingPartyContactNumber { get; set; }
         public string? TransactionType { get; set; }
-        public string? RequestedShipDate { get; set; }
+        public DateTime? RequestedShipDate { get; set; }
         public string? PaymentTerms { get; set; }
         public string? TransactionalCurrencyCode { get; set; }
         public string? RequestingBusinessUnitName { get; set; }
@@ -27,6 +27,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders
         public CustomerShip[] ShipToCustomer { get; set; } = Array.Empty<CustomerShip>();
         [JsonPropertyName("lines")]
         public OrderLines[] Lines { get; set; } = Array.Empty<OrderLines>();
+        public string? BuyingPartyName { get; internal set; }
     }
 
     public record OrderLines

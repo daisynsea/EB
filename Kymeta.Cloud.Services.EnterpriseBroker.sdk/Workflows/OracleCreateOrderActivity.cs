@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Workflows
 {
-    public class OracleCreateOrderActivity: AsyncTaskActivity<SalesforceOrder, OracleResponse<CreateOrderResponse>>
+    public class OracleCreateOrderActivity: AsyncTaskActivity<OracleCreateOrder, OracleResponse<CreateOrderResponse>>
     {
         private readonly IOracleRestClient _client;
         private readonly ILogger<UpdateOracleSalesOrderActivity> _logger;
@@ -17,21 +17,14 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Workflows
             _logger = logger;
         }
 
-        protected override async Task<OracleResponse<CreateOrderResponse>> ExecuteAsync(TaskContext context, SalesforceOrder input)
+        protected override async Task<OracleResponse<CreateOrderResponse>> ExecuteAsync(TaskContext context, OracleCreateOrder input)
         {
-            OracleCreateOrder oracleModel = MapToOracle(input);
-            _logger.LogInformation($"Map Salesforce Order {JsonConvert.SerializeObject(input)} to Oracle Order {JsonConvert.SerializeObject(oracleModel)}.");
+            _logger.LogInformation($" Oracle Order {JsonConvert.SerializeObject(input)}.");
 
-            var result =  await _client.CreateOrder(oracleModel, CancellationToken.None);
+            var result =  await _client.CreateOrder(input, CancellationToken.None);
             _logger.LogInformation($"Oracle CreateOrder response: {JsonConvert.SerializeObject(result)}");
 
             return result;
-        }
-
-        private OracleCreateOrder MapToOracle(SalesforceOrder input)
-        {
-            var oracleOrder = new OracleCreateOrderBuilder().Build();
-            return oracleOrder;
         }
     }
 }
