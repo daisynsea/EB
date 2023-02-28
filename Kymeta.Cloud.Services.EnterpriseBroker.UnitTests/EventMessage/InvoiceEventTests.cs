@@ -1,21 +1,23 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Application;
-using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders;
+using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Services;
 using Kymeta.Cloud.Services.EnterpriseBroker.UnitTests.Application;
-using Kymeta.Cloud.Services.Toolbox.Extensions;
 using Xunit;
+using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Workflows.InvoiceCreate.Model;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.UnitTests.EventMessage;
 
-public class EventMessageTests
+public class InvoiceEventTests
 {
     [Fact]
-    public async Task GivenSalesOrderMessage_ShouldProcess()
+    public async Task GivenInvoiceMessage_ShouldProcess()
     {
         var orchestration = TestApplication.GetRequiredService<OrchestrationService>();
         var transLog = TestApplication.GetRequiredService<ITransactionLoggingService>();
@@ -44,8 +46,9 @@ public class EventMessageTests
         transLog.GetLogItems().Count.Should().Be(10);
     }
 
-    private Event_TestModel CreateEvent(ServiceOption option) => new Event_TestModel
+    private Event_InvoiceCreateModel CreateEvent(ServiceOption option) => new Event_InvoiceCreateModel
     {
+
         NEO_Oracle_Bill_to_Address_ID__c = "NEO_Oracle_Bill_to_Address_ID__c",
         NEO_Id__c = "NEO_Id__c",
         NEO_Preferred_Contract_Method__c = "NEO_Preferred_Contract_Method__c",
@@ -53,4 +56,5 @@ public class EventMessageTests
         NEO_Ship_to_Name__c = "NEO_Ship_to_Name__c",
         Channel = "testChannel",
     };
+
 }
