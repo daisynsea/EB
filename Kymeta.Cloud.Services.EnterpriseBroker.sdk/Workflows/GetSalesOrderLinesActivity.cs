@@ -11,6 +11,6 @@ public class GetSalesOrderLinesActivity : TaskActivity<SalesforceNeoApproveOrder
 
     protected override SalesOrderModel Execute(TaskContext context, SalesforceNeoApproveOrderModel input)
     {
-        throw new NotImplementedException();
+        return new SalesOrderModel();
     }
 }
