@@ -93,6 +93,8 @@ public record SalesforceNeoApproveOrderPayload
             RequestedShipDate = NEO_Requested_Ship_Date__c,
             RequestingBusinessUnitName = NEO_Internal_Company__c,
             TransactionalCurrencyCode = NEO_Currency__c,
+            BillToCustomer = new List<CustomerBill> { new CustomerBill() { AccountNumber = NEO_Account_Name__c} },// check
+            ShipToCustomer= new List<CustomerShip> { new CustomerShip() { PartyNumber = NEO_Oracle_Ship_to_Address_ID__c } } //check
         };
     }
 

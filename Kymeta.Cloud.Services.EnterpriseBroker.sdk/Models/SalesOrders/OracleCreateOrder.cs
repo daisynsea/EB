@@ -22,11 +22,11 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders
         public bool SubmittedFlag { get; set; }
         public string? SourceTransactionRevisionNumber { get; set; }
         [JsonPropertyName("billToCustomer")]
-        public CustomerBill[] BillToCustomer { get; set; } = Array.Empty<CustomerBill>();
+        public IEnumerable<CustomerBill> BillToCustomer { get; set; } = Enumerable.Empty<CustomerBill>();
         [JsonPropertyName("shipToCustomer")]
-        public CustomerShip[] ShipToCustomer { get; set; } = Array.Empty<CustomerShip>();
+        public IEnumerable<CustomerShip> ShipToCustomer { get; set; } = Enumerable.Empty<CustomerShip>();
         [JsonPropertyName("lines")]
-        public OrderLines[] Lines { get; set; } = Array.Empty<OrderLines>();
+        public IEnumerable<OrderLines> Lines { get; set; } = Enumerable.Empty<OrderLines>();
         public string? BuyingPartyName { get; internal set; }
     }
 
