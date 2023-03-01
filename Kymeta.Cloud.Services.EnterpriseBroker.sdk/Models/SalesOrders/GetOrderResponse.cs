@@ -138,19 +138,4 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders
         public string? AgreementVersionNumber { get; set; }
         public Link[] links { get; set; }
     }
-
-    public class Link
-    {
-        public string Rel { get; set; }
-        public string Href { get; set; }
-        public string Name { get; set; }
-        public string Kind { get; set; }
-        public Properties Properties { get; set; }
-    }
-
-    public class Properties
-    {
-        public string ChangeIndicator { get; set; }
-    }
-
 }
