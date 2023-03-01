@@ -86,12 +86,13 @@ public class SalesOrderOrchestration : TaskOrchestration<bool, string>
 
 public static class SalesOrderOrchestrationExtensions
 {
-    public static void RegisterSalesOrderActivities(this TaskHubWorker worker, IServiceProvider serviceProvider)
+    public static TaskHubWorker RegisterSalesOrderActivities(this TaskHubWorker worker, IServiceProvider serviceProvider)
     {
         worker.AddTaskOrchestrations(typeof(SalesOrderOrchestration));
         
         worker.AddTaskActivities(new ActivityCreator<TaskActivity>(typeof(GetSalesOrderLinesActivity), serviceProvider));
         worker.AddTaskActivities(new ActivityCreator<TaskActivity>(typeof(SetSalesOrderWithOracleActivity), serviceProvider));
         worker.AddTaskActivities(new ActivityCreator<TaskActivity>(typeof(UpdateOracleSalesOrderActivity), serviceProvider));
+        return worker;
     }
 }

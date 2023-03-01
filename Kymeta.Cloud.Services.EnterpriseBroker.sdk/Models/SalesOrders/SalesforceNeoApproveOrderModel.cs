@@ -65,6 +65,7 @@ public record SalesforceNeoApproveOrderPayload
     public string? NEO_Payment_Term__c { get; set; }
     public string? NEO_Currency__c { get; set; }
     public DateTime? NEO_Requested_Ship_Date__c { get; set; }
+    public string? NEO_Oracle_Ship_to_Contact_ID__c { get; set; }
 
     public bool IsValid()
     {
@@ -93,8 +94,8 @@ public record SalesforceNeoApproveOrderPayload
             RequestedShipDate = NEO_Requested_Ship_Date__c,
             RequestingBusinessUnitName = NEO_Internal_Company__c,
             TransactionalCurrencyCode = NEO_Currency__c,
-            BillToCustomer = new List<CustomerBill> { new CustomerBill() { AccountNumber = NEO_Account_Name__c } },// check
-            ShipToCustomer = new List<CustomerShip> { new CustomerShip() { PartyNumber = NEO_Oracle_Ship_to_Address_ID__c } } //check
+            BillToCustomer = new List<CustomerBill> { new CustomerBill() { AccountNumber = NEO_Oracle_Account_ID__c, ContactNumber = NEO_Oracle_Bill_to_Contact_ID__c } },
+            ShipToCustomer = new List<CustomerShip> { new CustomerShip() {  ContactNumber = NEO_Oracle_Ship_to_Contact_ID__c } } 
         };
     }
 
