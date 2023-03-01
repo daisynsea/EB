@@ -30,4 +30,8 @@
         <ProjectReference Include="..\Toolbox\Toolbox.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Workflows\SalesOrder\" />
+    </ItemGroup>
+
 </Project>

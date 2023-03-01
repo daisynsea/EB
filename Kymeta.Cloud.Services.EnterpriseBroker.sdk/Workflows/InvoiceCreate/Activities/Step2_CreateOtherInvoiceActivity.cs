@@ -14,11 +14,11 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Workflows.InvoiceCreate.Act
 public class Step2_CreateOtherInvoiceActivity : AsyncTaskActivity<CreateOtherInvoiceRequest, OracleCreateInvoiceResponseModel?>
 {
     private readonly ITransactionLoggingService _transLog;
-    private readonly ILogger<Step2_GetSalesOrderLinesActivity> _logger;
+    private readonly ILogger<Step2_CreateOtherInvoiceActivity> _logger;
     private readonly OracleClient _oracleClient;
     private readonly SalesforceClient2 _salesforceClient;
 
-    public Step2_CreateOtherInvoiceActivity(SalesforceClient2 salesforceClient, OracleClient oracleClient, ITransactionLoggingService transLog, ILogger<Step2_GetSalesOrderLinesActivity> logger)
+    public Step2_CreateOtherInvoiceActivity(SalesforceClient2 salesforceClient, OracleClient oracleClient, ITransactionLoggingService transLog, ILogger<Step2_CreateOtherInvoiceActivity> logger)
     {
         _salesforceClient = salesforceClient.NotNull();
         _oracleClient = oracleClient.NotNull();

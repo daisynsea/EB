@@ -12,8 +12,8 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Workflows.InvoiceCreate.Act
 public class Step4_UpdateSalesforceInvoice : AsyncTaskActivity<CreatedInvoiceModel, bool>
 {
     private readonly ITransactionLoggingService _transLog;
-    private readonly ILogger<Step2_GetSalesOrderLinesActivity> _logger;
-    public Step4_UpdateSalesforceInvoice(ITransactionLoggingService transLog, ILogger<Step2_GetSalesOrderLinesActivity> logger)
+    private readonly ILogger<Step4_UpdateSalesforceInvoice> _logger;
+    public Step4_UpdateSalesforceInvoice(ITransactionLoggingService transLog, ILogger<Step4_UpdateSalesforceInvoice> logger)
     {
         _transLog = transLog.NotNull();
         _logger = logger.NotNull();

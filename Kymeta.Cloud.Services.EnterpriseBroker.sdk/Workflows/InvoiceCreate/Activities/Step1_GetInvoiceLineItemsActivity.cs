@@ -14,10 +14,10 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Workflows.InvoiceCreate.Act
 public class Step1_GetInvoiceLineItemsActivity : AsyncTaskActivity<Event_InvoiceCreateModel, IReadOnlyList<SalesforceInvoiceLineModel>>
 {
     private readonly ITransactionLoggingService _transLog;
-    private readonly ILogger<Step2_GetSalesOrderLinesActivity> _logger;
+    private readonly ILogger<Step1_GetInvoiceLineItemsActivity> _logger;
     private readonly SalesforceClient2 _client;
 
-    public Step1_GetInvoiceLineItemsActivity(SalesforceClient2 client, ITransactionLoggingService transLog, ILogger<Step2_GetSalesOrderLinesActivity> logger)
+    public Step1_GetInvoiceLineItemsActivity(SalesforceClient2 client, ITransactionLoggingService transLog, ILogger<Step1_GetInvoiceLineItemsActivity> logger)
     {
         _client = client.NotNull();
         _transLog = transLog.NotNull();

@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients;
+using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients.Salesforce;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
 {
@@ -8,7 +9,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
         private readonly ISalesforceRestClient _client;
         public SalesforceClientTests(EnterpriseBrokerFactory factory) : base(factory)
         {
-            _client = Resolve<ISalesforceClient2>().Rest;
+            _client = Resolve<ISalesforceRestClient>();
         }
 
 

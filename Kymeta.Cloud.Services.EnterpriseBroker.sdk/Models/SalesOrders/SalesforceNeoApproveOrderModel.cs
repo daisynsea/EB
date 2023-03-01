@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders;
 
-public record Event_SalesforceNeoApproveOrderModel
+public record SalesforceNeoApproveOrderModel
 {
     public SalesforceNeoApproveOrderData Data { get; init; } = null!;
     public string Channel { get; init; } = null!;
@@ -26,7 +26,7 @@ public record Event_SalesforceNeoApproveOrderModel
 
 public record SalesforceNeoApproveOrderData
 {
-    public string? Schema { get; init; }
+    public string? Schmea { get; init; }
     public SalesforceNeoApproveOrderPayload Payload { get; init; } = null!;
     public SalesorderEventModel Event { get; init; } = null!;
 }
@@ -41,7 +41,7 @@ public record SalesforceNeoApproveOrderPayload
     public string? NEO_Account_Name__c { get; init; }
     public string? NEO_Ship_to_Name__c { get; init; }
     public string? NEO_Deleted_Item_Id__c { get; init; }
-    public string? CreatedById { get; init; }   
+    public string? CreatedById { get; init; }
     public string? NEO_Internal_Company__c { get; init; }
     public string? NEO_Event_Type__c { get; init; }
     public string? NEO_Sales_Representative__c { get; init; }
@@ -93,8 +93,8 @@ public record SalesforceNeoApproveOrderPayload
             RequestedShipDate = NEO_Requested_Ship_Date__c,
             RequestingBusinessUnitName = NEO_Internal_Company__c,
             TransactionalCurrencyCode = NEO_Currency__c,
-            BillToCustomer = new List<CustomerBill> { new CustomerBill() { AccountNumber = NEO_Account_Name__c} },// check
-            ShipToCustomer= new List<CustomerShip> { new CustomerShip() { PartyNumber = NEO_Oracle_Ship_to_Address_ID__c } } //check
+            BillToCustomer = new List<CustomerBill> { new CustomerBill() { AccountNumber = NEO_Account_Name__c } },// check
+            ShipToCustomer = new List<CustomerShip> { new CustomerShip() { PartyNumber = NEO_Oracle_Ship_to_Address_ID__c } } //check
         };
     }
 
@@ -115,15 +115,14 @@ public record SalesforceNeoApproveOrderPayload
             FreezeShippingChargeFlag = latestRevision.FreezeShippingChargeFlag,
             FreezeTaxFlag = latestRevision.FreezeTaxFlag,
             SubmittedFlag = true, //check about this
-            BuyingPartyContactNumber= NEO_Oracle_Bill_to_Contact_ID__c,
-            PaymentTerms=NEO_Payment_Term__c,
-            BuyingPartyNumber= NEO_Oracle_Account_ID__c ,
-            RequestedShipDate=NEO_Requested_Ship_Date__c,
+            BuyingPartyContactNumber = NEO_Oracle_Bill_to_Contact_ID__c,
+            PaymentTerms = NEO_Payment_Term__c,
+            BuyingPartyNumber = NEO_Oracle_Account_ID__c,
+            RequestedShipDate = NEO_Requested_Ship_Date__c,
             RequestingBusinessUnitName = NEO_Internal_Company__c,
-            SourceTransactionRevisionNumber=latestRevision.SourceTransactionNumber,
-            TransactionalCurrencyCode= NEO_Currency__c,
+            SourceTransactionRevisionNumber = latestRevision.SourceTransactionNumber,
+            TransactionalCurrencyCode = NEO_Currency__c,
         };
     }
 }
-
 

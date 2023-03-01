@@ -1,9 +1,11 @@
 ﻿using System.Net.Http.Headers;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Application;
+using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients.Oracle;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients.Salesforce;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Services;
+using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Workflows;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Workflows.InvoiceCreate;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Workflows.SalesOrder;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Workflows.SalesOrder.Activities;
@@ -38,9 +40,10 @@ public static class Startup
         services.AddOrchestrationServices(builder =>
         {
             builder.AddTaskOrchestrations<SalesOrderOrchestration>();
-            builder.AddTaskActivities<Step2_GetSalesOrderLinesActivity>();
-            builder.AddTaskActivities<Step4_UpdateSalesforceSalesOrderActivity>();
-            builder.AddTaskActivities<Step3_SetOracleSalesOrderActivity>();
+            builder.AddTaskActivities<GetOracleSalesOrderActivity>();
+            builder.AddTaskActivities<GetSalesOrderLinesActivity>();
+            builder.AddTaskActivities<UpdateOracleSalesOrderActivity>();
+            builder.AddTaskActivities<SetSalesOrderWithOracleActivity>();
 
             builder.AddTaskOrchestrations<TestOrchestration>();
             builder.AddTaskActivities<Step2_TestActivity>();
@@ -56,24 +59,6 @@ public static class Startup
                 map.Map<TestOrchestration>("testChannel");
             });
         });
-     
-        services.AddSingleton<EventOrchestrationService>();
-        services.AddOrchestrationServices(builder =>
-        {
-            builder.AddTaskOrchestrations<SalesOrderOrchestration>();
-            builder.AddTaskActivities<GetOracleSalesOrderActivity>();
-            builder.AddTaskActivities<GetSalesOrderLinesActivity>();
-            builder.AddTaskActivities<UpdateOracleSalesOrderActivity>();
-            builder.AddTaskActivities<SetSalesOrderWithOracleActivity>();
-            
-            builder.MapChannel((services, map) =>
-            {
-                ServiceOption option = services.GetRequiredService<ServiceOption>();
-
-                map.Map<SalesOrderOrchestration>(option.Salesforce.PlatformEvents.Channels.NeoApproveOrder);
-            });
-        });
-
 
         services.AddHttpClient<SalesforceAuthClient>((services, httpClient) =>
         {
