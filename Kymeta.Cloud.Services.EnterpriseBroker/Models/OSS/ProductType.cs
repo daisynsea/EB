@@ -4,5 +4,6 @@ public class ProductType
 {
     public string Type { get; set; }
     public string? ProductCode { get; set; }
-    public string? HardwareField { get; set; }
+    public string? BaseProperty { get; set; }
+    public string? TargetProperty { get; set; }
 }

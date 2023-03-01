@@ -52,7 +52,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Services.BackgroundOperations.P
                     return;
                 }
                 // assign replayId to redis cache to establish replay starting point in event of service failure
-                _cacheRepo.SetSalesforceEventReplayId(_config["Salesforce:PlatformEvents:Channels:Asset"], assetEvent.Data.Event.ReplayId.ToString());
+                _cacheRepo.SetSalesforceEventReplayId(_config["Salesforce:PlatformEvents:Channels:AssetSerialUpdate"], assetEvent.Data.Event.ReplayId.ToString());
                 // ensure we have a payload from the event message
                 if (assetEvent == null || assetEvent.Data?.Payload == null)
                 {
@@ -97,19 +97,20 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Services.BackgroundOperations.P
                         }
                     }
                 }
-                else if (productFamilyLower == "component") // asset is a hardware component
+                else if (productFamilyLower == "components") // asset is a hardware component
                 {
                     // fetch Product Types from OSS data store (via Terminals)
                     var productInfoResult = _terminalsClient.GetProductTypes().Result;
                     // isolate a match based on the payload of the event message
                     var productType = productInfoResult.productTypes?.FirstOrDefault(pt => pt.ProductCode == payload.ProductCode);
-                    if (productType == null)
+                    // validate the product type data has all the segements we need to propertly set the hardware value on the Terminal
+                    if (productType == null || string.IsNullOrEmpty(productType.BaseProperty) || string.IsNullOrEmpty(productType.TargetProperty))
                     {
                         _logger.LogCritical($"Product not recognized: '{payload.ProductCode}'");
                         return;
                     }
                     // declare the fully qualified property name of the related hardware component
-                    var terminalHardwareProperty = $"Hardware.{productType.HardwareField}";
+                    var terminalHardwareProperty = $"Hardware.{productType.BaseProperty}.{productType.TargetProperty}";
                     var isTargetUpdated = false;
 
                     // check to see if the Parent of the component was modified
@@ -117,40 +118,10 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Services.BackgroundOperations.P
                     {
                         // fetch Original and Target Terminals by Salesforce Ids
                         var parentTerminals = _terminalsClient.GetTerminalsBySalesforceIds(new string[] { payload.PriorParentId, payload.ParentId }).Result;
-                        //var isOriginalUpdated = UpdateTerminal(parentTerminals, payload.PriorParentId, null, terminalHardwareProperty);
-                        // isolate the original
-                        var originalTerminal = parentTerminals.res?.Items?.FirstOrDefault(i => i.SalesforceAssetId == payload.PriorParentId);
-                        if (originalTerminal == null)
-                        {
-                            // TODO: original terminal not found - critical error? create new Terminal?
-                            _logger.LogCritical($"Terminal not found. Salesforce Id '{payload.PriorParentId}'");
-                            return;
-                        }
-                        else
-                        {
-                            // update relevant hardware component serial value with null to remove the reference from the original
-                            SetProperty(terminalHardwareProperty, originalTerminal, null);
-                        }
+                        var isOriginalUpdated = UpdateTerminalHardware(parentTerminals, payload.PriorParentId, null, terminalHardwareProperty);
 
                         // isolate the 'Target' Terminal for which to set the hardware component
-                        var targetTerminal = parentTerminals.res?.Items?.FirstOrDefault(i => i.SalesforceAssetId == payload.ParentId);
-                        if (targetTerminal == null)
-                        {
-                            // TODO: target Terminal not found - critical error?
-                            _logger.LogCritical($"Terminal not found. Salesforce Id '{payload.ParentId}'");
-                            return;
-                        }
-                        else
-                        {
-                            // update relevant hardware component serial value
-                            SetProperty(terminalHardwareProperty, targetTerminal, payload.Serial);
-                            var updatedTargetResult = _terminalsClient.UpdateTerminal(targetTerminal).Result;
-                            if (!string.IsNullOrEmpty(updatedTargetResult.error))
-                            {
-                                _logger.LogCritical($"Encountered an error while attempting to update Target Terminal: {updatedTargetResult.error}");
-                            }
-                            isTargetUpdated = true;
-                        }
+                        isTargetUpdated = UpdateTerminalHardware(parentTerminals, payload.ParentId, payload.Serial, terminalHardwareProperty);
                     }
 
                     // check to see if Serial was modified
@@ -159,7 +130,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Services.BackgroundOperations.P
                     {
                         // fetch Target Terminals by Salesforce Id
                         var parentTerminals = _terminalsClient.GetTerminalsBySalesforceIds(new string[] { payload.ParentId }).Result;
-                        var isUpdated = UpdateTerminal(parentTerminals, payload.ParentId, payload.Serial, terminalHardwareProperty);
+                        var isUpdated = UpdateTerminalHardware(parentTerminals, payload.ParentId, payload.Serial, terminalHardwareProperty);
                     }
                 }
                 else
@@ -171,11 +142,12 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Services.BackgroundOperations.P
             catch (Exception ex)
             {
                 // TODO: log critical?
+                _logger.LogCritical($"An unexpected error occurred while attempting to process Salesforce Platform Event message: {ex.Message}", message);
                 throw;
             }
         }
 
-        private bool UpdateTerminal((TerminalsResponse res, string error) parentTerminals, string parentId, string serial, string terminalHardwareProperty)
+        private bool UpdateTerminalHardware((TerminalsResponse res, string error) parentTerminals, string parentId, string serial, string terminalHardwareProperty)
         {
             // isolate the Terminal for which to set the hardware component
             var terminal = parentTerminals.res?.Items?.FirstOrDefault(i => i.SalesforceAssetId == parentId);
@@ -199,15 +171,28 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Services.BackgroundOperations.P
             return true;
         }
 
+        /// <summary>
+        /// Using reflection to set a property via the string equivalent of the property name.
+        /// </summary>
+        /// <param name="compoundProperty">The full reference to the intended property to set.</param>
+        /// <param name="target">The target object (Terminal in this case) to update.</param>
+        /// <param name="value">The value to set for the given property.</param>
         private void SetProperty(string compoundProperty, object target, object value)
         {
+            // isolate the segments of the property reference
             string[] bits = compoundProperty.Split('.');
+            
+            // iterate the segements to dive into the requisite property for proper context
             for (int i = 0; i < bits.Length - 1; i++)
             {
                 PropertyInfo propertyToGet = target.GetType().GetProperty(bits[i]);
+                // if a nested property, keep updating the target until final reference is found
                 target = propertyToGet.GetValue(target, null);
             }
+
+            // isolate the property to set using the target object type
             PropertyInfo propertyToSet = target.GetType().GetProperty(bits.Last());
+            // set the value of the property
             propertyToSet.SetValue(target, value, null);
         }
     }

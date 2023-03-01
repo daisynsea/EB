@@ -32,17 +32,10 @@ public class TerminalsClient : ITerminalsClient
         // exit early if no serials were provided
         if (salesforceIds == null || !salesforceIds.Any()) return new ValueTuple<TerminalsResponse, string>(null, $"No Salesforce Ids provided.");
 
-        UriBuilder builder = new("v1");
-        //builder.Port = -1;
-        var query = HttpUtility.ParseQueryString(builder.Query);
-        query["skip"] = "0";
-        query["take"] = "50";
-        query["query"] = string.Join('|', salesforceIds);
-        builder.Query = query.ToString();
-        string url = builder.ToString();
-
-        // TODO: verify format of URL
-        var response = await _client.GetAsync(url);
+        // join the list together to formulate the query
+        var terminalsQuery = string.Join('|', salesforceIds);
+        // send the request
+        var response = await _client.GetAsync($"v1/?take=25&filters=SalesforceAssetId:{terminalsQuery}");
         string data = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode)
