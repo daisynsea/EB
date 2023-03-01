@@ -13,14 +13,14 @@ public record SalesforceNeoApproveOrderModel
     public SalesforceNeoApproveOrderData Data { get; init; } = null!;
     public string Channel { get; init; } = null!;
 
-    public SalesforceNeoApproveOrderPayload GetEventPayload()
+    public OracleUpdateOrder MapToOracleUpdateOrder(Item latestRevision)
     {
-        return Data.Payload;
+        return Data.Payload.MapToOracleUpdateOrder(latestRevision);
     }
 
     public OracleCreateOrder MapToOracleCreateOrder()
     {
-        return GetEventPayload().MapToOracleCreateOrder();
+        return Data.Payload.MapToOracleCreateOrder();
     }
 
 }
@@ -99,7 +99,7 @@ public record SalesforceNeoApproveOrderPayload
     }
 
 
-    public OracleUpdateOrder MapToOracleUpdateOrder()
+    public OracleUpdateOrder MapToOracleUpdateOrder(Item latestRevision)
     {
         return new OracleUpdateOrder()
 
@@ -111,16 +111,16 @@ public record SalesforceNeoApproveOrderPayload
             BusinessUnitName = NEO_Internal_Company__c,
             BuyingPartyName = NEO_Bill_To_Name__c,
             TransactionType = NEO_Order_Type_Oracle_Sync__c,
-            FreezePriceFlag = false,
-            FreezeShippingChargeFlag = false,
-            FreezeTaxFlag = false,
-            SubmittedFlag = true,
+            FreezePriceFlag = latestRevision.FreezePriceFlag,
+            FreezeShippingChargeFlag = latestRevision.FreezeShippingChargeFlag,
+            FreezeTaxFlag = latestRevision.FreezeTaxFlag,
+            SubmittedFlag = true, //check about this
             BuyingPartyContactNumber= NEO_Oracle_Bill_to_Contact_ID__c,
             PaymentTerms=NEO_Payment_Term__c,
             BuyingPartyNumber= NEO_Oracle_Account_ID__c ,
             RequestedShipDate=NEO_Requested_Ship_Date__c,
             RequestingBusinessUnitName = NEO_Internal_Company__c,
-            SourceTransactionRevisionNumber=null,
+            SourceTransactionRevisionNumber=latestRevision.SourceTransactionNumber,
             TransactionalCurrencyCode= NEO_Currency__c,
         };
     }

@@ -1,4 +1,5 @@
 ﻿using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients;
+using Kymeta.Cloud.Services.Toolbox.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,5 +29,10 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders
         public bool FreezeTaxFlag { get; set; }
         public bool SubmittedFlag { get; set; }
         public string? SourceTransactionRevisionNumber { get; set; }
+
+        public bool IsValid()
+        {
+            return SourceTransactionId.IsNotEmpty();
+        }
     }
 }

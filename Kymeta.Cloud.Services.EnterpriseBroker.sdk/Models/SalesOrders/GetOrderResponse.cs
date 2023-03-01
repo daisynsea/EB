@@ -15,6 +15,11 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders
         {
             return Items.Any();
         }
+
+        public Item FindLatestRevision()
+        {
+            return Items.OrderByDescending(item => item.LastUpdateDate).First();
+        }
     }
 
     public class Item

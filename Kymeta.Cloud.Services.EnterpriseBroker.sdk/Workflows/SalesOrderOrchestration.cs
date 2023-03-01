@@ -36,15 +36,16 @@ public class SalesOrderOrchestration : TaskOrchestration<bool, string>
             SalesforceNeoApproveOrderModel eventData = input.ToObject<SalesforceNeoApproveOrderModel>().NotNull();
 
             SalesOrderModel salesOrderModel = await context.ScheduleTask<SalesOrderModel>(typeof(GetSalesOrderLinesActivity), options, eventData);
-            OracleResponse<GetOrderResponse> foundOracleOrder = await context.ScheduleTask<OracleResponse<GetOrderResponse>>(typeof(GetOracleSalesOrderActivity), options, salesOrderModel.OrderKey);
+            OracleResponse<GetOrderResponse> oracleOrderResponse = await context.ScheduleTask<OracleResponse<GetOrderResponse>>(typeof(GetOracleSalesOrderActivity), options, salesOrderModel.OrderKey);
             
-            if (!foundOracleOrder.IsSuccessStatusCode())
+            if (!oracleOrderResponse.IsSuccessStatusCode())
             {
                 OracleResponse<CreateOrderResponse>? createdOrder = await context.ScheduleTask<OracleResponse<CreateOrderResponse>?>(typeof(OracleCreateOrderActivity), options, eventData.MapToOracleCreateOrder());
             }
             else
             {
-                OracleSalesOrderResponseModel oracleResponse = await context.ScheduleTask<OracleSalesOrderResponseModel>(typeof(UpdateOracleSalesOrderActivity), options, eventData.GetEventPayload());
+                var orderLatestRevision = oracleOrderResponse.Payload.FindLatestRevision();
+                OracleSalesOrderResponseModel oracleResponse = await context.ScheduleTask<OracleSalesOrderResponseModel>(typeof(UpdateOracleSalesOrderActivity), options, eventData.MapToOracleUpdateOrder(orderLatestRevision));
             }
 
             bool success = await context.ScheduleTask<bool>(typeof(SetSalesOrderWithOracleActivity), options, salesOrderModel);
