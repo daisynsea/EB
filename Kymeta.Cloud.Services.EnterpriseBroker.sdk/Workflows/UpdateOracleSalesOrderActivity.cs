@@ -1,5 +1,6 @@
 ﻿using DurableTask.Core;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients;
+using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders;
 using Microsoft.Extensions.Logging;
 
@@ -24,7 +25,22 @@ public class UpdateOracleSalesOrderActivity : AsyncTaskActivity<OracleUpdateOrde
         }
 
         OracleResponse<UpdateOrderResponse> orderResponse = await _oracleRestClient.UpdateOrder(input, default);
-        return new OracleSalesOrderResponseModel();
+        if (orderResponse.IsSuccessStatusCode())
+        {
+            return new OracleSalesOrderResponseModel
+            {
+                IntegrationStatus = IntegrationConstants.SuccessStatus,
+                IntergrationError = IntegrationConstants.NoError,
+                OracleSalesOrderId = orderResponse.Payload.HeaderId.ToString()
+            };
+        }
+
+        return new OracleSalesOrderResponseModel
+        {
+            IntegrationStatus = IntegrationConstants.FailureStatus,
+            IntergrationError = orderResponse.ErrorMessage,
+            OracleSalesOrderId = input.OrderKey
+        };
     }
 
 }
