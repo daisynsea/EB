@@ -46,7 +46,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
         public async Task UpdateOrderAllFieldsSpecified_OrderExistsInOracle_ReturnsSuccessfulUpdate()
         {
             OracleResponse<GetOrderResponse> found = await _client.GetOrder(OrderUpdateExistsInOracle, default);
-            Item foundPayload = found.Payload.Items.First();
+            Item foundPayload = found.Payload.FindLatestRevision();
             var orderToUpdate = new OracleUpdateOrder()
             {
                 OrderKey = $"OPS:{OrderUpdateExistsInOracle}",
@@ -66,7 +66,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
                 SubmittedFlag=foundPayload.SubmittedFlag,
                 TransactionalCurrencyCode=foundPayload.TransactionalCurrencyCode,
                 TransactionType=foundPayload.TransactionType,
-                SourceTransactionRevisionNumber = "1"
+                SourceTransactionRevisionNumber = foundPayload.SourceTransactionNumber
             };
             OracleResponse<UpdateOrderResponse> updated = await _client.UpdateOrder(orderToUpdate, default);
             updated.IsSuccessStatusCode().Should().BeTrue();
