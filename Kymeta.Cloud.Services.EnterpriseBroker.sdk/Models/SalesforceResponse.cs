@@ -3,9 +3,9 @@ using Kymeta.Cloud.Services.Toolbox.Rest;
 using Newtonsoft.Json;
 using System.Net;
 
-public class OracleResponse<T> where T : IOracleResponsePayload
+public class SalesforceResponse<T> where T : ISalesforceResponsePayload
 {
-    public OracleResponse(HttpStatusCode status, string? reasonPhase, string? conent)
+    public SalesforceResponse(HttpStatusCode status, string? reasonPhase, string? conent)
     {
         StatusCode = status;
         ReasonPhrase = reasonPhase;
@@ -41,7 +41,7 @@ public class OracleResponse<T> where T : IOracleResponsePayload
             ErrorMessage = "";
             Payload = JsonConvert.DeserializeObject<T>(Content);
         }
-       
+
     }
 
 }

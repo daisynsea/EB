@@ -1,9 +1,11 @@
 ﻿using System.Net.Http.Headers;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Application;
+using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients.Oracle;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients.Salesforce;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Services;
+using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Workflows;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Workflows.InvoiceCreate;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Workflows.SalesOrder;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Workflows.SalesOrder.Activities;
@@ -38,9 +40,10 @@ public static class Startup
         services.AddOrchestrationServices(builder =>
         {
             builder.AddTaskOrchestrations<SalesOrderOrchestration>();
-            builder.AddTaskActivities<Step2_GetSalesOrderLinesActivity>();
-            builder.AddTaskActivities<Step4_UpdateSalesforceSalesOrderActivity>();
-            builder.AddTaskActivities<Step3_SetOracleSalesOrderActivity>();
+            builder.AddTaskActivities<GetOracleSalesOrderActivity>();
+            builder.AddTaskActivities<GetSalesOrderLinesActivity>();
+            builder.AddTaskActivities<UpdateOracleSalesOrderActivity>();
+            builder.AddTaskActivities<SetSalesOrderWithOracleActivity>();
 
             builder.AddTaskOrchestrations<TestOrchestration>();
             builder.AddTaskActivities<Step2_TestActivity>();
@@ -57,7 +60,6 @@ public static class Startup
             });
         });
 
-
         services.AddHttpClient<SalesforceAuthClient>((services, httpClient) =>
         {
             var option = services.GetRequiredService<ServiceOption>();
@@ -65,19 +67,7 @@ public static class Startup
         })
         .AddPolicyHandler(_retryPolicy);
 
-        services.AddHttpClient<OracleClient>((services, httpClient) =>
-        {
-            var option = services.GetRequiredService<ServiceOption>();
-            httpClient.BaseAddress = new Uri(option.Oracle.Endpoint);
-
-            string basicAuth = $"{option.Oracle.Username}:{option.Oracle.Password}"
-                .StringToBytes()
-                .Func(Convert.ToBase64String);
-
-            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", basicAuth);
-            httpClient.BaseAddress = new Uri(option.Oracle.Endpoint);
-        })
-        .AddPolicyHandler(_retryPolicy);
+        services.AddHttpClient<IOracleRestClient,OracleRestClient>();
 
         services.AddHttpClient<SalesforceClient2>((services, httpClient) =>
         {
