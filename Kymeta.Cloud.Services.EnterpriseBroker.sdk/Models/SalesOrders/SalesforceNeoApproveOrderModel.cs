@@ -22,7 +22,6 @@ public record SalesforceNeoApproveOrderModel
     {
         return Data.Payload.MapToOracleCreateOrder();
     }
-
 }
 
 public record SalesforceNeoApproveOrderData
@@ -30,7 +29,6 @@ public record SalesforceNeoApproveOrderData
     public string? Schmea { get; init; }
     public SalesforceNeoApproveOrderPayload Payload { get; init; } = null!;
     public SalesorderEventModel Event { get; init; } = null!;
-
 }
 
 

@@ -32,9 +32,21 @@ public static class Startup
         services.AddSingleton<SalesforceClient2>();
      
         services.AddSingleton<EventOrchestrationService>();
-        services.AddSingleton<GetSalesOrderLinesActivity>();
-        services.AddSingleton<SetSalesOrderWithOracleActivity>();
-        services.AddSingleton<UpdateOracleSalesOrderActivity>();
+        services.AddOrchestrationServices(builder =>
+        {
+            builder.AddTaskOrchestrations<SalesOrderOrchestration>();
+            builder.AddTaskActivities<GetOracleSalesOrderActivity>();
+            builder.AddTaskActivities<GetSalesOrderLinesActivity>();
+            builder.AddTaskActivities<UpdateOracleSalesOrderActivity>();
+            builder.AddTaskActivities<SetSalesOrderWithOracleActivity>();
+            
+            builder.MapChannel((services, map) =>
+            {
+                ServiceOption option = services.GetRequiredService<ServiceOption>();
+
+                map.Map<SalesOrderOrchestration>(option.Salesforce.PlatformEvents.Channels.NeoApproveOrder);
+            });
+        });
 
         services.AddHostedService<MessageEventBackgroundService>();
 
