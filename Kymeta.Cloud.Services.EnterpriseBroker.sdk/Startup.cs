@@ -1,13 +1,17 @@
-﻿using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Application;
-using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients;
+﻿using System.Net.Http.Headers;
+using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Application;
+using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients.Oracle;
+using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients.Salesforce;
+using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Services;
-using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Workflows;
+using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Workflows.InvoiceCreate;
+using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Workflows.SalesOrder;
+using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Workflows.SalesOrder.Activities;
+using Kymeta.Cloud.Services.Toolbox.Extensions;
 using Kymeta.Cloud.Services.Toolbox.Tools;
 using Microsoft.Extensions.DependencyInjection;
 using Polly;
 using Polly.Extensions.Http;
-using System.Net.Http.Headers;
-using System.Security.Cryptography;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk;
 
@@ -27,9 +31,31 @@ public static class Startup
         services.NotNull();
 
         services.AddTransient<SalesforceAccessTokenHandler>();
-        services.AddSingleton<MessageEventService>();
+
         services.AddSingleton<ReplayIdStoreService>();
         services.AddSingleton<SalesforceClient2>();
+
+        services.AddOrchestrationServices(builder =>
+        {
+            builder.AddTaskOrchestrations<SalesOrderOrchestration>();
+            builder.AddTaskActivities<Step2_GetSalesOrderLinesActivity>();
+            builder.AddTaskActivities<Step4_UpdateSalesforceSalesOrderActivity>();
+            builder.AddTaskActivities<Step3_SetOracleSalesOrderActivity>();
+
+            builder.AddTaskOrchestrations<TestOrchestration>();
+            builder.AddTaskActivities<Step2_TestActivity>();
+            builder.AddTaskActivities<Step3_TestActivity>();
+            builder.AddTaskActivities<Step4_TestActivity>();
+
+            builder.MapChannel((services, map) =>
+            {
+                ServiceOption option = services.GetRequiredService<ServiceOption>();
+
+                map.Map<SalesOrderOrchestration>(option.Salesforce.PlatformEvents.Channels.NeoApproveOrder);
+                map.Map<InvoiceCreateOrchestration>(option.Salesforce.PlatformEvents.Channels.NeoInvoicePosted);
+                map.Map<TestOrchestration>("testChannel");
+            });
+        });
      
         services.AddSingleton<EventOrchestrationService>();
         services.AddOrchestrationServices(builder =>
@@ -48,7 +74,6 @@ public static class Startup
             });
         });
 
-        services.AddHostedService<MessageEventBackgroundService>();
 
         services.AddHttpClient<SalesforceAuthClient>((services, httpClient) =>
         {
@@ -59,13 +84,13 @@ public static class Startup
 
         services.AddHttpClient<IOracleRestClient,OracleRestClient>();
 
-        services.AddHttpClient<ISalesforceClient2, SalesforceClient2>((services, httpClient) =>
+        services.AddHttpClient<SalesforceClient2>((services, httpClient) =>
         {
             var option = services.GetRequiredService<ServiceOption>();
             var authClient = services.GetRequiredService<SalesforceAuthClient>();
 
-            var authDetails = authClient.GetAuthToken(CancellationToken.None).Result.NotNull();
-            httpClient.BaseAddress = new Uri(authDetails.InstanceUrl + "/services/data/v56.0");
+            SalesforceAuthenticationResponse authDetails = authClient.GetAuthToken(CancellationToken.None).Result.NotNull();
+            httpClient.BaseAddress = new Uri(authDetails.InstanceUrl + option.Salesforce.BasePath);
         })
         .AddPolicyHandler(_retryPolicy)
         .AddHttpMessageHandler<SalesforceAccessTokenHandler>();

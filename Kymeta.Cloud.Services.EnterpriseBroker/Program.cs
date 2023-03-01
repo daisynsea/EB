@@ -1,5 +1,8 @@
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Security.Cryptography.X509Certificates;
+using System.Text.Json.Serialization;
 using CometD.NetCore.Bayeux.Client;
-using CometD.NetCore.Salesforce;
 using Kymeta.Cloud.Commons.AspNet.ApiVersion;
 using Kymeta.Cloud.Commons.AspNet.DistributedConfig;
 using Kymeta.Cloud.Commons.AspNet.Health;
@@ -15,14 +18,10 @@ using Kymeta.Cloud.Services.Toolbox.Extensions;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.AspNetCore.HttpOverrides;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography.X509Certificates;
-using System.Text.Json.Serialization;
 
-[assembly: InternalsVisibleTo("Kymeta.Cloud.Services.EnterpriseBroker.sdk.Test")]
-
+[assembly: InternalsVisibleTo("Kymeta.Cloud.Services.EnterpriseBroker.UnitTests")]
 [assembly: InternalsVisibleTo("Kymeta.Cloud.Services.EnterpriseBroker.IntegrationTests")]
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Default connection limit is 100 seconds, make it a lot longer just in case Oracle sucks
@@ -133,8 +132,8 @@ builder.Services.AddHostedService<SalesforceBackgroundOperationService>();
 builder.Services.AddScoped<ISalesforceProcessingService, SalesforceProcessingService>();
 builder.Services.AddHostedService<OracleBackgroundOperationService>();
 builder.Services.AddScoped<IOracleProcessingService, OracleProcessingService>();
-//builder.Services.AddHostedService<SalesforcePlatformEventsBackgroundOperationService>();
-//builder.Services.AddSingleton<ISalesforcePlatformEventsProcessingService, SalesforcePlatformEventsProcessingService>();
+builder.Services.AddHostedService<SalesforcePlatformEventsBackgroundOperationService>();
+builder.Services.AddSingleton<ISalesforcePlatformEventsProcessingService, SalesforcePlatformEventsProcessingService>();
 #endregion
 
 
@@ -244,4 +243,3 @@ app.UseEndpoints(endpoints =>
 });
 
 app.Run();
-public partial class Program { }

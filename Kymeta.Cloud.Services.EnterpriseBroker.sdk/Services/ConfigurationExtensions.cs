@@ -1,4 +1,5 @@
 ﻿using DurableTask.Core;
+using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Application;
 using Kymeta.Cloud.Services.Toolbox.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,6 +12,15 @@ public static class ConfigurationExtensions
         var builder = new OrchestrationConfigurationBuilder();
         config(builder);
 
+        serviceCollection.AddSingleton<ITransactionLoggingService, TransactionLoggingService>();
+        serviceCollection.AddSingleton<IMessageRouter, MessageRouter>();
+
+        serviceCollection.AddTransient<MessageChannelListener>();
+        serviceCollection.AddSingleton<MessageListenerService>();
+        serviceCollection.AddSingleton<OrchestrationService>();
+
+        serviceCollection.AddHostedService<BackgroundHost<OrchestrationService>>();
+        serviceCollection.AddHostedService<BackgroundHost<MessageListenerService>>();
 
         builder.TaskOrchestrations.ForEach(x => serviceCollection.AddSingleton(x));
         builder.TaskActivities.ForEach(x => serviceCollection.AddSingleton(x));
@@ -52,9 +62,3 @@ public static class ConfigurationExtensions
     }
 }
 
-public record OrchestrationConfiguration
-{
-    public IReadOnlyList<Type> TaskOrchestrations { get; init; } = Array.Empty<Type>();
-    public IReadOnlyList<Type> TaskActivities { get; init; } = Array.Empty<Type>();
-    public IDictionary<string, Type> ChannelMapToOrchestrations { get; init; } = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase);
-}
