@@ -1,21 +1,26 @@
 ﻿
+using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.Invoice;
+using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.Salesforce;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders;
+using Kymeta.Cloud.Services.Toolbox.Rest;
 using Kymeta.Cloud.Services.Toolbox.Tools;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients;
 
 public interface ISalesforceRestClient
 {
     Task<List<OrderProduct>> GetOrderProducts(string orderNumber, CancellationToken cancellationToken);
-    Task<SalesforceResponse<UpdateProductResponse>> UpdateProduct(string productId, SalesforceUpdateProduct updateProduct, CancellationToken cancellationToken);
+    Task<SalesforceResponse<UpdateProductResponse>> SyncFromOracle( OracleSalesforceSyncRequest syncRequest, CancellationToken cancellationToken);
 }
 
 public class SalesforceRestClient : ISalesforceRestClient
 {
     private readonly HttpClient _client;
     private readonly ILogger<ISalesforceRestClient> _logger;
+    private readonly string RequestUri = "/services/data/v56.0/";
 
     public SalesforceRestClient(HttpClient client, ILogger<ISalesforceRestClient> logger)
     {
@@ -25,15 +30,19 @@ public class SalesforceRestClient : ISalesforceRestClient
 
     public async Task<List<OrderProduct>> GetOrderProducts(string orderKey, CancellationToken cancellationToken)
     {
-        HttpResponseMessage response = await _client.GetAsync($"/services/data/v56.0/query?q={CreateQueryToGetProducts(orderKey)}", cancellationToken);
+        HttpResponseMessage response = await _client.GetAsync($"{RequestUri}query?q={CreateQueryToGetProducts(orderKey)}", cancellationToken);
         string content = await response.Content.ReadAsStringAsync(cancellationToken);
         var lines = JsonConvert.DeserializeObject<SalesforceOrder>(content);
         return lines.OrderProducts;
     }
 
-    public Task<SalesforceResponse<UpdateProductResponse>> UpdateProduct(string productId, SalesforceUpdateProduct updateProduct, CancellationToken cancellationToken)
+    public async Task<SalesforceResponse<UpdateProductResponse>> SyncFromOracle(OracleSalesforceSyncRequest syncRequest, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        return await new RestClient(_client)
+        .SetPath($"{RequestUri}/composite")
+        .SetLogger(_logger)
+        .GetAsync(cancellationToken)
+        .GetRequiredContent<SalesforceResponse<UpdateProductResponse>>();
     }
 
     private string CreateQueryToGetProducts(string orderKey)

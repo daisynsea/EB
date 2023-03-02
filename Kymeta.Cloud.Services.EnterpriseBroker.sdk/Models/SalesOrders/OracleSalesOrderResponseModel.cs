@@ -18,7 +18,7 @@ public class OracleSalesforceSyncRequest
 {
     public bool AlOrNone => true;
     public bool CollateSubrequests => true;
-    public CompositeRequest[] CompositeRequest { get; set; }
+    public IEnumerable<CompositeRequest> CompositeRequest { get; set; }
 }
 
 public class CompositeRequest
