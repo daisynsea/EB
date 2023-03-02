@@ -20,18 +20,18 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Services.BackgroundOperations
         private readonly IConfiguration _config;
         private readonly ILogger _logger;
         private readonly ISalesforceClient _salesforceClient;
-        private readonly IAssetEventListner _assetEventListener;
-        private readonly IAssetSerialUpdateEventListener _assetSerialUpdateEventListener;
+        private readonly IAssetEventListener _assetUpdateEventListener;
+        private readonly ISubscriptionEventListener _subscriptionEventListener;
         private readonly ICacheRepository _cacheRepo;
 
-        public SalesforcePlatformEventsProcessingService(IConfiguration config, ILogger<SalesforcePlatformEventsProcessingService> logger, ISalesforceClient salesforceClient, IAssetEventListner assetEventListener, IAssetSerialUpdateEventListener assetSerialUpdateEventListener, ICacheRepository cacheRepo)
+        public SalesforcePlatformEventsProcessingService(IConfiguration config, ILogger<SalesforcePlatformEventsProcessingService> logger, ISalesforceClient salesforceClient, ICacheRepository cacheRepo, IAssetEventListener assetUpdateEventListener, ISubscriptionEventListener subscriptionEventListener)
         {
             _config = config;
             _logger = logger;
             _salesforceClient = salesforceClient;
-            _assetEventListener = assetEventListener;
-            _assetSerialUpdateEventListener= assetSerialUpdateEventListener;
             _cacheRepo = cacheRepo;
+            _assetUpdateEventListener = assetUpdateEventListener;
+            _subscriptionEventListener = subscriptionEventListener;
         }
 
         public async Task PlatformEventsListen(CancellationToken stoppingToken)
@@ -83,22 +83,22 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Services.BackgroundOperations
 
                 #region Asset Events
                 // fetch replay id from redis to fetch all messages from most recent message processed
-                var assetReplayId = _cacheRepo.GetSalesforceEventReplayId(_config["Salesforce:PlatformEvents:Channels:Asset"]);
+                var assetUpdateReplayId = _cacheRepo.GetSalesforceEventReplayId(_config["Salesforce:PlatformEvents:Channels:Asset"]);
 
                 // connect to the event channel and add the event listner
-                IClientSessionChannel assetEventChannel = bayeuxClient.GetChannel($"/event/{_config["Salesforce:PlatformEvents:Channels:Asset"]}", assetReplayId);
-                assetEventChannel.Subscribe(_assetEventListener);
-                _logger.LogInformation($"Listening for events from Salesforce on the '{assetEventChannel}' channel...");
-
-                #region Asset Serial Update
-                // fetch replay id from redis to fetch all messages from most recent message processed
-                var assetSerialUpdateReplayId = _cacheRepo.GetSalesforceEventReplayId(_config["Salesforce:PlatformEvents:Channels:AssetSerialUpdate"]);
-
-                // connect to the event channel and add the event listner
-                IClientSessionChannel assetSerialUpdateEventChannel = bayeuxClient.GetChannel($"/event/{_config["Salesforce:PlatformEvents:Channels:AssetSerialUpdate"]}", assetSerialUpdateReplayId);
-                assetSerialUpdateEventChannel.Subscribe(_assetSerialUpdateEventListener);
-                _logger.LogInformation($"Listening for events from Salesforce on the '{assetSerialUpdateEventChannel}' channel...");
+                IClientSessionChannel assetUpdateEventChannel = bayeuxClient.GetChannel($"/event/{_config["Salesforce:PlatformEvents:Channels:Asset"]}", assetUpdateReplayId);
+                assetUpdateEventChannel.Subscribe(_assetUpdateEventListener);
+                _logger.LogInformation($"Listening for events from Salesforce on the '{assetUpdateEventChannel}' channel...");
                 #endregion
+
+                #region Subscription Events
+                // fetch replay id from redis to fetch all messages from most recent message processed
+                var subscriptionEventReplayId = _cacheRepo.GetSalesforceEventReplayId(_config["Salesforce:PlatformEvents:Channels:Subscription"]);
+
+                // connect to the event channel and add the event listner
+                IClientSessionChannel subscriptionEventChannel = bayeuxClient.GetChannel($"/event/{_config["Salesforce:PlatformEvents:Channels:Subscription"]}", subscriptionEventReplayId);
+                assetUpdateEventChannel.Subscribe(_subscriptionEventListener);
+                _logger.LogInformation($"Listening for events from Salesforce on the '{subscriptionEventChannel}' channel...");
                 #endregion
             }
             catch (Exception ex)

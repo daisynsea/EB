@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.Models.Salesforce.External.PlatformEvents
 {
-    public class SalesforceAssetSerialUpdatedEventPayload : MessagePayload
+    public class SalesforceAssetUpdatedEventPayload : MessagePayload
     {
         [JsonProperty("AssetID__c")]
         public string AssetId { get; set; } = null!;

@@ -90,9 +90,10 @@ builder.Services.AddScoped<IFileStorageService, FileStorageService>();
 builder.Services.AddScoped<ITerminalSerialCacheRepository, TerminalSerialCacheRepository>();
 
 builder.Services.AddScoped<IProductsBrokerService, ProductsBrokerService>();
+builder.Services.AddSingleton<ISalesforceAssetService, SalesforceAssetService>();
 builder.Services.AddSingleton<ICacheRepository, CacheRepository>();
-builder.Services.AddSingleton<IAssetEventListner, AssetEventListener>();
-builder.Services.AddSingleton<IAssetSerialUpdateEventListener, AssetSerialUpdateEventListener>();
+builder.Services.AddSingleton<IAssetEventListener, AssetEventListener>();
+builder.Services.AddSingleton<ISubscriptionEventListener, SubscriptionEventListener>();
 
 #region Background Services
 // add background operation services
