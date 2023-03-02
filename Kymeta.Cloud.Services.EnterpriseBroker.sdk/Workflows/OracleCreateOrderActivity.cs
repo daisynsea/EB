@@ -1,13 +1,14 @@
 ﻿using DurableTask.Core;
 using Kymeta.Cloud.Services.EnterpriseBroker.Models.Oracle.REST;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients;
+using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Workflows
 {
-    public class OracleCreateOrderActivity: AsyncTaskActivity<OracleCreateOrder, OracleResponse<CreateOrderResponse>>
+    public class OracleCreateOrderActivity: AsyncTaskActivity<OracleCreateOrder, OracleSalesOrderResponseModel>
     {
         private readonly IOracleRestClient _client;
         private readonly ILogger<UpdateOracleSalesOrderActivity> _logger;
@@ -17,14 +18,28 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Workflows
             _logger = logger;
         }
 
-        protected override async Task<OracleResponse<CreateOrderResponse>> ExecuteAsync(TaskContext context, OracleCreateOrder input)
+        protected override async Task<OracleSalesOrderResponseModel> ExecuteAsync(TaskContext context, OracleCreateOrder input)
         {
             _logger.LogInformation($" Oracle Order {JsonConvert.SerializeObject(input)}.");
 
-            var result =  await _client.CreateOrder(input, CancellationToken.None);
-            _logger.LogInformation($"Oracle CreateOrder response: {JsonConvert.SerializeObject(result)}");
+            OracleResponse<CreateOrderResponse> orderResponse =  await _client.CreateOrder(input, CancellationToken.None);
+            _logger.LogInformation($"Oracle CreateOrder response: {JsonConvert.SerializeObject(orderResponse)}");
 
-            return result;
+            if (orderResponse.IsSuccessStatusCode())
+            {
+                return new OracleSalesOrderResponseModel
+                {
+                    IntegrationStatus = IntegrationConstants.SuccessStatus,
+                    IntergrationError = IntegrationConstants.NoError,
+                    OracleSalesOrderId = orderResponse.Payload.HeaderId.ToString()
+                };
+            }
+            return new OracleSalesOrderResponseModel
+            {
+                IntegrationStatus = IntegrationConstants.FailureStatus,
+                IntergrationError = orderResponse.ErrorMessage,
+                OracleSalesOrderId = input.OrderKey
+            };
         }
     }
 }

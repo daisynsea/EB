@@ -41,15 +41,16 @@ public class SalesOrderOrchestration : TaskOrchestration<bool, string>
             
             if (!oracleOrderResponse.IsSuccessStatusCode())
             {
-                OracleResponse<CreateOrderResponse>? createdOrder = await context.ScheduleTask<OracleResponse<CreateOrderResponse>?>(typeof(OracleCreateOrderActivity), options, eventData.MapToOracleCreateOrder());
+                OracleSalesOrderResponseModel response = await context.ScheduleTask<OracleSalesOrderResponseModel>(typeof(OracleCreateOrderActivity), options, eventData.MapToOracleCreateOrder());
+                bool success = await context.ScheduleTask<bool>(typeof(SetSalesOrderWithOracleActivity), options, salesOrderModel);
             }
             else
             {
                 var orderLatestRevision = oracleOrderResponse.Payload.FindLatestRevision();
-                OracleSalesOrderResponseModel oracleResponse = await context.ScheduleTask<OracleSalesOrderResponseModel>(typeof(UpdateOracleSalesOrderActivity), options, eventData.MapToOracleUpdateOrder(orderLatestRevision));
+                OracleSalesOrderResponseModel response = await context.ScheduleTask<OracleSalesOrderResponseModel>(typeof(UpdateOracleSalesOrderActivity), options, eventData.MapToOracleUpdateOrder(orderLatestRevision));
+                bool success = await context.ScheduleTask<bool>(typeof(SetSalesOrderWithOracleActivity), options, salesOrderModel);
             }
 
-            bool success = await context.ScheduleTask<bool>(typeof(SetSalesOrderWithOracleActivity), options, salesOrderModel);
 
             _logger.LogInformation("Completed orchestration");
         }
