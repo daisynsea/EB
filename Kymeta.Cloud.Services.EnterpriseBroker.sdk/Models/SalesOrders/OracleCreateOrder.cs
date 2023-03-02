@@ -21,7 +21,6 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders
         public bool FreezeTaxFlag { get; set; }
         public bool SubmittedFlag { get; set; }
         public string? SourceTransactionRevisionNumber { get; set; }
-
         [JsonPropertyName("billToCustomer")]
         public IEnumerable<CustomerBill> BillToCustomer { get; set; } = Enumerable.Empty<CustomerBill>();
         [JsonPropertyName("shipToCustomer")]
@@ -47,14 +46,14 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders
     public record CustomerBill
     {
         public string? AccountNumber { get; set; }
-        //public long ContactNumber { get; set; }
+        public string? ContactNumber { get; set; }
         //public string AddressId { get; set; }
     }
 
     public record CustomerShip
     {
         public string? PartyNumber { get; set; }
-        //public long ContactNumber { get; set; }
+        public string? ContactNumber { get; set; }
         //public string AddressId { get; set; }
     }
 }
