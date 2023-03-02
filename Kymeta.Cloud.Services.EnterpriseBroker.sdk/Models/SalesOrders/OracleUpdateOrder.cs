@@ -1,5 +1,4 @@
-﻿using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients;
-using Kymeta.Cloud.Services.Toolbox.Extensions;
+﻿using Kymeta.Cloud.Services.Toolbox.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;

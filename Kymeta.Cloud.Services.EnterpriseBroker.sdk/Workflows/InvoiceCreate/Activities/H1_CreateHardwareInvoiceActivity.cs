@@ -3,7 +3,7 @@ using DurableTask.Core;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients.Oracle;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients.Salesforce;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.Invoice;
-using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Services;
+using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Services.TransactionLog;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Workflows.InvoiceCreate.Model;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Workflows.SalesOrder.Activities;
 using Kymeta.Cloud.Services.Toolbox.Extensions;
@@ -45,9 +45,9 @@ public class H1_CreateHardwareInvoiceActivity : AsyncTaskActivity<Event_InvoiceC
 
         var updateRequest = new SalesforceUpdateInvoiceRequestModel
         {
-            NEO_Integration_Error = "Clear",
-            NEO_Integration_Status = "Success",
-            OracleInvoiceNumber = invoiceHeader.CustomerTransactionId.ToString(),
+            NEO_Integration_Error__c = "Clear",
+            NEO_Integration_Status__c = "Success",
+            NEO_Oracle_Invoice_Number__c = invoiceHeader.CustomerTransactionId.ToString(),
         };
 
         await _salesforceClient.Invoice.Update(input.NEO_Order_Number__c, updateRequest);

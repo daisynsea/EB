@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Castle.Core.Logging;
 using DurableTask.Core;
+using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders;
 using Kymeta.Cloud.Services.Toolbox.Extensions;
 using Kymeta.Cloud.Services.Toolbox.Tools;
@@ -45,7 +46,7 @@ public class SalesOrderOrchestration : TaskOrchestration<bool, string>
             }
             else
             {
-                var orderLatestRevision = oracleOrderResponse.Payload.FindLatestRevision();
+                var orderLatestRevision = ""; // oracleOrderResponse.Payload.FindLatestRevision();
                 OracleSalesOrderResponseModel oracleResponse = await context.ScheduleTask<OracleSalesOrderResponseModel>(typeof(UpdateOracleSalesOrderActivity), options, eventData.MapToOracleUpdateOrder(orderLatestRevision));
             }
 

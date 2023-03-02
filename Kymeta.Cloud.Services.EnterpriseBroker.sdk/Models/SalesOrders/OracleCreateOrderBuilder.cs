@@ -54,7 +54,7 @@
 
         public OracleCreateOrderBuilder WithRequestedShipDate(DateTime? requestedShipDate)
         {
-            order.RequestedShipDate = requestedShipDate;
+            order.RequestedShipDate = requestedShipDate.ToString();
             return this;
         }
 

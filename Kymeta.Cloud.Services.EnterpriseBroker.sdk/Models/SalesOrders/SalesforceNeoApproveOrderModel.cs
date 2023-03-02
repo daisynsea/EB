@@ -13,7 +13,7 @@ public record SalesforceNeoApproveOrderModel
     public SalesforceNeoApproveOrderData Data { get; init; } = null!;
     public string Channel { get; init; } = null!;
 
-    public OracleUpdateOrder MapToOracleUpdateOrder(Item latestRevision)
+    public OracleUpdateOrder MapToOracleUpdateOrder(object latestRevision)
     {
         return Data.Payload.MapToOracleUpdateOrder(latestRevision);
     }
@@ -81,7 +81,7 @@ public record SalesforceNeoApproveOrderPayload
             OrderKey = $"OPS:{NEO_OrderNumbrer__c}",
             SourceTransactionSystem = "OPS",
             BusinessUnitName = NEO_Internal_Company__c,
-            BuyingPartyName = NEO_Bill_To_Name__c,
+            //BuyingPartyName = NEO_Bill_To_Name__c,
             TransactionType = NEO_Order_Type_Oracle_Sync__c,
             FreezePriceFlag = false,
             FreezeShippingChargeFlag = false,
@@ -90,16 +90,16 @@ public record SalesforceNeoApproveOrderPayload
             BuyingPartyContactNumber = NEO_Oracle_Bill_to_Contact_ID__c,
             PaymentTerms = NEO_Payment_Term__c,
             BuyingPartyNumber = NEO_Oracle_Account_ID__c,
-            RequestedShipDate = NEO_Requested_Ship_Date__c,
+            //RequestedShipDate = NEO_Requested_Ship_Date__c,
             RequestingBusinessUnitName = NEO_Internal_Company__c,
             TransactionalCurrencyCode = NEO_Currency__c,
-            BillToCustomer = new List<CustomerBill> { new CustomerBill() { AccountNumber = NEO_Account_Name__c } },// check
-            ShipToCustomer = new List<CustomerShip> { new CustomerShip() { PartyNumber = NEO_Oracle_Ship_to_Address_ID__c } } //check
+            //BillToCustomer = new List<CustomerBill> { new CustomerBill() { AccountNumber = NEO_Account_Name__c } },// check
+            //ShipToCustomer = new List<CustomerShip> { new CustomerShip() { PartyNumber = NEO_Oracle_Ship_to_Address_ID__c } } //check
         };
     }
 
 
-    public OracleUpdateOrder MapToOracleUpdateOrder(Item latestRevision)
+    public OracleUpdateOrder MapToOracleUpdateOrder(object latestRevision)
     {
         return new OracleUpdateOrder()
 
@@ -111,16 +111,16 @@ public record SalesforceNeoApproveOrderPayload
             BusinessUnitName = NEO_Internal_Company__c,
             BuyingPartyName = NEO_Bill_To_Name__c,
             TransactionType = NEO_Order_Type_Oracle_Sync__c,
-            FreezePriceFlag = latestRevision.FreezePriceFlag,
-            FreezeShippingChargeFlag = latestRevision.FreezeShippingChargeFlag,
-            FreezeTaxFlag = latestRevision.FreezeTaxFlag,
+            //FreezePriceFlag = latestRevision.FreezePriceFlag,
+            //FreezeShippingChargeFlag = latestRevision.FreezeShippingChargeFlag,
+            //FreezeTaxFlag = latestRevision.FreezeTaxFlag,
             SubmittedFlag = true, //check about this
             BuyingPartyContactNumber = NEO_Oracle_Bill_to_Contact_ID__c,
             PaymentTerms = NEO_Payment_Term__c,
             BuyingPartyNumber = NEO_Oracle_Account_ID__c,
             RequestedShipDate = NEO_Requested_Ship_Date__c,
             RequestingBusinessUnitName = NEO_Internal_Company__c,
-            SourceTransactionRevisionNumber = latestRevision.SourceTransactionNumber,
+            //SourceTransactionRevisionNumber = latestRevision.SourceTransactionNumber,
             TransactionalCurrencyCode = NEO_Currency__c,
         };
     }
