@@ -17,6 +17,6 @@ public class TestApplicationFixture : IClassFixture<EnterpriseBrokerFactory>
 
     protected T Resolve<T>() where T : notnull
     {
-        return _factory.Services.GetRequiredService<T>();
+        return _factory.Host.Services.GetRequiredService<T>();
     }
 }

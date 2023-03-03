@@ -1,20 +1,21 @@
-﻿using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.VisualStudio.TestPlatform.TestHost;
+﻿
+
+using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests;
 
-public class EnterpriseBrokerFactory : WebApplicationFactory<Program>
+public class EnterpriseBrokerFactory
 {
     public HttpClient Client { get; }
+    internal WebApplicationFactory<Program> Host { get; }
     public EnterpriseBrokerFactory()
     {
-        //Client = CreateClient(); //Setup correctly base and needed headers
-        Client = TestHostFactory.Host.CreateClient();
+        Host = TestHostFactory.Host;
+        Client = Host.CreateClient();
     }
 }
 
-
 internal static class TestHostFactory
 {
-    internal static WebApplicationFactory<Program> Host = new WebApplicationFactory<Program>();
+    internal static readonly WebApplicationFactory<Program> Host = new();
 }
