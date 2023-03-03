@@ -55,7 +55,7 @@ public static class Startup
                 ServiceOption option = services.GetRequiredService<ServiceOption>();
 
                 map.Map<SalesOrderOrchestration>(option.Salesforce.PlatformEvents.Channels.NeoApproveOrder);
-                map.Map<InvoiceCreateOrchestration>(option.Salesforce.PlatformEvents.Channels.NeoInvoicePosted);
+//                map.Map<InvoiceCreateOrchestration>(option.Salesforce.PlatformEvents.Channels.NeoInvoicePosted);
                 map.Map<TestOrchestration>("testChannel");
             });
         });
