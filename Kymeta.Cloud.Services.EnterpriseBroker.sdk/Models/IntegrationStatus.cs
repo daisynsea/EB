@@ -2,7 +2,9 @@
 
 public static class IntegrationConstants
 {
-    public static readonly string SuccessStatus = "Success";
-    public static readonly string FailureStatus = "Failure";
-    public static readonly string NoError = "clear";
+    public static readonly string Activated = "Activated";
+    public static readonly string Successful = "Successful";
+    public static readonly string Success = "Success";
+    public static readonly string Failure = "Failure";
+    public static readonly string Clear = "clear";
 }

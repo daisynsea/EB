@@ -29,15 +29,15 @@ public class UpdateOracleSalesOrderActivity : AsyncTaskActivity<OracleUpdateOrde
         {
             return new OracleSalesOrderResponseModel
             {
-                IntegrationStatus = IntegrationConstants.SuccessStatus,
-                IntergrationError = IntegrationConstants.NoError,
+                IntegrationStatus = IntegrationConstants.Success,
+                IntergrationError = IntegrationConstants.Clear,
                 OracleSalesOrderId = orderResponse.Payload.HeaderId.ToString()
             };
         }
 
         return new OracleSalesOrderResponseModel
         {
-            IntegrationStatus = IntegrationConstants.FailureStatus,
+            IntegrationStatus = IntegrationConstants.Failure,
             IntergrationError = orderResponse.ErrorMessage,
             OracleSalesOrderId = input.OrderKey
         };
