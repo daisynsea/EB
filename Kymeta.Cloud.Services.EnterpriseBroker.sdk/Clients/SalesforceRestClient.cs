@@ -39,7 +39,7 @@ public class SalesforceRestClient : ISalesforceRestClient
     public async Task<SalesforceResponse<UpdateProductResponse>> SyncFromOracle(OracleSalesforceSyncRequest syncRequest, CancellationToken cancellationToken)
     {
         return await new RestClient(_client)
-        .SetPath($"{RequestUri}/composite")
+        .SetPath($"/composite")
         .SetLogger(_logger)
         .GetAsync(cancellationToken)
         .GetRequiredContent<SalesforceResponse<UpdateProductResponse>>();

@@ -68,6 +68,14 @@ public static class Startup
         .AddPolicyHandler(_retryPolicy);
 
         services.AddHttpClient<IOracleRestClient,OracleRestClient>();
+        services.AddHttpClient<ISalesforceRestClient, SalesforceRestClient>((services, httpClient) =>
+        {
+            var option = services.GetRequiredService<ServiceOption>();
+            var authClient = services.GetRequiredService<SalesforceAuthClient>();
+
+            var authDetails = authClient.GetAuthToken(CancellationToken.None).Result.NotNull();
+            httpClient.BaseAddress = new Uri(authDetails.InstanceUrl + "/services/data/v56.0");
+        });
 
         services.AddHttpClient<SalesforceClient2>((services, httpClient) =>
         {
