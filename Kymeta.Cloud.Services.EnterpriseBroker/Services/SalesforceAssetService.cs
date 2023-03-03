@@ -6,7 +6,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.Services;
 
 public interface ISalesforceAssetService
 {
-    Task<(bool isSuccess, string error)> ProcessAssetUpdateEvent(SalesforceAssetUpdatedEventPayload payload);
+    Task<(bool isSuccess, string? error)> ProcessAssetUpdateEvent(SalesforceAssetUpdatedEventPayload payload);
 }
 
 public class SalesforceAssetService : ISalesforceAssetService
@@ -78,7 +78,13 @@ public class SalesforceAssetService : ISalesforceAssetService
             {
                 // fetch Original and Target Terminals by Salesforce Ids
                 var parentTerminals = _terminalsClient.GetTerminalsBySalesforceIds(new string[] { payload.PriorParentId, payload.ParentId }).Result;
-                // TODO: error handle in case parentTerminals call fails
+                // handle error if unable to fetch Terminals
+                if (string.IsNullOrEmpty(parentTerminals.error))
+                {
+                    var msg = $"Unable to fetch OSS Terminals due to error: {parentTerminals.error}";
+                    _logger.LogCritical(msg);
+                    return new ValueTuple<bool, string?>(false, msg);
+                }
 
                 // remove the component from the original Terminal
                 var isOriginalUpdated = UpdateTerminalHardware(parentTerminals, payload.PriorParentId, null, terminalHardwareProperty, payload.AssetId);
@@ -93,7 +99,13 @@ public class SalesforceAssetService : ISalesforceAssetService
             {
                 // fetch Target Terminals by Salesforce Id
                 var parentTerminals = _terminalsClient.GetTerminalsBySalesforceIds(new string[] { payload.ParentId }).Result;
-                // TODO: error handle in case parentTerminals call fails
+                // handle error if unable to fetch Terminals
+                if (string.IsNullOrEmpty(parentTerminals.error))
+                {
+                    var msg = $"Unable to fetch OSS Terminals due to error: {parentTerminals.error}";
+                    _logger.LogCritical(msg);
+                    return new ValueTuple<bool, string?>(false, msg);
+                }
                 var isUpdated = UpdateTerminalHardware(parentTerminals, payload.ParentId, payload.Serial, terminalHardwareProperty, payload.AssetId);
             }
         }
@@ -123,18 +135,18 @@ public class SalesforceAssetService : ISalesforceAssetService
         terminal.ComponentHistory ??= new List<ComponentHistoryRecord>();
 
         // find the matching history entry for the given component
-        var entryMatch = terminal.ComponentHistory
+        var historyMatch = terminal.ComponentHistory
             .Where(ch => ch.AssetId == assetId && !ch.RemovedOn.HasValue)
             .FirstOrDefault();
-        if (entryMatch == null)
+        if (historyMatch == null)
         {
-            // TODO: match not found... critical error
+            // TODO: match not found... critical error... who to alert?
             _logger.LogCritical($"Component History entry not found for asset '{assetId}'");
         }
         else
         {
             // set the RemovedOn value
-            entryMatch.RemovedOn = DateTime.UtcNow;
+            historyMatch.RemovedOn = DateTime.UtcNow;
         }
 
         // using reflection, update relevant hardware component value
