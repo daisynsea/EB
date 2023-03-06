@@ -22,10 +22,9 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
         public async Task GetOrderProducts_ForExistingOrder_RetrunsAllProducts()
         {
             var orderWith10ProductsId = "80163000002nGzAAAU";
-            var result = await _client.GetOrderProducts( orderWith10ProductsId, CancellationToken.None);
+            var result = await _salesforceRestClient.GetOrderProducts( orderWith10ProductsId, CancellationToken.None);
             result.Should().NotBeNullOrEmpty();
             result.Should().HaveCount(10);
-
         }
 
         [Fact]

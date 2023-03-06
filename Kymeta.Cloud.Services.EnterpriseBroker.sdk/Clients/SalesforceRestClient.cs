@@ -30,10 +30,15 @@ public class SalesforceRestClient : ISalesforceRestClient
 
     public async Task<List<OrderProduct>> GetOrderProducts(string orderKey, CancellationToken cancellationToken)
     {
-        HttpResponseMessage response = await _client.GetAsync($"{RequestUri}query?q={CreateQueryToGetProducts(orderKey)}", cancellationToken);
+        //var sfOrder = await new RestClient(_client)
+        //    .SetPath($"/query?q={CreateQueryToGetProducts(orderKey)}")
+        //    .SetLogger(_logger)
+        //    .GetAsync(cancellationToken)
+        //    .GetRequiredContent<SalesforceOrder>();
+        HttpResponseMessage response = await _client.GetAsync($"/query?q={CreateQueryToGetProducts(orderKey)}", cancellationToken);
         string content = await response.Content.ReadAsStringAsync(cancellationToken);
-        var lines = JsonConvert.DeserializeObject<SalesforceOrder>(content);
-        return lines.OrderProducts;
+        var sfOrder = JsonConvert.DeserializeObject<SalesforceOrder>(content);
+        return sfOrder.OrderProducts;
     }
 
     public async Task<SalesforceResponse<UpdateProductResponse>> SyncFromOracle(OracleSalesforceSyncRequest syncRequest, CancellationToken cancellationToken)
