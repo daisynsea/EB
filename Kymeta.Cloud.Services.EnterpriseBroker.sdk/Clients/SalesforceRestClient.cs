@@ -46,7 +46,7 @@ public class SalesforceRestClient : ISalesforceRestClient
     private string CreateQueryToGetProducts(string orderKey)
     {
         var fieldsToGet = "Id, Product_Code__c, Quantity, OrderItemNumber, OrderId, NEO_Sync_to_Oracle__c, UnitPrice";
-        var limitToUnsyncedOrders = " and NEO_Sync_to_Oracle__c=true";
-        return $"select {fieldsToGet} from OrderItem where OrderId='{orderKey}' {limitToUnsyncedOrders}";
+        var onlySynced = " and NEO_Sync_to_Oracle__c=true";
+        return $"select {fieldsToGet} from OrderItem where OrderId='{orderKey}' {onlySynced}";
     }
 }
