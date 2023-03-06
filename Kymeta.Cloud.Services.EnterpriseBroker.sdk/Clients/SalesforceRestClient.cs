@@ -13,7 +13,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients;
 
 public interface ISalesforceRestClient
 {
-    Task<List<OrderProduct>> GetOrderProducts(string orderNumber, CancellationToken cancellationToken);
+    Task<SalesOrderLineResponse> GetOrderProducts(string orderNumber, CancellationToken cancellationToken);
     Task<HttpStatusCode> SyncFromOracle( OracleSalesforceSyncRequest syncRequest, CancellationToken cancellationToken);
 }
 
@@ -21,7 +21,6 @@ public class SalesforceRestClient : ISalesforceRestClient
 {
     private readonly HttpClient _client;
     private readonly ILogger<ISalesforceRestClient> _logger;
-    private readonly string RequestUri = "/services/data/v56.0/";
 
     public SalesforceRestClient(HttpClient client, ILogger<ISalesforceRestClient> logger)
     {
@@ -29,21 +28,21 @@ public class SalesforceRestClient : ISalesforceRestClient
         _logger = logger.NotNull();
     }
 
-    public async Task<List<OrderProduct>> GetOrderProducts(string orderKey, CancellationToken cancellationToken)
+    public async Task<SalesOrderLineResponse> GetOrderProducts(string orderKey, CancellationToken cancellationToken)
     {
         var sfOrder = await new RestClient(_client)
-            .SetPath($"/query?q={CreateQueryToGetProducts(orderKey)}")
+            .SetPath($"query?q={CreateQueryToGetProducts(orderKey)}")
             .SetLogger(_logger)
             .GetAsync(cancellationToken)
-            .GetRequiredContent<SalesforceOrder>();
+            .GetRequiredContent<SalesOrderLineResponse>();
       
-        return sfOrder.OrderProducts;
+        return sfOrder;
     }
 
     public async Task<HttpStatusCode> SyncFromOracle(OracleSalesforceSyncRequest syncRequest, CancellationToken cancellationToken)
     {
         var response = await new RestClient(_client)
-        .SetPath($"{RequestUri}composite")
+        .SetPath("composite")
         .SetLogger(_logger)
         .GetAsync(cancellationToken);
         return response.HttpResponseMessage.StatusCode;
@@ -51,28 +50,11 @@ public class SalesforceRestClient : ISalesforceRestClient
 
     private string CreateQueryToGetProducts(string orderKey)
     {
-        var filedsToGet = @"Id, OrderId, Product_Code__c, Product2Id, IsDeleted, OriginalOrderItemId, Quantity, SBQQ__BillingFrequency__c,
-UnitPrice, NetPrice__c, Ship_Date__c, Oracle_Invoice__c";
-        //Number_of_Billing_Periods__c - error
-        //ShipToContactId - error
-        //Preferred_Contact_Method__c - error
-        //Shipping_Terms__c -- error
-        //Shipping_Details__c - error
-        //BillToAddress__c - error
-        // to be tested:
-        //Packing_Instructions__c, - error
-        //BillToContactId, - error
-        //Preferred_Contact_Method__c, - error
-        //SBQQ__PaymentTerm__c,- error
-        //Sync_Instructions__c , - error
-        //Approved__c, - error
-        //OrderNumber, - error
-        //Oracle_Invoice__c";
-        var limitToUnsyncedOrders = " and NEO_Sync_to_Oracle__c=false";
-        var query = $"select {filedsToGet} from OrderItem where orderId='{orderKey}' {limitToUnsyncedOrders}";
+        var filedsToGet = "Id, Product_Code__c, Quantity, OrderItemNumber, OrderId, NEO_Sync_to_Oracle__c, UnitPrice";
+        var limitToUnsyncedOrders = " and NEO_Sync_to_Oracle__c=true";
+        var query = $"select {filedsToGet} from OrderItem where OrderId='{orderKey}' {limitToUnsyncedOrders}";
         return query;
     }
 
 
-   
 }
