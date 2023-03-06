@@ -18,7 +18,7 @@ public class OracleSalesforceSyncRequest
 {
     public bool AlOrNone => true;
     public bool CollateSubrequests => true;
-    public IEnumerable<CompositeRequest> CompositeRequest { get; set; }
+    public List<CompositeRequest> CompositeRequest { get; set; } = new List<CompositeRequest>();
 }
 
 public class CompositeRequest
@@ -40,3 +40,4 @@ public class OracleOrderStatusSync
     public string NEO_Oracle_Fulfillment_Id__c { get; set; } // this is for product line order
     public string NEO_Oracle_Sales_Order_Line_Id__c { get; set; } // this is for product line order
 }
+

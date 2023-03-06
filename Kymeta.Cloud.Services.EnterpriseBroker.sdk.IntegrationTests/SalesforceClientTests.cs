@@ -31,26 +31,10 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
         {
             OracleResponse<GetOrderResponse> found = await _oracleRestClient.GetOrder(OrderUpdateExistsInOracle, default);
             Item foundPayload = found.Payload.FindLatestRevision();
-            var salesForceOracleSync = new OracleSalesforceSyncRequest()
-            {
-                CompositeRequest = new List<CompositeRequest>()
-                {
-                    new CompositeRequest()
-                    {
-                        Url = $"/services/data/v57.0/sobjects/order/80163000002n8hSAAQ",
-                        ReferenceId = "referenceId",
-                        Body = new OracleOrderStatusSync()
-                        {
-                            Oracle_SO__c = foundPayload.OrderNumber,
-                            Oracle_Status__c = IntegrationConstants.Activated,
-                            Oracle_Sync_Status__c = IntegrationConstants.Successful,
-                            NEO_Oracle_Integration_Error__c = IntegrationConstants.Clear,
-                            NEO_Oracle_Integration_Status__c = IntegrationConstants.Success,
-                            NEO_Oracle_Sales_Order_Id__c = foundPayload.HeaderId.ToString()
-                        }
-                    },
-                }, 
-            };
+            var salesForceOracleSync = OracleSalesforceSyncRequestBuilder.CreateRequest()
+                .WithSuccessfulOrder("80163000002n8hSAAQ", foundPayload.OrderNumber, foundPayload.HeaderId)
+                .Build();
+            
             var result = await _salesforceRestClient.SyncFromOracle(salesForceOracleSync, default);
             result.Should().Be(System.Net.HttpStatusCode.OK);
         }
