@@ -13,7 +13,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients;
 public interface ISalesforceRestClient
 {
     Task<List<OrderProduct>> GetOrderProducts(string orderNumber, CancellationToken cancellationToken);
-    Task<SalesforceResponse<UpdateProductResponse>> SyncFromOracle( OracleSalesforceSyncRequest syncRequest, CancellationToken cancellationToken);
+    Task<SalesforceResponse<UpdateProductResponse>?> SyncFromOracle( OracleSalesforceSyncRequest syncRequest, CancellationToken cancellationToken);
 }
 
 public class SalesforceRestClient : ISalesforceRestClient
