@@ -48,7 +48,7 @@ public class SalesforceRestClient : ISalesforceRestClient
     private string CreateQueryToGetProducts(string orderKey)
     {
         var filedsToGet = @"Id, OrderId, Product_Code__c, Product2Id, IsDeleted, OriginalOrderItemId, Quantity, SBQQ__BillingFrequency__c,
-UnitPrice, NetPrice__c, Ship_Date__c, Oracle_Invoice__c ";
+UnitPrice, NetPrice__c, Ship_Date__c, Oracle_Invoice__c";
         //Number_of_Billing_Periods__c - error
         //ShipToContactId - error
         //Preferred_Contact_Method__c - error
