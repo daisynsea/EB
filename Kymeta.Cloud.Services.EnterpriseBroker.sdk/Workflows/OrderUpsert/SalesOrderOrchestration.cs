@@ -36,21 +36,23 @@ public class SalesOrderOrchestration : TaskOrchestration<bool, string>
         try
         {
             SalesforceNeoApproveOrderModel eventData = input.ToObject<SalesforceNeoApproveOrderModel>().NotNull();
-
-            SalesOrderModel salesOrderModel = await context.ScheduleTask<SalesOrderModel>(typeof(GetSalesOrderLinesActivity), options, eventData);
             string? orderKey = eventData.MapToOracleCreateOrder().OrderKey;
+
             OracleResponse<GetOrderResponse> oracleOrderResponse = await context.ScheduleTask<OracleResponse<GetOrderResponse>>(typeof(GetOracleSalesOrderActivity), options, orderKey);
+            List<SalesOrderLineItems> salesforceOrderLines = await context.ScheduleTask<List<SalesOrderLineItems>>(typeof(GetSalesOrderLinesActivity), options, orderKey);
 
             if (!oracleOrderResponse.IsSuccessStatusCode())
             {
-                OracleSalesOrderResponseModel<CreateOrderResponse> response = await context.ScheduleTask<OracleSalesOrderResponseModel<CreateOrderResponse>>(typeof(OracleCreateOrderActivity), options, eventData.MapToOracleCreateOrder());
-                bool success = await context.ScheduleTask<bool>(typeof(SetSalesOrderWithOracleActivity), options, salesOrderModel); //fix
+                var orderToCreate = eventData.MapToOracleCreateOrderWithLines(salesforceOrderLines);
+                OracleSalesOrderResponseModel<CreateOrderResponse> response = await context.ScheduleTask<OracleSalesOrderResponseModel<CreateOrderResponse>>(typeof(OracleCreateOrderActivity), options,orderToCreate);
+                bool success = await context.ScheduleTask<bool>(typeof(SetSalesOrderWithOracleActivity), options, orderToCreate); //fix
             }
             else
             {
                 var orderLatestRevision = oracleOrderResponse.Payload.FindLatestRevision();
-                OracleSalesOrderResponseModel<UpdateOrderResponse> response = await context.ScheduleTask<OracleSalesOrderResponseModel<UpdateOrderResponse>>(typeof(UpdateOracleSalesOrderActivity), options, eventData.MapToOracleUpdateOrder(orderLatestRevision));
-                bool success = await context.ScheduleTask<bool>(typeof(SetSalesOrderWithOracleActivity), options, salesOrderModel); //fix
+                var orderToUpdate = eventData.MapToOracleUpdateOrder(orderLatestRevision); // add lines
+                OracleSalesOrderResponseModel<UpdateOrderResponse> response = await context.ScheduleTask<OracleSalesOrderResponseModel<UpdateOrderResponse>>(typeof(UpdateOracleSalesOrderActivity), options, );
+                bool success = await context.ScheduleTask<bool>(typeof(SetSalesOrderWithOracleActivity), options, orderToUpdate); //fix
             }
 
 

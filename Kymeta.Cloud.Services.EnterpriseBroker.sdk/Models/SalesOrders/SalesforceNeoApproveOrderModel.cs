@@ -22,6 +22,18 @@ public record SalesforceNeoApproveOrderModel
     {
         return Data.Payload.MapToOracleCreateOrder();
     }
+
+    public OracleCreateOrder MapToOracleCreateOrderWithLines(List<SalesOrderLineItems> salesforceOrderLines)
+    {
+        OracleCreateOrder order = Data.Payload.MapToOracleCreateOrder();
+        order.Lines = MapToOracleLines(salesforceOrderLines);
+        return order;
+    }
+
+    private IEnumerable<OrderLines> MapToOracleLines(List<SalesOrderLineItems> salesforceOrderLines) //FIXME: mappings need to be checked 
+    {
+        return salesforceOrderLines.Select(x => new OrderLines { OrderedQuantity = x.Quantity.ToString(), ProductNumber = x.Product_Code__c, OrderedUOM = x.UnitPrice.ToString() });
+    }
 }
 
 public record SalesforceNeoApproveOrderData
