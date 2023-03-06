@@ -11,11 +11,9 @@ public class SalesforceClient2
         loggerFactory.NotNull();
 
         Events = new SalesforceEventApi(client, loggerFactory.CreateLogger<SalesforceEventApi>());
-        SalesOrder = new SalesforceSalesOrderApi(client, loggerFactory.CreateLogger<SalesforceSalesOrderApi>());
         Invoice = new SalesforceInvoiceApi(client, loggerFactory.CreateLogger<SalesforceInvoiceApi>());
     }
 
     public SalesforceEventApi Events { get; }
-    public SalesforceSalesOrderApi SalesOrder { get; }
     public SalesforceInvoiceApi Invoice { get; }
 }
