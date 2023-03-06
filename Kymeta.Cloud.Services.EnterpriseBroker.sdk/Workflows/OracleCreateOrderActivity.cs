@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Workflows
 {
-    public class OracleCreateOrderActivity: AsyncTaskActivity<OracleCreateOrder, OracleSalesOrderResponseModel>
+    public class OracleCreateOrderActivity: AsyncTaskActivity<OracleCreateOrder, OracleSalesOrderResponseModel<CreateOrderResponse>>
     {
         private readonly IOracleRestClient _client;
         private readonly ILogger<UpdateOracleSalesOrderActivity> _logger;
@@ -18,7 +18,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Workflows
             _logger = logger;
         }
 
-        protected override async Task<OracleSalesOrderResponseModel> ExecuteAsync(TaskContext context, OracleCreateOrder input)
+        protected override async Task<OracleSalesOrderResponseModel<CreateOrderResponse>> ExecuteAsync(TaskContext context, OracleCreateOrder input)
         {
             _logger.LogInformation($" Oracle Order {JsonConvert.SerializeObject(input)}.");
 
@@ -27,18 +27,18 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Workflows
 
             if (orderResponse.IsSuccessStatusCode())
             {
-                return new OracleSalesOrderResponseModel
+                return new OracleSalesOrderResponseModel<CreateOrderResponse>
                 {
                     IntegrationStatus = IntegrationConstants.Success,
                     IntergrationError = IntegrationConstants.Clear,
-                    OracleSalesOrderId = orderResponse.Payload.HeaderId.ToString()
+                    ResponseModel = orderResponse.Payload
                 };
             }
-            return new OracleSalesOrderResponseModel
+            return new OracleSalesOrderResponseModel<CreateOrderResponse>
             {
                 IntegrationStatus = IntegrationConstants.Failure,
                 IntergrationError = orderResponse.ErrorMessage,
-                OracleSalesOrderId = input.OrderKey
+                ResponseModel = null
             };
         }
     }

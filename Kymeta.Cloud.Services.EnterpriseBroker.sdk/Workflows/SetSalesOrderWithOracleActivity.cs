@@ -1,16 +1,25 @@
 ﻿using DurableTask.Core;
+using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders;
+using Kymeta.Cloud.Services.Toolbox.Rest;
 using Microsoft.Extensions.Logging;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Workflows;
 
-public class SetSalesOrderWithOracleActivity : TaskActivity<OracleSalesOrderResponseModel, bool>
+public class SetSalesOrderWithOracleActivity : AsyncTaskActivity<OracleSalesforceSyncRequest, bool>
 {
     private readonly ILogger<SetSalesOrderWithOracleActivity> _logger;
-    public SetSalesOrderWithOracleActivity(ILogger<SetSalesOrderWithOracleActivity> logger) => _logger = logger;
+    private readonly ISalesforceRestClient _salesforceRestClient;
 
-    protected override bool Execute(TaskContext context, OracleSalesOrderResponseModel input)
+    public SetSalesOrderWithOracleActivity(ILogger<SetSalesOrderWithOracleActivity> logger, ISalesforceRestClient salesforceRestClient)
     {
-        throw new NotImplementedException();
+        _logger = logger;
+        _salesforceRestClient = salesforceRestClient;
+    }
+
+    protected override async Task<bool> ExecuteAsync(TaskContext context, OracleSalesforceSyncRequest input)
+    {
+        var response = await _salesforceRestClient.SyncFromOracle(input, default);
+        return response.IsSuccess();
     }
 }

@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Workflows;
 
-public class UpdateOracleSalesOrderActivity : AsyncTaskActivity<OracleUpdateOrder, OracleSalesOrderResponseModel>
+public class UpdateOracleSalesOrderActivity : AsyncTaskActivity<OracleUpdateOrder, OracleSalesOrderResponseModel<UpdateOrderResponse>>
 {
     private readonly ILogger<UpdateOracleSalesOrderActivity> _logger;
     private readonly IOracleRestClient _oracleRestClient;
@@ -17,7 +17,7 @@ public class UpdateOracleSalesOrderActivity : AsyncTaskActivity<OracleUpdateOrde
         _oracleRestClient = oracleRestClient;
     }
 
-    protected override async Task<OracleSalesOrderResponseModel> ExecuteAsync(TaskContext context, OracleUpdateOrder input)
+    protected override async Task<OracleSalesOrderResponseModel<UpdateOrderResponse>> ExecuteAsync(TaskContext context, OracleUpdateOrder input)
     {
         if (!input.IsValid())
         {
@@ -27,19 +27,19 @@ public class UpdateOracleSalesOrderActivity : AsyncTaskActivity<OracleUpdateOrde
         OracleResponse<UpdateOrderResponse> orderResponse = await _oracleRestClient.UpdateOrder(input, default);
         if (orderResponse.IsSuccessStatusCode())
         {
-            return new OracleSalesOrderResponseModel
+            return new OracleSalesOrderResponseModel<UpdateOrderResponse>
             {
                 IntegrationStatus = IntegrationConstants.Success,
                 IntergrationError = IntegrationConstants.Clear,
-                OracleSalesOrderId = orderResponse.Payload.HeaderId.ToString()
+                ResponseModel = orderResponse.Payload
             };
         }
 
-        return new OracleSalesOrderResponseModel
+        return new OracleSalesOrderResponseModel<UpdateOrderResponse>
         {
             IntegrationStatus = IntegrationConstants.Failure,
             IntergrationError = orderResponse.ErrorMessage,
-            OracleSalesOrderId = input.OrderKey
+            ResponseModel = null
         };
     }
 
