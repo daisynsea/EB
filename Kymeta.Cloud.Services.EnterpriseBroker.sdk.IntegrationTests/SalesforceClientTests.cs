@@ -2,6 +2,7 @@ using FluentAssertions;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders;
+using StackExchange.Redis;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
 {
@@ -20,11 +21,24 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
         [Fact]
         public async Task GetOrderProducts_ForExistingOrder_RetrunsAllProducts()
         {
-            var orderWith10ProductsId = "80163000002nGUMAA2";
-            var result = await _salesforceRestClient.GetOrderProducts( orderWith10ProductsId, CancellationToken.None);
+            var orderWith4ProductsId = "80163000002nGUMAA2";
+            var result = await _salesforceRestClient.GetOrderProducts( orderWith4ProductsId, CancellationToken.None);
             result.Should().NotBeNull();
             result.TotalSize.Should().Be(4);
+
+            result.Records.Should().NotContain( x=>x.OrderId != orderWith4ProductsId);
+            result.Records.Should().NotContain(x => x.NEO_Sync_to_Oracle__c  == false);
         }
+
+
+        [Fact]
+        public async Task GetOrderProducts_ForNonExistingOrder_RetrunsError()
+        {
+            var noOrder = "nope";
+            Func<Task> act = async () => { await _salesforceRestClient.GetOrderProducts(noOrder, CancellationToken.None); };
+            await act.Should().ThrowAsync<HttpRequestException>();
+        }
+
 
         [Fact]
         public async Task SyncFromOracle_UpdatedOrder_RetrunsSuccess()
