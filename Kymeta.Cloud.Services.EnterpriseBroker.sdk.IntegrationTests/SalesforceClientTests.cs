@@ -1,6 +1,5 @@
 using FluentAssertions;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients;
-using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients.Salesforce;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models;
 using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders;
 
