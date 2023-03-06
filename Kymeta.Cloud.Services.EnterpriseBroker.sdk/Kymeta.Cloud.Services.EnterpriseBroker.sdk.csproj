@@ -8,8 +8,11 @@
 
     <ItemGroup>
       <Compile Remove="Extensions\**" />
+      <Compile Remove="Workflows\SalesOrder\**" />
       <EmbeddedResource Remove="Extensions\**" />
+      <EmbeddedResource Remove="Workflows\SalesOrder\**" />
       <None Remove="Extensions\**" />
+      <None Remove="Workflows\SalesOrder\**" />
     </ItemGroup>
 
     <ItemGroup>
@@ -28,10 +31,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Toolbox\Toolbox.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Workflows\SalesOrder\" />
     </ItemGroup>
 
 </Project>
