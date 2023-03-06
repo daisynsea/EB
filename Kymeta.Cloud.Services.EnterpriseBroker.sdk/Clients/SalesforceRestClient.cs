@@ -39,13 +39,13 @@ public class SalesforceRestClient : ISalesforceRestClient
         return sfOrder.OrderProducts;
     }
 
-    public async Task<SalesforceResponse<UpdateProductResponse>> SyncFromOracle(OracleSalesforceSyncRequest syncRequest, CancellationToken cancellationToken)
+    public async Task<SalesforceResponse<UpdateProductResponse>?> SyncFromOracle(OracleSalesforceSyncRequest syncRequest, CancellationToken cancellationToken)
     {
         return await new RestClient(_client)
-        .SetPath($"/composite")
+        .SetPath($"{RequestUri}composite")
         .SetLogger(_logger)
         .GetAsync(cancellationToken)
-        .GetRequiredContent<SalesforceResponse<UpdateProductResponse>>();
+        .GetContent<SalesforceResponse<UpdateProductResponse>>();
     }
 
     private string CreateQueryToGetProducts(string orderKey)

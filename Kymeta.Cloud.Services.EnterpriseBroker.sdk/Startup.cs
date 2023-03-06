@@ -74,8 +74,9 @@ public static class Startup
             var authClient = services.GetRequiredService<SalesforceAuthClient>();
 
             var authDetails = authClient.GetAuthToken(CancellationToken.None).Result.NotNull();
-            httpClient.BaseAddress = new Uri(authDetails.InstanceUrl + "/services/data/v56.0");
-        });
+            httpClient.BaseAddress = new Uri(authDetails.InstanceUrl + option.Salesforce.BasePath);
+        })
+        .AddHttpMessageHandler<SalesforceAccessTokenHandler>(); 
 
         services.AddHttpClient<SalesforceClient2>((services, httpClient) =>
         {

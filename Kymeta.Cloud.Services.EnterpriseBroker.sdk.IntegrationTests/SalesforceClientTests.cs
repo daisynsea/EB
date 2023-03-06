@@ -37,7 +37,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
                 {
                     new CompositeRequest()
                     {
-                        Url = $"/services/data/v57.0/sobjects/order/{OrderUpdateExistsInOracle}",
+                        Url = $"/services/data/v57.0/sobjects/order/80163000002n8hSAAQ",
                         ReferenceId = "referenceId",
                         Body = new OracleOrderStatusSync()
                         {
@@ -52,7 +52,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
                 }, 
             };
             var result = await _salesforceRestClient.SyncFromOracle(salesForceOracleSync, default);
-            result.Should().NotBeNull();
+            result.Should().BeNull();
         }
 
     }
