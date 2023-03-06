@@ -1,12 +1,7 @@
-﻿
-using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.Invoice;
-using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.Salesforce;
-using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders;
+﻿using Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders;
 using Kymeta.Cloud.Services.Toolbox.Rest;
 using Kymeta.Cloud.Services.Toolbox.Tools;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System.Net;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients;
@@ -14,7 +9,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients;
 public interface ISalesforceRestClient
 {
     Task<SalesOrderLineResponse> GetOrderProducts(string orderNumber, CancellationToken cancellationToken);
-    Task<HttpStatusCode> SyncFromOracle( OracleSalesforceSyncRequest syncRequest, CancellationToken cancellationToken);
+    Task<HttpStatusCode> SyncFromOracle(OracleSalesforceSyncRequest syncRequest, CancellationToken cancellationToken);
 }
 
 public class SalesforceRestClient : ISalesforceRestClient
@@ -35,7 +30,7 @@ public class SalesforceRestClient : ISalesforceRestClient
             .SetLogger(_logger)
             .GetAsync(cancellationToken)
             .GetRequiredContent<SalesOrderLineResponse>();
-      
+
         return sfOrder;
     }
 
@@ -54,6 +49,4 @@ public class SalesforceRestClient : ISalesforceRestClient
         var limitToUnsyncedOrders = " and NEO_Sync_to_Oracle__c=true";
         return $"select {fieldsToGet} from OrderItem where OrderId='{orderKey}' {limitToUnsyncedOrders}";
     }
-
-
 }
