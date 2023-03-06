@@ -7,13 +7,14 @@ using Kymeta.Cloud.Services.Toolbox.Tools;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Net;
 
 namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Clients;
 
 public interface ISalesforceRestClient
 {
     Task<List<OrderProduct>> GetOrderProducts(string orderNumber, CancellationToken cancellationToken);
-    Task<SalesforceResponse<UpdateProductResponse>?> SyncFromOracle( OracleSalesforceSyncRequest syncRequest, CancellationToken cancellationToken);
+    Task<HttpStatusCode> SyncFromOracle( OracleSalesforceSyncRequest syncRequest, CancellationToken cancellationToken);
 }
 
 public class SalesforceRestClient : ISalesforceRestClient
@@ -39,13 +40,13 @@ public class SalesforceRestClient : ISalesforceRestClient
         return sfOrder.OrderProducts;
     }
 
-    public async Task<SalesforceResponse<UpdateProductResponse>?> SyncFromOracle(OracleSalesforceSyncRequest syncRequest, CancellationToken cancellationToken)
+    public async Task<HttpStatusCode> SyncFromOracle(OracleSalesforceSyncRequest syncRequest, CancellationToken cancellationToken)
     {
-        return await new RestClient(_client)
+        var response = await new RestClient(_client)
         .SetPath($"{RequestUri}composite")
         .SetLogger(_logger)
-        .GetAsync(cancellationToken)
-        .GetContent<SalesforceResponse<UpdateProductResponse>>();
+        .GetAsync(cancellationToken);
+        return response.HttpResponseMessage.StatusCode;
     }
 
     private string CreateQueryToGetProducts(string orderKey)

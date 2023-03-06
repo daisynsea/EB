@@ -52,7 +52,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
                 }, 
             };
             var result = await _salesforceRestClient.SyncFromOracle(salesForceOracleSync, default);
-            result.Should().BeNull();
+            result.Should().Be(System.Net.HttpStatusCode.OK);
         }
 
     }
