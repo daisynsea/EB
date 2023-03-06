@@ -14,14 +14,14 @@ public class SubscriptionEventListener : ISubscriptionEventListener
     private readonly IConfiguration _config;
     private readonly ILogger<SubscriptionEventListener> _logger;
     private readonly ICacheRepository _cacheRepo;
-    private readonly ITerminalsClient _terminalsClient;
+    private readonly ISalesforceSubscriptionService _salesforceSubscriptionService;
 
-    public SubscriptionEventListener(IConfiguration config, ILogger<SubscriptionEventListener> logger, ICacheRepository cacheRepo, ITerminalsClient terminalsClient)
+    public SubscriptionEventListener(IConfiguration config, ILogger<SubscriptionEventListener> logger, ICacheRepository cacheRepo, ISalesforceSubscriptionService salesforceSubscriptionService)
     {
         _config = config;
         _logger = logger;
         _cacheRepo = cacheRepo;
-        _terminalsClient = terminalsClient;
+        _salesforceSubscriptionService = salesforceSubscriptionService;
     }
 
     /// <summary>

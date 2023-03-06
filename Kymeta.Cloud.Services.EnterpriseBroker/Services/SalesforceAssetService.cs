@@ -11,11 +11,13 @@ public interface ISalesforceAssetService
 
 public class SalesforceAssetService : ISalesforceAssetService
 {
+    public readonly IConfiguration _config;
     public readonly ILogger<SalesforceAssetService> _logger;
     public readonly ITerminalsClient _terminalsClient;
 
-    public SalesforceAssetService(ILogger<SalesforceAssetService> logger, ITerminalsClient terminalsClient)
+    public SalesforceAssetService(IConfiguration config, ILogger<SalesforceAssetService> logger, ITerminalsClient terminalsClient)
     {
+        _config = config;
         _logger = logger;
         _terminalsClient = terminalsClient;
     }
@@ -23,7 +25,7 @@ public class SalesforceAssetService : ISalesforceAssetService
     public async Task<(bool isSuccess, string? error)> ProcessAssetUpdateEvent(SalesforceAssetUpdatedEventPayload payload)
     {
         // isolate the product family
-        var productFamilyLower = payload.ProductFamily.ToLower();
+        var productFamilyLower = payload.ProductFamily?.ToLower();
         // use ProductFamily to determine if Terminal or Component
         if (productFamilyLower == "terminal") // asset is a Terminal
         {
@@ -58,6 +60,14 @@ public class SalesforceAssetService : ISalesforceAssetService
         }
         else if (productFamilyLower == "components") // asset is a hardware component
         {
+            var parentProductCode = payload.ParentProductCode?.ToLower();
+            if (string.IsNullOrEmpty(parentProductCode))
+            {
+                var message = $"Component Asset is missing parent Terminal Asset.";
+                _logger.LogCritical(message);
+                return new ValueTuple<bool, string?>(false, message);
+            }
+
             // fetch Product Types from OSS data store (via Terminals)
             var productInfoResult = _terminalsClient.GetProductTypes().Result;
             // isolate a match based on the payload of the event message
@@ -69,8 +79,6 @@ public class SalesforceAssetService : ISalesforceAssetService
                 _logger.LogCritical(message);
                 return new ValueTuple<bool, string?>(false, message);
             }
-            // declare the fully qualified property name of the related hardware component
-            var terminalHardwareProperty = $"Hardware.{productType.BaseProperty}.{productType.TargetProperty}";
             var isTargetUpdated = false;
 
             // check to see if the Parent of the component was modified
@@ -87,10 +95,10 @@ public class SalesforceAssetService : ISalesforceAssetService
                 }
 
                 // remove the component from the original Terminal
-                var isOriginalUpdated = UpdateTerminalHardware(parentTerminals, payload.PriorParentId, null, terminalHardwareProperty, payload.AssetId);
+                var isOriginalUpdated = UpdateTerminalHardware(parentTerminals, payload.PriorParentId, null, productType, payload.AssetId);
 
                 // isolate the 'Target' Terminal for which to set the hardware component
-                isTargetUpdated = UpdateTerminalHardware(parentTerminals, payload.ParentId, payload.Serial, terminalHardwareProperty, payload.AssetId);
+                isTargetUpdated = UpdateTerminalHardware(parentTerminals, payload.ParentId, payload.Serial, productType, payload.AssetId);
             }
 
             // check to see if Serial was modified
@@ -106,53 +114,75 @@ public class SalesforceAssetService : ISalesforceAssetService
                     _logger.LogCritical(msg);
                     return new ValueTuple<bool, string?>(false, msg);
                 }
-                var isUpdated = UpdateTerminalHardware(parentTerminals, payload.ParentId, payload.Serial, terminalHardwareProperty, payload.AssetId);
+                var isUpdated = UpdateTerminalHardware(parentTerminals, payload.ParentId, payload.Serial, productType, payload.AssetId);
             }
         }
         else
         {
-            // TODO: throw error? do nothing?
+            // log warning that we do not handle the provided Product Family
             var message = $"Product Family not recognized.";
-            _logger.LogCritical(message);
+            _logger.LogWarning(message);
             return new ValueTuple<bool, string?>(false, message);
         }
 
         return new ValueTuple<bool, string?>(true, null);
     }
 
-    private bool UpdateTerminalHardware((TerminalsResponse res, string error) parentTerminals, string parentId, string componentValue, string terminalHardwareProperty, string assetId)
+    private bool UpdateTerminalHardware((TerminalsResponse res, string error) parentTerminals, string? parentId, string? componentValue, ProductType productType, string assetId)
     {
+        // declare the fully qualified property name of the related hardware component
+        var terminalHardwareProperty = $"Hardware.{productType.BaseProperty}.{productType.TargetProperty}";
         // isolate the Terminal for which to set the hardware component
         var terminal = parentTerminals.res?.Items?.FirstOrDefault(i => i.SalesforceAssetId == parentId);
         if (terminal == null)
         {
             // TODO: Terminal not found - critical error?
-            _logger.LogCritical($"Terminal not found. Salesforce Id '{parentId}'");
+            _logger.LogCritical(message: $"Terminal not found. Salesforce Id '{parentId}'");
             return false;
         }
 
         // compount assignment to ensure a history has been initilaized on the Terminal
         terminal.ComponentHistory ??= new List<ComponentHistoryRecord>();
 
-        // find the matching history entry for the given component
-        var historyMatch = terminal.ComponentHistory
-            .Where(ch => ch.AssetId == assetId && !ch.RemovedOn.HasValue)
-            .FirstOrDefault();
-        if (historyMatch == null)
+        // ComponentHistory only applies to Antenna, HybridRouter, BUC, and Leo/GeoModem
+        // fetch qualified types from config
+        var qualifiedTypesFromConfig = _config["ComponentHistory:QualifiedTypes"];
+        if (string.IsNullOrEmpty(qualifiedTypesFromConfig))
         {
-            // TODO: match not found... critical error... who to alert?
-            _logger.LogCritical($"Component History entry not found for asset '{assetId}'");
+            _logger.LogWarning("Config `ComponentHistory:QualifiedTypes` is not defined.");
+            return false;
         }
-        else
+
+        var qualifiedComponentHistoryTypes = qualifiedTypesFromConfig.Trim().Split('|');
+        var isComponentHistoryQualified = qualifiedComponentHistoryTypes.Contains($"{productType.BaseProperty}.{productType.TargetProperty}");
+        // if asset Product Type is qualified we need to maintain the ComponentHistory
+        if (isComponentHistoryQualified)
         {
-            // set the RemovedOn value
-            historyMatch.RemovedOn = DateTime.UtcNow;
+            
+            
+            // TODO: need to look up by terminal KPC hardware model... model is critical to history records
+
+
+            // find the matching history entry for the given component
+            var historyMatch = terminal.ComponentHistory
+                .Where(ch => ch.Serial == componentValue && !ch.RemovedOn.HasValue) // TODO: need "model" condition as well here
+                .FirstOrDefault();
+            if (historyMatch == null)
+            {
+                // TODO: match not found... critical error... who to alert?
+                _logger.LogCritical($"Component History entry not found for asset '{assetId}'");
+            }
+            else
+            {
+                // set the RemovedOn value
+                historyMatch.RemovedOn = DateTime.UtcNow;
+            }
         }
 
         // using reflection, update relevant hardware component value
         SetProperty(terminalHardwareProperty, terminal, componentValue);
         // only add history entry if a component value is present
-        if (!string.IsNullOrEmpty(componentValue))
+        if (isComponentHistoryQualified && !string.IsNullOrEmpty(componentValue))
         {
             // update ComponentHistory to add new entry
             terminal.ComponentHistory.Add(new ComponentHistoryRecord()
@@ -160,7 +190,7 @@ public class SalesforceAssetService : ISalesforceAssetService
                 AddedOn = DateTime.UtcNow,
                 AssetId = assetId,
                 Serial = componentValue,
-                Type = terminalHardwareProperty
+                Type = $"{productType.BaseProperty}.{productType.TargetProperty}"
             });
         }
         // update the Terminal object

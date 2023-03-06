@@ -15,15 +15,13 @@ public class AssetEventListener : IAssetEventListener
     private readonly IConfiguration _config;
     private readonly ILogger<AssetEventListener> _logger;
     private readonly ICacheRepository _cacheRepo;
-    private readonly ITerminalsClient _terminalsClient;
     private readonly ISalesforceAssetService _sfAssetService;
 
-    public AssetEventListener(IConfiguration config, ILogger<AssetEventListener> logger, ICacheRepository cacheRepo, ITerminalsClient terminalsClient, ISalesforceAssetService sfAssetService)
+    public AssetEventListener(IConfiguration config, ILogger<AssetEventListener> logger, ICacheRepository cacheRepo, ISalesforceAssetService sfAssetService)
     {
         _config = config;
         _logger = logger;
         _cacheRepo = cacheRepo;
-        _terminalsClient = terminalsClient;
         _sfAssetService = sfAssetService;
     }
 

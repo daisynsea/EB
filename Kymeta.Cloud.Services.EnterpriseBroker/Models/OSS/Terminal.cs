@@ -159,6 +159,7 @@ public class ComponentHistoryRecord
     public string? Serial { get; set; }
     public string? Type { get; set; }
     public string? AssetId { get; set; }
+    public string? Model { get; set; }
     public DateTime? AddedOn { get; set; }
     public DateTime? RemovedOn { get; set; }
 }
