@@ -51,7 +51,7 @@ public class SalesOrderOrchestration : TaskOrchestration<bool, string>
             {
                 var orderLatestRevision = oracleOrderResponse.Payload.FindLatestRevision();
                 var orderToUpdate = eventData.MapToOracleUpdateOrder(orderLatestRevision); // add lines
-                OracleSalesOrderResponseModel<UpdateOrderResponse> response = await context.ScheduleTask<OracleSalesOrderResponseModel<UpdateOrderResponse>>(typeof(UpdateOracleSalesOrderActivity), options, );
+                OracleSalesOrderResponseModel<UpdateOrderResponse> response = await context.ScheduleTask<OracleSalesOrderResponseModel<UpdateOrderResponse>>(typeof(UpdateOracleSalesOrderActivity), options, orderToUpdate);
                 bool success = await context.ScheduleTask<bool>(typeof(SetSalesOrderWithOracleActivity), options, orderToUpdate); //fix
             }
 
