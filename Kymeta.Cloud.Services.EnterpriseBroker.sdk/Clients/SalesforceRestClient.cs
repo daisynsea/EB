@@ -30,14 +30,12 @@ public class SalesforceRestClient : ISalesforceRestClient
 
     public async Task<List<OrderProduct>> GetOrderProducts(string orderKey, CancellationToken cancellationToken)
     {
-        //var sfOrder = await new RestClient(_client)
-        //    .SetPath($"/query?q={CreateQueryToGetProducts(orderKey)}")
-        //    .SetLogger(_logger)
-        //    .GetAsync(cancellationToken)
-        //    .GetRequiredContent<SalesforceOrder>();
-        HttpResponseMessage response = await _client.GetAsync($"/query?q={CreateQueryToGetProducts(orderKey)}", cancellationToken);
-        string content = await response.Content.ReadAsStringAsync(cancellationToken);
-        var sfOrder = JsonConvert.DeserializeObject<SalesforceOrder>(content);
+        var sfOrder = await new RestClient(_client)
+            .SetPath($"/query?q={CreateQueryToGetProducts(orderKey)}")
+            .SetLogger(_logger)
+            .GetAsync(cancellationToken)
+            .GetRequiredContent<SalesforceOrder>();
+      
         return sfOrder.OrderProducts;
     }
 
