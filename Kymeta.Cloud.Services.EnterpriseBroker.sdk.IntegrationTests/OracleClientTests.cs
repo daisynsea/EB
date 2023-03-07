@@ -137,7 +137,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
         }
 
         [Fact]
-        public async Task CreateOrder_ValidOrder_Retrunsuccess()
+        public async Task CreateOrder_ValidOrder_ReturnsSuccess()
         {
             Random random = new Random();
 
@@ -185,7 +185,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
         }
 
         [Fact]
-        public async Task CreateOrder_AlredyExistingOrder_RetrunsBadRequest()
+        public async Task CreateOrder_AlreadyExistingOrder_ReturnsBadRequest()
         {
             var order = new OracleCreateOrderBuilder()
                 .WithSourceTransactionNumber("0047355")
