@@ -23,16 +23,36 @@ public record SalesforceNeoApproveOrderModel
         return Data.Payload.MapToOracleCreateOrder();
     }
 
-    public OracleCreateOrder MapToOracleCreateOrderWithLines(List<SalesOrderLineItems> salesforceOrderLines)
+    public OracleCreateOrder MapToOracleCreateOrderWithLines(IEnumerable<SalesOrderLineItems> salesforceOrderLines)
     {
         OracleCreateOrder order = Data.Payload.MapToOracleCreateOrder();
         order.Lines = MapToOracleLines(salesforceOrderLines);
         return order;
     }
 
-    private IEnumerable<OrderLines> MapToOracleLines(List<SalesOrderLineItems> salesforceOrderLines) //FIXME: mappings need to be checked 
+    private IEnumerable<OrderLines> MapToOracleLines(IEnumerable<SalesOrderLineItems> salesforceOrderLines)
     {
-        return salesforceOrderLines.Select(x => new OrderLines { OrderedQuantity = x.Quantity.ToString(), ProductNumber = x.Product_Code__c, OrderedUOM = x.UnitPrice.ToString() });
+        return salesforceOrderLines.Select(x => new OrderLines
+        {
+            ProductNumber = x.Product_Code__c,
+            OrderedQuantity = x.Quantity, 
+            SourceTransactionLineId = x.Id,
+            SourceTransactionLineNumber = x.OrderItemNumber,
+            SourceTransactionScheduleId = x.Id,
+            SourceScheduleNumber = x.OrderItemNumber,
+            TransactionCategoryCode = "ORDER",
+            TransactionLineType = "Buy",
+            OrderedUOM = "EA",
+            AdditionalInformation = new AdditionalInformation()
+            {
+                FulfillLineEffBSFDCprivateVO = new FullfillLine(){ContextCode = "SFDC", sfOrderProduct = x.Id}
+            },
+            ManualPriceAdjustments = new ManualPriceAdjustments()
+            {
+                AdjustmentAmount = x.UnitPrice,
+                SourceManualPriceAdjustmentId = x.Id
+            }
+        });
     }
 }
 

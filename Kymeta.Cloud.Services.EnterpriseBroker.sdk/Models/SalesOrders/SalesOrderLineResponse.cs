@@ -3,7 +3,7 @@ public class SalesOrderLineResponse
 {
     public int TotalSize { get; set; }
     public bool Done { get; set; }
-    public SalesOrderLineItems[] Records { get; set; }
+    public IEnumerable<SalesOrderLineItems> Records { get; set; }
 }
 
 public class SalesOrderLineItems

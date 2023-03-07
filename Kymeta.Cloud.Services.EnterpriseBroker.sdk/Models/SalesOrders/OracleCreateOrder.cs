@@ -32,15 +32,40 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders
 
     public record OrderLines
     {
+        public string? ProductNumber { get; set; }
+        public float? OrderedQuantity { get; set; }
         public string? SourceTransactionLineId { get; set; }
         public string? SourceTransactionLineNumber { get; set; }
         public string? SourceTransactionScheduleId { get; set; }
         public string? SourceScheduleNumber { get; set; }
         public string? TransactionCategoryCode { get; set; }
         public string? TransactionLineType { get; set; }
-        public string? ProductNumber { get; set; }
-        public string? OrderedQuantity { get; set; }
         public string? OrderedUOM { get; set; }
+        public AdditionalInformation? AdditionalInformation { get; set; }
+        public ManualPriceAdjustments? ManualPriceAdjustments { get; set; }
+
+    }
+
+    public record ManualPriceAdjustments
+    {
+        public string? Reason => "Sales negotiation";
+        public float?  AdjustmentAmount { get; set; }
+        public string? AdjustmentType => "Price override";
+        public string? ChargeDefinition => "Sale Price";
+        public string? AdjustmentElementBasisName => "Your Price";
+        public string? ChargeRollupFlag => "FALSE";
+        public string? Comments => "salesforce CPQ driven pricing";
+        public string?  SourceManualPriceAdjustmentId { get; set; }
+    }
+
+    public record AdditionalInformation
+    {
+        public FullfillLine?  FulfillLineEffBSFDCprivateVO { get; set; }
+    }
+    public record FullfillLine
+    {
+        public string? ContextCode { get; set; }
+        public string? sfOrderProduct { get; set; }
     }
 
     public record CustomerBill
