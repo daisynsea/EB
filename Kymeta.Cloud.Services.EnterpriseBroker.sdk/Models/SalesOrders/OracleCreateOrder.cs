@@ -41,8 +41,8 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.Models.SalesOrders
         public string? TransactionCategoryCode { get; set; }
         public string? TransactionLineType { get; set; }
         public string? OrderedUOM { get; set; }
-        public AdditionalInformation? AdditionalInformation { get; set; }
-        public ManualPriceAdjustments? ManualPriceAdjustments { get; set; }
+     //   public AdditionalInformation? AdditionalInformation { get; set; }
+     //  public ManualPriceAdjustments? ManualPriceAdjustments { get; set; }
 
     }
 

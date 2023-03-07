@@ -43,15 +43,15 @@ public record SalesforceNeoApproveOrderModel
             TransactionCategoryCode = "ORDER",
             TransactionLineType = "Buy",
             OrderedUOM = "EA",
-            AdditionalInformation = new AdditionalInformation()
-            {
-                FulfillLineEffBSFDCprivateVO = new FullfillLine(){ContextCode = "SFDC", sfOrderProduct = x.Id}
-            },
-            ManualPriceAdjustments = new ManualPriceAdjustments()
-            {
-                AdjustmentAmount = x.UnitPrice,
-                SourceManualPriceAdjustmentId = x.Id
-            }
+            // AdditionalInformation = new AdditionalInformation()
+            // {
+            //     FulfillLineEffBSFDCprivateVO = new FullfillLine(){ContextCode = "SFDC", sfOrderProduct = x.Id}
+            // },
+            // ManualPriceAdjustments = new ManualPriceAdjustments()
+            // {
+            //     AdjustmentAmount = x.UnitPrice,
+            //     SourceManualPriceAdjustmentId = x.Id
+            // }
         });
     }
 }

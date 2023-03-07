@@ -170,13 +170,15 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
                         TransactionCategoryCode = "ORDER",
                         TransactionLineType = "Buy",
                         ProductNumber = "U8911-11113-0",
-                        OrderedQuantity = "80",
-                        OrderedUOM = "EA"
+                        OrderedQuantity = 80,
+                        OrderedUOM = "EA",
+                //        AdditionalInformation = new AdditionalInformation(),
+                       // ManualPriceAdjustments = new ManualPriceAdjustments()
                     }
                  })
                  .Build();
 
-            var result = await _client.CreateOrder(order, CancellationToken.None);
+            OracleResponse<CreateOrderResponse> result = await _client.CreateOrder(order, CancellationToken.None);
             result.StatusCode.Should().Be(System.Net.HttpStatusCode.Created);
             result.Content.Should().NotBeNull();
             result.Content.ToString().Should().Contain("\"MessageText\" : \"The application successfully imported the sales order.\"");
@@ -216,8 +218,8 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
                         TransactionCategoryCode = "ORDER",
                         TransactionLineType = "Buy",
                         ProductNumber = "U8911-11113-0",
-                        OrderedQuantity = "80",
-                        OrderedUOM = "EA"
+                        OrderedQuantity = 80,
+                        OrderedUOM = "EA",
                     },
                     new OrderLines
                     {
@@ -228,7 +230,7 @@ namespace Kymeta.Cloud.Services.EnterpriseBroker.sdk.IntegrationTests
                         TransactionCategoryCode = "ORDER",
                         TransactionLineType = "Buy",
                         ProductNumber = "U8911-11113-0",
-                        OrderedQuantity = "1",
+                        OrderedQuantity = 1,
                         OrderedUOM = "EA"
                     }
                 })
